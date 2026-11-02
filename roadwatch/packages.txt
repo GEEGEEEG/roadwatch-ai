@@ -1,0 +1,6 @@
+# packages.txt — apt packages cài bởi Streamlit Community Cloud trước pip
+# opencv-python-headless không cần libgl1, nhưng cần các lib dưới:
+libglib2.0-0
+libgomp1
+# libGL.so (chỉ cần nếu quay về opencv-python không-headless):
+# libgl1

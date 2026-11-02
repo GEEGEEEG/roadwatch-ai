@@ -1,0 +1,47 @@
+# ── Streamlit Community Cloud requirements ─────────────────────────────────
+# pip install -r requirements.txt
+#
+# PyTorch CPU-only: đặt --extra-index-url vào pip.conf / Dockerfile,
+# hoặc dùng file pip.conf riêng (xem ghi chú bên dưới).
+# Trên Community Cloud KHÔNG đặt --extra-index-url trực tiếp trong file này
+# vì pip hiện tại bỏ qua nó khi đọc requirements.txt. Thay vào đó ta ghim
+# torch cpu wheel qua URL đầy đủ (xem DEPLOY.md) hoặc để pip tự chọn.
+
+# -- Core AI / CV --
+ultralytics>=8.3,<9
+# Dùng headless để bỏ phụ thuộc GUI (libGL, libGTK); đủ cho xử lý ảnh/video
+opencv-python-headless>=4.9,<5
+
+# -- Web framework --
+streamlit>=1.40,<2
+
+# -- Maps --
+folium>=0.16,<1
+streamlit-folium>=0.20,<1
+
+# -- Browser GPS --
+streamlit-js-eval>=0.1.7
+
+# -- Data --
+pandas>=2.2,<3
+numpy>=1.26,<3
+
+# -- Image --
+pillow>=10,<12
+
+# -- PDF / QR --
+reportlab>=4.0,<5
+qrcode>=7.4,<9
+
+# -- AI narrative (tùy chọn) --
+google-genai>=1.0,<2
+
+# -- Google Drive sync (tùy chọn, kích hoạt qua GDRIVE_FOLDER_ID trong Secrets) --
+google-api-python-client>=2.100,<3
+google-auth>=2.20,<3
+
+# -- PyTorch CPU-only (tránh CUDA build ~2-3 GB trên Community Cloud) --
+# pip >= 23 hỗ trợ --extra-index-url trong requirements.txt
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.2,<3
+torchvision>=0.17,<1
