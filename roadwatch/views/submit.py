@@ -1,15 +1,17 @@
 import io
 from datetime import datetime
 
+import folium
 import streamlit as st
 from PIL import Image
+from streamlit_folium import st_folium
 
 from core import db
-from core.constants import LEVELS, ROAD_TYPES
+from core.constants import LEVELS, ROAD_TYPES, STATUS_LABELS
 from core.detector import extract_exif_gps
+from core.geo import reverse_geocode
 from core.service import SubmitError, submit_report
 from core.ui import detector_or_stop, disclaimer, img_show, is_officer
-from core.constants import STATUS_LABELS
 
 officer = is_officer()
 st.header('📷 Gửi báo cáo hư hỏng mặt đường')
@@ -32,18 +34,10 @@ items = [(f.name, f.getvalue()) for f in ups or []]
 if cam is not None:
     items.append(('camera.jpg', cam.getvalue()))
 
-browser_loc = None
-if st.checkbox('Lấy vị trí hiện tại từ trình duyệt (cần cho phép định vị)'):
-    try:
-        from streamlit_js_eval import get_geolocation
-        g = get_geolocation()
-        if g and 'coords' in g:
-            browser_loc = (round(g['coords']['latitude'], 6), round(g['coords']['longitude'], 6))
-            st.success(f'Vị trí trình duyệt: {browser_loc[0]}, {browser_loc[1]}')
-        else:
-            st.info('Đang chờ trình duyệt cấp quyền vị trí...')
-    except ImportError:
-        st.warning('Chưa cài streamlit-js-eval; hãy nhập tọa độ tay.')
+st.session_state.setdefault('sub_lat', '')
+st.session_state.setdefault('sub_lon', '')
+st.session_state.setdefault('sub_loc_name', '')
+st.session_state.setdefault('sub_gps_src', 'Nhập tay')
 
 exif_info = []
 for name, raw in items:
@@ -55,13 +49,92 @@ n_exif = sum(1 for e in exif_info if e.get('has_gps'))
 if items:
     st.write(f'{len(items)} ảnh; {n_exif} ảnh có EXIF GPS (ảnh có GPS dùng tọa độ riêng của ảnh).')
 
+# Tự động đọc tọa độ từ ảnh EXIF nếu có và session chưa có
+if n_exif > 0 and not st.session_state.get('sub_lat'):
+    first_exif = next(e for e in exif_info if e.get('has_gps'))
+    e_lat, e_lon = first_exif['latitude'], first_exif['longitude']
+    st.session_state['sub_lat'] = str(e_lat)
+    st.session_state['sub_lon'] = str(e_lon)
+    st.session_state['sub_gps_src'] = 'EXIF GPS'
+    addr = reverse_geocode(e_lat, e_lon)
+    if addr:
+        st.session_state['sub_loc_name'] = addr
+
+browser_loc = None
+col_btn1, col_btn2 = st.columns([1, 1])
+with col_btn1:
+    if st.checkbox('📍 Lấy vị trí GPS từ thiết bị / trình duyệt'):
+        try:
+            from streamlit_js_eval import get_geolocation
+            g = get_geolocation()
+            if g and 'coords' in g:
+                b_lat = round(g['coords']['latitude'], 6)
+                b_lon = round(g['coords']['longitude'], 6)
+                browser_loc = (b_lat, b_lon)
+                st.success(f'Vị trí GPS: {b_lat}, {b_lon}')
+                if st.session_state.get('_last_b_loc') != browser_loc:
+                    st.session_state['_last_b_loc'] = browser_loc
+                    st.session_state['sub_lat'] = str(b_lat)
+                    st.session_state['sub_lon'] = str(b_lon)
+                    st.session_state['sub_gps_src'] = 'GPS trình duyệt'
+                    addr = reverse_geocode(b_lat, b_lon)
+                    if addr:
+                        st.session_state['sub_loc_name'] = addr
+                    st.rerun()
+            else:
+                st.info('Đang chờ trình duyệt cấp quyền định vị...')
+        except ImportError:
+            st.warning('Chưa cài streamlit-js-eval; bạn có thể chọn vị trí trực tiếp trên bản đồ dưới đây.')
+
+# Lấy tọa độ hiện tại để hiển thị ghim
+cur_lat, cur_lon = None, None
+try:
+    if st.session_state.get('sub_lat') and st.session_state.get('sub_lon'):
+        cur_lat = float(st.session_state['sub_lat'])
+        cur_lon = float(st.session_state['sub_lon'])
+except (TypeError, ValueError):
+    pass
+
+# Bản đồ tương tác trực tuyến
+with st.expander('🗺️ Bản đồ tương tác: Xem ghim & Bấm chọn vị trí', expanded=True):
+    st.caption('Bản đồ sẽ tự động ghim vị trí khi có GPS. Bạn cũng có thể **bấm trực tiếp lên bản đồ** để chọn điểm và tự động điền tên đường.')
+    center_pos = [cur_lat, cur_lon] if (cur_lat and cur_lon) else [10.7769, 106.7009]
+    zoom_lvl = 16 if (cur_lat and cur_lon) else 13
+    m_preview = folium.Map(location=center_pos, zoom_start=zoom_lvl, control_scale=True)
+    if cur_lat and cur_lon:
+        folium.Marker(
+            [cur_lat, cur_lon],
+            tooltip="Vị trí đã chọn",
+            popup=st.session_state.get('sub_loc_name') or f"{cur_lat}, {cur_lon}",
+            icon=folium.Icon(color='red', icon='info-sign')
+        ).add_to(m_preview)
+
+    map_out = st_folium(m_preview, height=280, width=None, key='submit_picker_map')
+    if map_out and map_out.get('last_clicked'):
+        clicked = map_out['last_clicked']
+        c_lat = round(clicked['lat'], 6)
+        c_lon = round(clicked['lng'], 6)
+        if (c_lat, c_lon) != (cur_lat, cur_lon):
+            st.session_state['sub_lat'] = str(c_lat)
+            st.session_state['sub_lon'] = str(c_lon)
+            st.session_state['sub_gps_src'] = 'Chọn trên bản đồ'
+            addr = reverse_geocode(c_lat, c_lon)
+            if addr:
+                st.session_state['sub_loc_name'] = addr
+            st.rerun()
+
 with st.form('submit_form'):
-    loc = st.text_input('Tên tuyến / điểm chụp (bắt buộc)', placeholder='Ví dụ: Đường A, gần cổng trường B')
+    loc = st.text_input(
+        'Tên tuyến / điểm chụp (bắt buộc)',
+        value=st.session_state.get('sub_loc_name', ''),
+        placeholder='Ví dụ: Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1',
+        help='Tự động cập nhật tên đường từ GPS/bản đồ. Bạn có thể chỉnh sửa lại theo thực tế.'
+    )
     road = st.selectbox('Tầm quan trọng tuyến (thang giả định)', list(ROAD_TYPES), index=2)
-    st.caption('Tọa độ dùng cho ảnh KHÔNG có EXIF GPS (không dùng tọa độ mẫu):')
+    st.caption('Tọa độ vị trí (tự động cập nhật từ GPS/Bản đồ, hoặc chỉnh sửa tay):')
     c1, c2 = st.columns(2)
-    lat_txt = c1.text_input('Vĩ độ', value=str(browser_loc[0]) if browser_loc else '')
-    lon_txt = c2.text_input('Kinh độ', value=str(browser_loc[1]) if browser_loc else '')
+    lat_txt = c1.text_input('Vĩ độ (Latitude)', value=st.session_state.get('sub_lat', ''))
+    lon_txt = c2.text_input('Kinh độ (Longitude)', value=st.session_state.get('sub_lon', ''))
     note = st.text_area('Ghi chú / điều kiện chụp')
     contact = st.text_input('Liên hệ (tùy chọn, chỉ cán bộ xem)') if not officer else ''
     consent = st.checkbox('Tôi đồng ý cho lưu ảnh và vị trí để cán bộ xác minh') if not officer else True
@@ -84,9 +157,9 @@ if go:
             lat, lon, captured = lat_txt, lon_txt, None
             try:
                 same = browser_loc and float(lat_txt) == browser_loc[0] and float(lon_txt) == browser_loc[1]
-            except ValueError:
+            except (ValueError, TypeError):
                 same = False
-            src = 'GPS trình duyệt' if same else 'Nhập tay'
+            src = 'GPS trình duyệt' if same else st.session_state.get('sub_gps_src', 'Nhập tay')
         try:
             rid, out, quality, flags = submit_report(
                 det, raw, name, location_name=loc, lat=lat, lon=lon, gps_source=src,
