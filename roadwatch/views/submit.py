@@ -95,12 +95,41 @@ try:
 except (TypeError, ValueError):
     pass
 
-# Bản đồ tương tác trực tuyến
-with st.expander('🗺️ Bản đồ tương tác: Xem ghim & Bấm chọn vị trí', expanded=True):
-    st.caption('Bản đồ sẽ tự động ghim vị trí khi có GPS. Bạn cũng có thể **bấm trực tiếp lên bản đồ** để chọn điểm và tự động điền tên đường.')
+# Bản đồ tương tác trực tuyến Google Maps
+with st.expander('🗺️ Bản đồ Google Maps vệ tinh: Xem ghim & Bấm chọn vị trí', expanded=True):
+    st.caption('Bản đồ vệ tinh tự động ghim vị trí khi có GPS. Bạn cũng có thể **bấm trực tiếp lên bản đồ** để chọn điểm và tự động điền tên đường.')
     center_pos = [cur_lat, cur_lon] if (cur_lat and cur_lon) else [10.7769, 106.7009]
-    zoom_lvl = 16 if (cur_lat and cur_lon) else 13
-    m_preview = folium.Map(location=center_pos, zoom_start=zoom_lvl, control_scale=True)
+    zoom_lvl = 17 if (cur_lat and cur_lon) else 13
+    m_preview = folium.Map(location=center_pos, zoom_start=zoom_lvl, control_scale=True, tiles=None)
+
+    # Lớp Google Maps Vệ tinh kết hợp đường sá (Hybrid - chuẩn như Google Maps trong ảnh của bạn)
+    folium.TileLayer(
+        tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+        attr='Google Maps Vệ tinh',
+        name='Google Vệ tinh (Hybrid)',
+        overlay=False,
+        control=True
+    ).add_to(m_preview)
+
+    # Lớp Google Maps Đường sá thông thường
+    folium.TileLayer(
+        tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        attr='Google Maps',
+        name='Google Bản đồ đường',
+        overlay=False,
+        control=True
+    ).add_to(m_preview)
+
+    # Lớp OpenStreetMap dự phòng
+    folium.TileLayer(
+        tiles='OpenStreetMap',
+        name='OpenStreetMap',
+        overlay=False,
+        control=True
+    ).add_to(m_preview)
+
+    folium.LayerControl(position='topright').add_to(m_preview)
+
     if cur_lat and cur_lon:
         folium.Marker(
             [cur_lat, cur_lon],
@@ -109,7 +138,7 @@ with st.expander('🗺️ Bản đồ tương tác: Xem ghim & Bấm chọn vị
             icon=folium.Icon(color='red', icon='info-sign')
         ).add_to(m_preview)
 
-    map_out = st_folium(m_preview, height=280, width=None, key='submit_picker_map')
+    map_out = st_folium(m_preview, height=350, width=None, key='submit_picker_map')
     if map_out and map_out.get('last_clicked'):
         clicked = map_out['last_clicked']
         c_lat = round(clicked['lat'], 6)
