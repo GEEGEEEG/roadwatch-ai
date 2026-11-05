@@ -64,14 +64,23 @@ def nearest_neighbor_route(points, start=None):
         i = int(np.argmin(dists))
         nxt = remaining.pop(i)
         route.append((*nxt, round(dists[i], 1)))
-        def reverse_geocode(lat, lon, timeout=3.5):
-    import json, urllib.request
+        pos = (nxt[1], nxt[2])
+    return route
+
+
+def reverse_geocode(lat, lon, timeout=3.5):
+    """Tra cứu địa chỉ / tên đường từ tọa độ qua OpenStreetMap Nominatim.
+    Không cần khóa API. Lỗi mạng hoặc quá thời gian -> None, không gây lỗi app."""
+    import json
+    import urllib.request
     try:
         lat_f, lon_f = float(lat), float(lon)
         if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
             return None
-        url = f'https://nominatim.openstreetmap.org/reverse?lat={lat_f}&lon={lon_f}&format=jsonv2&accept-language=vi'
-        req = urllib.request.Request(url, headers={'User-Agent': 'RoadWatchAI/1.0'})
+        url = (f'https://nominatim.openstreetmap.org/reverse?lat={lat_f}&lon={lon_f}'
+               f'&format=jsonv2&accept-language=vi')
+        req = urllib.request.Request(
+            url, headers={'User-Agent': 'RoadWatchAI-Geocoding/1.0 (contact: roadwatch@example.com)'})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             data = json.loads(r.read().decode('utf-8'))
         addr = data.get('address', {})
@@ -79,9 +88,11 @@ def nearest_neighbor_route(points, start=None):
         suburb = addr.get('suburb') or addr.get('quarter') or addr.get('neighbourhood') or addr.get('ward')
         district = addr.get('city_district') or addr.get('district') or addr.get('county')
         city = addr.get('city') or addr.get('state') or addr.get('province')
+
         parts = [p for p in (road, suburb, district, city) if p]
-        return ', '.join(parts) if parts else (data.get('display_name', '')[:120] or None)
+        if parts:
+            return ', '.join(parts)
+        disp = data.get('display_name', '')
+        return disp[:120] if disp else None
     except Exception:
         return None
-        pos = (nxt[1], nxt[2])
-    return route
