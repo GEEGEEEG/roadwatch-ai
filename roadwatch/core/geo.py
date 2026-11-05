@@ -64,5 +64,24 @@ def nearest_neighbor_route(points, start=None):
         i = int(np.argmin(dists))
         nxt = remaining.pop(i)
         route.append((*nxt, round(dists[i], 1)))
+        def reverse_geocode(lat, lon, timeout=3.5):
+    import json, urllib.request
+    try:
+        lat_f, lon_f = float(lat), float(lon)
+        if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
+            return None
+        url = f'https://nominatim.openstreetmap.org/reverse?lat={lat_f}&lon={lon_f}&format=jsonv2&accept-language=vi'
+        req = urllib.request.Request(url, headers={'User-Agent': 'RoadWatchAI/1.0'})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            data = json.loads(r.read().decode('utf-8'))
+        addr = data.get('address', {})
+        road = addr.get('road') or addr.get('pedestrian') or addr.get('highway') or addr.get('path')
+        suburb = addr.get('suburb') or addr.get('quarter') or addr.get('neighbourhood') or addr.get('ward')
+        district = addr.get('city_district') or addr.get('district') or addr.get('county')
+        city = addr.get('city') or addr.get('state') or addr.get('province')
+        parts = [p for p in (road, suburb, district, city) if p]
+        return ', '.join(parts) if parts else (data.get('display_name', '')[:120] or None)
+    except Exception:
+        return None
         pos = (nxt[1], nxt[2])
     return route
