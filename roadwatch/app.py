@@ -1,9 +1,10 @@
 import streamlit as st
 
-from core import db, ui
+from core import db, theme, ui
 
 st.set_page_config(page_title='RoadWatch AI', page_icon='🛣️', layout='wide')
 db.init()
+theme.apply()
 st.session_state.setdefault('role', 'citizen')
 ui.officer_login_box()
 
@@ -25,4 +26,6 @@ pages = {
         st.Page('views/admin.py', title='Quản trị & sao lưu', icon='⚙️', url_path='admin'),
     ],
 }
+if not ui.is_officer():
+    pages.pop('Cán bộ')
 st.navigation(pages).run()

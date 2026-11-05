@@ -18,11 +18,14 @@ st.header('📷 Gửi báo cáo hư hỏng mặt đường')
 st.caption('Báo cáo của người dân vào **hàng chờ xác minh**; chỉ báo cáo đã duyệt mới tính vào bản đồ và xếp hạng.')
 det = detector_or_stop()
 
-threshold = st.sidebar.slider('Ngưỡng tin cậy', 0.10, 0.90, 0.25, 0.05)
-with st.sidebar.expander('Nâng cao'):
-    imgsz = st.selectbox('Kích thước suy luận (imgsz)', [640, 960, 1024], index=0,
-                         help='Lớn hơn bắt nứt nhỏ tốt hơn nhưng chậm hơn.')
-    tta = st.checkbox('Chế độ chính xác cao (TTA)', value=False)
+if officer:  # chỉ cán bộ thấy tùy chỉnh kỹ thuật; người dân dùng giá trị mặc định
+    threshold = st.sidebar.slider('Ngưỡng tin cậy', 0.10, 0.90, 0.25, 0.05)
+    with st.sidebar.expander('Nâng cao'):
+        imgsz = st.selectbox('Kích thước suy luận (imgsz)', [640, 960, 1024], index=0,
+                             help='Lớn hơn bắt nứt nhỏ tốt hơn nhưng chậm hơn.')
+        tta = st.checkbox('Chế độ chính xác cao (TTA)', value=False)
+else:
+    threshold, imgsz, tta = 0.25, 640, False
 
 tab_up, tab_cam = st.tabs(['Tải ảnh (nhiều ảnh)', 'Chụp bằng điện thoại'])
 with tab_up:
@@ -96,7 +99,7 @@ except (TypeError, ValueError):
     pass
 
 # Bản đồ tương tác trực tuyến Google Maps
-with st.expander('🗺️ Bản đồ Google Maps vệ tinh: Xem ghim & Bấm chọn vị trí', expanded=True):
+with st.expander('🗺️ Bản đồ Google Maps vệ tinh: Xem ghim & Bấm chọn vị trí', expanded=False):
     st.caption('Bản đồ vệ tinh tự động ghim vị trí khi có GPS. Bạn cũng có thể **bấm trực tiếp lên bản đồ** để chọn điểm và tự động điền tên đường.')
     center_pos = [cur_lat, cur_lon] if (cur_lat and cur_lon) else [10.7769, 106.7009]
     zoom_lvl = 17 if (cur_lat and cur_lon) else 13
