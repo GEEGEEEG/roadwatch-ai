@@ -8,7 +8,8 @@ from PIL import Image
 
 from . import db
 from .config import data_dir
-from .constants import ROAD_TYPES
+from .constants import ACTIVE_STATUSES, DUP_FLAG_M, ROAD_TYPES
+from .geo import nearby_points
 from .priority import final_score
 from .quality import assess_quality, screening_flags
 
@@ -50,7 +51,10 @@ def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lo
     sev, dets = out['severity'], out['detections']
     quality = assess_quality(pil)
     now = datetime.now()
-    flags = screening_flags(db.fetch_df(), lat, lon, now, len(dets), quality['flags'])
+    df_all = db.fetch_df()
+    flags = list(screening_flags(df_all, lat, lon, now, len(dets), quality['flags']))
+    for near_id, near_m, _ in nearby_points(df_all, lat, lon, DUP_FLAG_M, ACTIVE_STATUSES)[:1]:
+        flags.append(f'Có thể trùng điểm với hồ sơ {near_id} (cách {near_m:.0f} m)')
 
     ext = (filename.rsplit('.', 1)[-1].lower() if '.' in filename else 'jpg')
     ext = ext if ext in ('jpg', 'jpeg', 'png') else 'jpg'

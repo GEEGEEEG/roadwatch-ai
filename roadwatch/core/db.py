@@ -24,7 +24,7 @@ COLUMNS = [
     'bbox_union_pct', 'ai_level', 'ai_score', 'final_level', 'final_score', 'road_type', 'road_score',
     'note', 'quality_flags', 'screen_flags', 'detections_json', 'elapsed_ms',
     'reviewed_by', 'reviewed_at', 'reject_reason', 'assigned_to', 'due_date',
-    'fixed_at', 'after_image_file', 'after_boxes',
+    'fixed_at', 'after_image_file', 'after_boxes', 'merged_into',
 ]
 NUMERIC = ['latitude', 'longitude', 'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40',
            'avg_confidence', 'bbox_union_pct', 'ai_score', 'final_score', 'road_score', 'elapsed_ms',
@@ -67,6 +67,10 @@ def init():
     with connect() as conn:
         conn.execute(f'CREATE TABLE IF NOT EXISTS reports ({cols})')
         conn.execute('CREATE TABLE IF NOT EXISTS history (report_id TEXT, ts TEXT, status TEXT, actor TEXT, note TEXT)')
+        have = {r[1] for r in conn.execute('PRAGMA table_info(reports)')}
+        for c in COLUMNS:   # DB cũ chưa có cột mới (ví dụ merged_into) thì thêm vào
+            if c not in have:
+                conn.execute(f'ALTER TABLE reports ADD COLUMN {c} {_col_type(c)}')
         conn.execute('CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status)')
 
 

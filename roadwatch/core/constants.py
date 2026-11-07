@@ -14,8 +14,10 @@ ROAD_TYPES = {
 
 STATUS_LABELS = {
     'pending': 'Chờ xác minh', 'verified': 'Đã xác minh', 'rejected': 'Từ chối',
-    'assigned': 'Đã giao kiểm tra', 'fixed': 'Đã xử lý',
+    'assigned': 'Đã giao kiểm tra', 'fixed': 'Đã xử lý', 'merged': 'Đã gộp',
 }
+DUP_FLAG_M = 30.0    # trong bán kính này: gắn nhãn "có thể trùng điểm"
+MERGE_MAX_M = 50.0   # cán bộ được phép gộp vào điểm hiện hữu trong bán kính này
 ACTIVE_STATUSES = ('verified', 'assigned')   # chỉ các trạng thái này được tính vào xếp hạng
 
 DISCLAIMER = ('Bản demo hỗ trợ học tập/kỹ thuật. Mức độ và điểm ưu tiên là **quy tắc do nhóm thiết kế**, '

@@ -2,7 +2,8 @@ import streamlit as st
 
 from core import db
 from core.config import cfg
-from core.constants import LEVELS, ROAD_TYPES
+from core.constants import ACTIVE_STATUSES, DUP_FLAG_M, LEVELS, MERGE_MAX_M, ROAD_TYPES
+from core.geo import nearby_points
 from core.notify import alert_text, send_telegram, telegram_configured
 from core.priority import final_score
 from core.ui import disclaimer, df_show, image_file, img_show, require_officer
@@ -15,7 +16,9 @@ if pending.empty:
     st.success('Không có báo cáo nào đang chờ.')
     st.stop()
 st.write(f'**{len(pending)}** báo cáo đang chờ.')
+active = db.fetch_df(list(ACTIVE_STATUSES))
 labels = {r.id: f"{r.id} — {r.location_name} ({r.ai_level})" + (' ⚠️' if r.screen_flags or r.quality_flags else '')
+          + (' 🔁' if nearby_points(active, r.latitude, r.longitude, DUP_FLAG_M) else '')
           for r in pending.itertuples()}
 rid = st.selectbox('Chọn báo cáo', list(labels), format_func=labels.get)
 r = pending[pending.id == rid].iloc[0]
@@ -39,6 +42,25 @@ for text in filter(None, (r.quality_flags or '').split('; ')):
 for text in filter(None, (r.screen_flags or '').split('; ')):
     st.warning('Cờ kiểm tra: ' + text)
 st.caption(f"Tọa độ: {r.latitude}, {r.longitude} | Người gửi: {r.source} | Liên hệ: {r.contact or '—'}")
+
+cands = nearby_points(active, r.latitude, r.longitude, MERGE_MAX_M)
+if cands:
+    near_id, near_m, _ = cands[0]
+    if near_m <= DUP_FLAG_M:
+        st.warning(f'🔁 Có thể trùng điểm với hồ sơ {near_id} (cách {near_m:.0f} m).')
+    with st.container(border=True):
+        st.markdown('**Gộp vào điểm hiện hữu** — không tạo ghim mới, số lượt phản ánh được cộng vào điểm gốc.')
+        pick = st.selectbox('Điểm gốc', [c[0] for c in cands], key=f'merge_{rid}',
+                            format_func=lambda i: next(f'{x[0]} — {x[2]} (cách {x[1]:.0f} m)' for x in cands if x[0] == i))
+        if st.button('🔗 Gộp vào điểm hiện hữu', key=f'mergebtn_{rid}'):
+            dist = next(x[1] for x in cands if x[0] == pick)
+            parent_status = active.loc[active.id == pick, 'status'].iloc[0]
+            now_s = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            db.update_report(rid, status='merged', merged_into=pick, reviewed_by='cán bộ', reviewed_at=now_s)
+            db.add_history(rid, 'merged', 'cán bộ', f'Gộp vào {pick} (cách {dist:.0f} m)')
+            db.add_history(pick, parent_status, 'cán bộ', f'Nhận gộp phản ánh {rid}')
+            st.success(f'Đã gộp {rid} vào {pick}. Tần suất của điểm gốc tăng thêm 1.')
+            st.rerun()
 
 with st.form('review'):
     loc = st.text_input('Tên tuyến / điểm', value=r.location_name)

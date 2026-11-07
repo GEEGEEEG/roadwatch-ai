@@ -30,6 +30,21 @@ def cluster_points(lats, lons, radius_m=40.0):
     return np.array(labels, dtype=int)
 
 
+def nearby_points(df, lat, lon, max_m, statuses=None):
+    """Các bản ghi trong df cách (lat, lon) <= max_m mét, gần nhất trước.
+    Trả về [(id, khoảng_cách_m, tên_vị_trí)]. statuses: chỉ lấy các trạng thái này (tùy chọn)."""
+    if df is None or len(df) == 0:
+        return []
+    d = df.dropna(subset=['latitude', 'longitude'])
+    if statuses is not None:
+        d = d[d.status.isin(statuses)]
+    if d.empty:
+        return []
+    dist = haversine_m(float(lat), float(lon), d.latitude.astype(float).values, d.longitude.astype(float).values)
+    hits = [(i, float(x), n) for i, x, n in zip(d.id, dist, d.location_name) if x <= max_m]
+    return sorted(hits, key=lambda t: t[1])
+
+
 def maps_link(lat, lon):
     return f'https://www.google.com/maps/dir/?api=1&destination={lat},{lon}'
 

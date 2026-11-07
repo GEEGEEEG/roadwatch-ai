@@ -1,104 +1,90 @@
-"""Giao diện sáng, sạch, dùng tốt ngoài trời: một màu nhấn, thẻ bo góc, bóng nhẹ."""
+"""Giao diện RoadWatch: thang chữ, khoảng cách bội số 8px, tương phản đạt chuẩn, một điểm nhấn mỗi trang."""
 import streamlit as st
 
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-html, body, [class*="css"], .stApp { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; }
-.block-container { max-width: 1180px; padding-top: 3.4rem; padding-bottom: 3rem; }
-h1, h2, h3 { font-weight: 700; letter-spacing: -0.02em; color: #0F172A; }
-h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
-[data-testid="stCaptionContainer"], .stCaption { color: #475569; }
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+:root{
+  --ink:#0F172A; --muted:#475569; --line:#E2E8F0; --soft:#F1F5F9; --field:#64748B;
+  --brand:#2563EB; --brand-ink:#1D4ED8; --paint:#F5B700;
+  --s1:8px; --s2:16px; --s3:24px; --s4:32px; --s5:48px;
+  --t-sm:.875rem; --t-base:1rem; --t-lg:1.125rem; --t-h3:1.25rem; --t-h2:1.75rem;
+  --t-h1:clamp(2rem,4.6vw,3rem);
+}
+html, body, [class*="css"], .stApp { font-family:'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif; color:var(--ink); }
+.stApp { background:#F8FAFC; font-size:var(--t-base); line-height:1.65; }
+[data-testid="stHeader"] { background:transparent; }
+.block-container { max-width:1120px; padding-top:var(--s5); padding-bottom:var(--s5); }
+[data-testid="stVerticalBlock"] { gap:var(--s2); }
+
+/* Chữ: 14 / 16 / 18 / 20 / 28 / 32–48 */
+h1,h2,h3,h4 { color:var(--ink); line-height:1.2; letter-spacing:-.02em; font-weight:700; }
+h1 { font-size:var(--t-h1); } h2 { font-size:var(--t-h2); } h3 { font-size:var(--t-h3); font-weight:600; }
+[data-testid="stCaptionContainer"], .stCaption, small { font-size:var(--t-sm) !important; color:var(--muted) !important; line-height:1.6; }
+label, [data-testid="stWidgetLabel"] p { font-weight:600; font-size:var(--t-sm); color:var(--ink); }
+:focus-visible { outline:3px solid var(--paint) !important; outline-offset:2px; }
 
 /* Sidebar */
-section[data-testid="stSidebar"] { background: #FFFFFF; border-right: 1px solid #E2E8F0; }
-[data-testid="stSidebarNav"] a { border-radius: 10px; margin: 1px 6px; }
-[data-testid="stSidebarNav"] a[aria-current="page"] { background: #EFF6FF; color: #1D4ED8; font-weight: 600; }
+section[data-testid="stSidebar"] { background:#fff; border-right:1px solid var(--line); }
+[data-testid="stSidebarHeader"]::before { content:"🛣️  RoadWatch AI"; font-weight:700; font-size:var(--t-lg); margin-left:var(--s1); flex:1; }
+[data-testid="stNavSectionHeader"] { font-size:var(--t-sm); letter-spacing:0; color:var(--muted); font-weight:600; }
+[data-testid="stSidebarNav"] a { border-radius:8px; margin:2px 6px; min-height:40px; }
+[data-testid="stSidebarNav"] a[aria-current="page"] { background:#EFF6FF; color:var(--brand-ink); font-weight:600; }
+section[data-testid="stSidebar"] [data-testid="stAlert"] { padding:var(--s1) var(--s2); font-size:var(--t-sm); }
 
-/* Thẻ số liệu */
-[data-testid="stMetric"] { background: #FFF; border: 1px solid #E2E8F0; border-radius: 14px;
-  padding: 14px 16px; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
-[data-testid="stMetricLabel"] { color: #475569; font-weight: 500; }
-[data-testid="stMetricValue"] { font-weight: 700; }
+/* Khung phẳng: kẻ viền mảnh, không đổ bóng (bóng chỉ dành cho banner) */
+[data-testid="stMetric"], [data-testid="stForm"], [data-testid="stExpander"] { background:#fff; border:1px solid var(--line) !important; border-radius:12px; box-shadow:none; }
+[data-testid="stMetric"] { padding:var(--s2); }
+[data-testid="stMetricLabel"] { color:var(--muted); font-weight:500; font-size:var(--t-sm); }
+[data-testid="stMetricValue"] { font-weight:700; }
+[data-testid="stForm"] { padding:var(--s3); }
+[data-testid="stDataFrame"] { border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+[data-testid="stAlert"] { border-radius:8px; }
+button[data-baseweb="tab"] { min-height:48px; font-weight:600; padding:0 var(--s2); }
+iframe[title*="folium"], iframe[title*="streamlit_folium"] { border-radius:12px; }
 
-/* Form, khung mở rộng, tab */
-[data-testid="stForm"], [data-testid="stExpander"] { background: #FFF; border: 1px solid #E2E8F0 !important;
-  border-radius: 16px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
-[data-testid="stForm"] { padding: 1.2rem; }
-button[data-baseweb="tab"] { font-weight: 600; padding: 10px 16px; }
+/* Ô nhập và nút: cao tối thiểu 48px, viền đủ đậm để thấy ranh giới */
+[data-baseweb="input"], [data-baseweb="select"] > div { min-height:48px; }
+[data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="select"] > div { border:1.5px solid var(--field) !important; border-radius:8px !important; background:#fff; }
+[data-baseweb="input"]:focus-within, [data-baseweb="textarea"]:focus-within { border-color:var(--ink) !important; }
+.stButton > button, .stFormSubmitButton > button, .stDownloadButton > button { border-radius:8px; font-weight:600; min-height:48px; }
+.stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"] { background:var(--brand); border-color:var(--brand); }
+[data-testid="stFileUploaderDropzone"] { background:#fff; border:2px dashed var(--field); border-radius:12px; min-height:96px; }
+[data-testid="stFileUploaderDropzone"]:hover { border-color:var(--brand); }
+[data-testid="stCameraInput"] > div { border-radius:12px; overflow:hidden; }
 
-/* Khung tải ảnh */
-[data-testid="stFileUploaderDropzone"] { background: #EFF6FF; border: 2px dashed #93C5FD; border-radius: 16px; }
-[data-testid="stFileUploaderDropzone"]:hover { border-color: #2563EB; }
-[data-testid="stCameraInput"] > div { border-radius: 16px; overflow: hidden; }
+/* Liên kết trang -> nút. Nút chính đặc, nút phụ viền */
+[data-testid="stPageLink"] a, a[data-testid="stPageLink-NavLink"] { justify-content:center; min-height:48px; padding:0 var(--s3); border-radius:8px; font-weight:600; background:var(--brand); }
+[data-testid="stPageLink"] a:hover { filter:brightness(1.08); }
+[data-testid="stPageLink"] a p, [data-testid="stPageLink"] a span { color:#fff !important; font-weight:600; }
+[data-testid="stColumn"]:nth-child(2) [data-testid="stPageLink"] a { background:transparent; border:1.5px solid var(--ink); }
+[data-testid="stColumn"]:nth-child(2) [data-testid="stPageLink"] a p, [data-testid="stColumn"]:nth-child(2) [data-testid="stPageLink"] a span { color:var(--ink) !important; }
 
-/* Nút và ô nhập */
-.stButton > button, .stFormSubmitButton > button, .stDownloadButton > button {
-  border-radius: 10px; font-weight: 600; min-height: 2.75rem; }
-.stFormSubmitButton > button[kind="primary"], .stButton > button[kind="primary"] { box-shadow: 0 2px 6px rgba(37,99,235,.25); }
-[data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="select"] > div { border-radius: 10px !important; }
-[data-testid="stAlert"] { border-radius: 12px; }
-[data-testid="stDataFrame"] { border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; }
-iframe[title*="folium"], iframe[title*="streamlit_folium"] { border-radius: 14px; }
+/* Trang chủ: banner là điểm nhấn duy nhất */
+.rw-hero { color:#fff; border-radius:16px; padding:clamp(32px,5vw,48px); margin-bottom:var(--s3); box-shadow:0 20px 40px -24px rgba(29,78,216,.55);
+  background:linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 60%,#2563EB 100%); }
+.rw-hero h1 { color:#fff; margin:0 0 var(--s2); }
+.rw-hero p { color:#DBEAFE; margin:0; font-size:var(--t-lg); max-width:60ch; }
+.rw-pill { display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); padding:4px 12px; border-radius:999px; font-size:var(--t-sm); font-weight:600; margin-bottom:var(--s2); }
+.rw-chips { display:flex; flex-wrap:wrap; gap:var(--s1); margin-top:var(--s3); }
+.rw-chips span { background:rgba(255,255,255,.14); padding:4px 12px; border-radius:999px; font-size:var(--t-sm); }
+.rw-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--s3); margin:var(--s3) 0; }
+.rw-step { background:#fff; border:1px solid var(--line); border-top:4px solid var(--brand); border-radius:12px; padding:var(--s3); }
+.rw-step b { display:block; margin:var(--s1) 0 4px; font-size:var(--t-lg); }
+.rw-step span { color:var(--muted); font-size:var(--t-base); }
+.rw-ico { font-size:1.5rem; display:block; }
+.rw-num { display:inline-flex; width:28px; height:28px; border-radius:50%; background:#DBEAFE; color:var(--brand-ink); font-weight:700; align-items:center; justify-content:center; }
+.rw-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:var(--s2); margin:var(--s1) 0 var(--s3); }
+.rw-stat { background:#fff; border:1px solid var(--line); border-top:4px solid var(--c); border-radius:12px; padding:var(--s2); }
+.rw-stat small { display:block; color:var(--muted); font-weight:500; }
+.rw-stat strong { font-size:2rem; font-weight:700; line-height:1.2; }
+.rw-empty { background:#EFF6FF; border:1px dashed #93C5FD; color:#1E3A8A; border-radius:8px; padding:var(--s2); margin-bottom:var(--s2); }
+.rw-badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:var(--t-sm); font-weight:600; }
+.rw-high { background:#FEE2E2; color:#B91C1C; } .rw-mid { background:#FEF3C7; color:#92400E; } .rw-low { background:#DCFCE7; color:#166534; }
 
-/* Hero và thẻ bước (trang chủ) */
-.rw-hero { background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 55%, #38BDF8 100%); color: #fff;
-  border-radius: 20px; padding: 2.2rem 2rem; margin-bottom: 1.2rem; }
-.rw-hero h1 { color: #fff; margin: 0 0 .4rem; font-size: 2.1rem; }
-.rw-hero p { color: #E0F2FE; margin: 0; font-size: 1.05rem; max-width: 640px; }
-.rw-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 1rem 0 1.4rem; }
-.rw-step { background: #FFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 1.1rem 1.2rem; }
-.rw-step b { display: block; margin: .35rem 0 .15rem; color: #0F172A; }
-.rw-step span { color: #475569; font-size: .93rem; }
-.rw-num { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background: #DBEAFE;
-  color: #1D4ED8; font-weight: 700; align-items: center; justify-content: center; }
-.rw-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600; }
-.rw-high { background: #FEE2E2; color: #B91C1C; } .rw-mid { background: #FEF3C7; color: #B45309; }
-.rw-low { background: #DCFCE7; color: #15803D; }
-
-@media (max-width: 720px) {
-  .block-container { padding: 1rem .9rem 2.5rem; }
-  .rw-steps { grid-template-columns: 1fr; }
-  .rw-hero { padding: 1.5rem 1.2rem; } .rw-hero h1 { font-size: 1.6rem; }
-}
-
-/* ===== Nâng cấp v2 ===== */
-.stApp { background: radial-gradient(1200px 400px at 85% -10%, #E0F2FE 0%, rgba(248,250,252,0) 60%), #F8FAFC; }
-[data-testid="stHeader"] { background: transparent; }
-/* Thương hiệu trong sidebar */
-[data-testid="stSidebarHeader"]::before { content: "🛣️  RoadWatch AI"; font-weight: 700; font-size: 1.1rem;
-  color: #0F172A; letter-spacing: -0.01em; margin-left: 8px; flex: 1; }
-[data-testid="stNavSectionHeader"] { text-transform: uppercase; font-size: .7rem; letter-spacing: .09em; color: #64748B; font-weight: 600; }
-section[data-testid="stSidebar"] [data-testid="stAlert"] { padding: .45rem .8rem; font-size: .9rem; }
-/* Liên kết trang -> nút CTA */
-[data-testid="stPageLink"] a, a[data-testid="stPageLink-NavLink"] { justify-content: center; padding: .85rem 1rem;
-  border-radius: 12px; font-weight: 600; background: #2563EB; color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,.28);
-  transition: transform .12s ease, box-shadow .12s ease; }
-[data-testid="stPageLink"] a:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(37,99,235,.32); }
-[data-testid="stPageLink"] a p, [data-testid="stPageLink"] a span { color: #fff !important; font-weight: 600; }
-[data-testid="stColumn"]:nth-child(2) [data-testid="stPageLink"] a { background: #fff; border: 1px solid #BFDBFE; box-shadow: none; }
-[data-testid="stColumn"]:nth-child(2) [data-testid="stPageLink"] a p, [data-testid="stColumn"]:nth-child(2) [data-testid="stPageLink"] a span { color: #1D4ED8 !important; }
-/* Hero v2 */
-.rw-hero { position: relative; overflow: hidden; padding: 2.6rem 2.2rem; box-shadow: 0 18px 40px rgba(37,99,235,.22);
-  background: radial-gradient(500px 220px at 90% 0%, rgba(255,255,255,.22), rgba(255,255,255,0) 70%),
-              linear-gradient(135deg, #1E40AF 0%, #2563EB 55%, #38BDF8 100%); }
-.rw-pill { display: inline-block; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35);
-  padding: 3px 12px; border-radius: 999px; font-size: .8rem; font-weight: 600; margin-bottom: .9rem; }
-.rw-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.1rem; }
-.rw-chips span { background: rgba(255,255,255,.16); padding: 4px 12px; border-radius: 999px; font-size: .85rem; }
-/* Thẻ bước */
-.rw-step { transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
-.rw-step:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(15,23,42,.08); }
-.rw-ico { font-size: 1.6rem; display: block; margin-bottom: .2rem; }
-/* Thẻ trạng thái */
-.rw-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin: .6rem 0 1.2rem; }
-.rw-stat { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 1rem 1.1rem;
-  border-top: 4px solid var(--c); box-shadow: 0 1px 2px rgba(15,23,42,.04); }
-.rw-stat small { color: #475569; font-weight: 500; display: block; }
-.rw-stat strong { font-size: 2rem; font-weight: 700; color: #0F172A; line-height: 1.2; }
-.rw-empty { background: #EFF6FF; border: 1px dashed #93C5FD; color: #1E3A8A; border-radius: 14px;
-  padding: .9rem 1.1rem; margin-bottom: 1rem; }
-@media (max-width: 900px) { .rw-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width:900px){ .rw-stats{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:720px){ .block-container{ padding:var(--s2) var(--s2) var(--s5); } .rw-steps{ grid-template-columns:1fr; } }
+@media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
 </style>
 """
 

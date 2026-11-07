@@ -37,11 +37,16 @@ def build_hotspots(df, weights=DEFAULT_WEIGHTS, radius_m=40.0, use_trend=True, w
     d = d.sort_values('created_at').reset_index(drop=True)
     d['hotspot_id'] = cluster_points(d.latitude, d.longitude, radius_m)
     a, b, c = normalize_weights(weights)
+    merged_by_parent = {}
+    if 'merged_into' in df.columns:
+        m = df[(df.status == 'merged') & df.merged_into.notna()]
+        merged_by_parent = m.groupby('merged_into').id.apply(list).to_dict()
     rows = []
     for hid, g in d.groupby('hotspot_id'):
         g = g.sort_values('created_at')
         worst = g.loc[g.final_score.fillna(0).idxmax()]
-        count = len(g)
+        merged_ids = [x for pid in g.id for x in merged_by_parent.get(pid, [])]
+        count = len(g) + len(merged_ids)
         sev = float(np.clip(g.final_score.fillna(0).max(), 0, 100))
         freq = min(count, 10) * 10.0
         road = float(np.clip(g.road_score.fillna(0).max(), 0, 100))
@@ -49,7 +54,8 @@ def build_hotspots(df, weights=DEFAULT_WEIGHTS, radius_m=40.0, use_trend=True, w
         trend_bonus = float(np.clip(trend_delta / 10, 0, 5)) if use_trend else 0.0
         wb = float((weather_bonus or {}).get(hid, 0.0))
         score = float(np.clip(a * sev + b * freq + c * road + trend_bonus + wb, 0, 100))
-        reason = f'{a:.0%} mức độ ({sev:.0f}) + {b:.0%} tần suất ({freq:.0f}) + {c:.0%} tuyến ({road:.0f})'
+        extra = f'; gồm {len(merged_ids)} phản ánh đã gộp' if merged_ids else ''
+        reason = f'{a:.0%} mức độ ({sev:.0f}) + {b:.0%} tần suất ({freq:.0f}{extra}) + {c:.0%} tuyến ({road:.0f})'
         if trend_bonus:
             reason += f' + xu hướng nặng thêm (+{trend_bonus:.1f})'
         if wb:
@@ -61,7 +67,7 @@ def build_hotspots(df, weights=DEFAULT_WEIGHTS, radius_m=40.0, use_trend=True, w
             'road_component': road, 'trend_bonus': round(trend_bonus, 2), 'weather_bonus': round(wb, 2),
             'priority_score': round(score, 2), 'severity_label': level_from_score(sev),
             'road_type': worst.road_type, 'worst_report_id': worst.id,
-            'member_ids': list(g.id), 'first_seen': g.created_at.iloc[0], 'last_seen': g.created_at.iloc[-1],
+            'member_ids': list(g.id), 'merged_count': len(merged_ids), 'merged_ids': merged_ids, 'first_seen': g.created_at.iloc[0], 'last_seen': g.created_at.iloc[-1],
             'has_pothole': bool((g.count_D40.fillna(0) > 0).any()), 'ranking_reason': reason,
         })
     out = pd.DataFrame(rows).sort_values('priority_score', ascending=False).reset_index(drop=True)
