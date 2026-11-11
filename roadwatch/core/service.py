@@ -23,7 +23,7 @@ class SubmitError(Exception):
 def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lon, gps_source,
                   source='citizen', consent=False, contact='', road_type=None, note='',
                   threshold=0.25, status='pending', actor='', captured_at=None, final_level=None,
-                  imgsz=640, tta=False):
+                  imgsz=640, tta=False, capture_method='upload', gps_accuracy_m=None):
     if len(raw) > MAX_BYTES:
         raise SubmitError('Ảnh vượt quá 12 MB.')
     if source == 'citizen' and not consent:
@@ -60,7 +60,9 @@ def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lo
     ext = ext if ext in ('jpg', 'jpeg', 'png') else 'jpg'
     image_file, annotated_file = f'images/{digest[:16]}.{ext}', f'annotated/{digest[:16]}.jpg'
     (data_dir() / image_file).write_bytes(raw)
-    out['annotated_image'].save(data_dir() / annotated_file, quality=90)
+    annotated_preview = out['annotated_image'].copy()
+    annotated_preview.thumbnail((2000, 2000), Image.Resampling.LANCZOS)
+    annotated_preview.convert('RGB').save(data_dir() / annotated_file, 'JPEG', quality=83, optimize=True)
 
     # Đồng bộ ảnh lên Google Drive nếu được cấu hình
     try:
@@ -69,7 +71,7 @@ def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lo
             import io as _io
             gdrive.upload(image_file, raw)
             buf = _io.BytesIO()
-            out['annotated_image'].save(buf, 'JPEG', quality=90)
+            annotated_preview.convert('RGB').save(buf, 'JPEG', quality=83, optimize=True)
             gdrive.upload(annotated_file, buf.getvalue(), 'image/jpeg')
     except Exception as _exc:
         import logging as _log
@@ -79,7 +81,8 @@ def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lo
     row = {
         'image_hash': digest, 'image_file': image_file, 'annotated_file': annotated_file,
         'location_name': str(location_name).strip(), 'latitude': round(lat, 6), 'longitude': round(lon, 6),
-        'gps_source': gps_source, 'captured_at': captured_at, 'status': status, 'source': source,
+        'gps_source': gps_source, 'gps_accuracy_m': gps_accuracy_m, 'captured_at': captured_at,
+        'status': status, 'source': source, 'capture_method': capture_method,
         'contact': contact, 'consent': int(bool(consent)), 'total_boxes': len(dets),
         **{f'count_{k}': v for k, v in sev['counts'].items()},
         'avg_confidence': round(sum(d['confidence'] for d in dets) / len(dets), 3) if dets else 0.0,

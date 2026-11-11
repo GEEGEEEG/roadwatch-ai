@@ -2,7 +2,7 @@ import streamlit as st
 
 from core import db, theme, ui
 
-st.set_page_config(page_title='RoadWatch AI', page_icon='🛣️', layout='wide')
+st.set_page_config(page_title='RoadWatch AI | Phát hiện và giám sát hư hỏng mặt đường', page_icon='🛣️', layout='wide', initial_sidebar_state='auto', menu_items={'About': 'RoadWatch AI · Ứng dụng minh họa hỗ trợ phát hiện, giám sát và ưu tiên kiểm tra hư hỏng mặt đường. Kết quả AI cần cán bộ xác minh.'})
 db.init()
 theme.apply()
 st.session_state.setdefault('role', 'citizen')

@@ -72,7 +72,7 @@ def generate_report(r, gemini_key=''):
 
 
 def build_pdf(r, image_path=None, extra_text=''):
-    """PDF tiếng Việt (font DejaVu đi kèm dự án), có ảnh đã đánh khung nếu có."""
+    """PDF tiếng Việt: tìm font có sẵn trong hệ điều hành; không đóng gói font với ứng dụng."""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import cm
@@ -81,10 +81,22 @@ def build_pdf(r, image_path=None, extra_text=''):
     from reportlab.platypus import Image as RLImage, Paragraph, SimpleDocTemplate, Spacer
     from xml.sax.saxutils import escape
 
-    fonts = PROJECT_ROOT / 'assets' / 'fonts'
+    # DejaVu được cài như font hệ thống bởi packages.txt (fonts-dejavu-core).
+    # Không nhúng tệp font vào repository; phát hiện từ Linux/Windows khi chạy.
+    import os
+    font_pairs = [
+        ('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+         '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'),
+        ('/usr/share/fonts/dejavu/DejaVuSans.ttf',
+         '/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf'),
+        ('C:/Windows/Fonts/arial.ttf', 'C:/Windows/Fonts/arialbd.ttf'),
+    ]
+    pair = next(((a,b) for a,b in font_pairs if os.path.isfile(a) and os.path.isfile(b)), None)
+    if pair is None:
+        raise RuntimeError('Không tìm thấy font hệ thống hỗ trợ tiếng Việt. Cài fonts-dejavu-core trên máy chủ.')
     if 'DejaVu' not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont('DejaVu', str(fonts / 'DejaVuSans.ttf')))
-        pdfmetrics.registerFont(TTFont('DejaVu-Bold', str(fonts / 'DejaVuSans-Bold.ttf')))
+        pdfmetrics.registerFont(TTFont('DejaVu', pair[0]))
+        pdfmetrics.registerFont(TTFont('DejaVu-Bold', pair[1]))
     body = ParagraphStyle('b', fontName='DejaVu', fontSize=10, leading=14)
     h1 = ParagraphStyle('h1', fontName='DejaVu-Bold', fontSize=15, leading=19, spaceAfter=8)
     h2 = ParagraphStyle('h2', fontName='DejaVu-Bold', fontSize=11.5, leading=15, spaceBefore=8, spaceAfter=3)

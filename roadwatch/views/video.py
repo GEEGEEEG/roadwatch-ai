@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import io
 import tempfile
 from datetime import datetime
@@ -12,7 +13,7 @@ from core.ui import detector_or_stop, disclaimer, img_show, require_officer
 from core.video import interpolate, parse_gpx, sample_frames
 
 require_officer()
-st.header('🎥 Khảo sát bằng video + GPX')
+page_intro('KHẢO SÁT MỞ RỘNG','Video & dữ liệu GPX','Kiểm tra các khung hình từ video khảo sát, kết hợp thông tin hành trình khi có.')
 st.caption('Video quay từ xe + file GPX ghi cùng lúc (ví dụ từ ứng dụng ghi hành trình). Giới hạn tải lên mặc định của Streamlit là 200 MB.')
 det = detector_or_stop()
 vid = st.file_uploader('Video', type=['mp4', 'mov', 'avi'])

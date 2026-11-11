@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import pandas as pd
 import streamlit as st
 
@@ -6,7 +7,7 @@ from core.evaluation import metrics_table, run_batch
 from core.ui import detector_or_stop, disclaimer, df_show, require_officer
 
 require_officer()
-st.header('🧪 Đánh giá mô hình trên ảnh kiểm thử')
+page_intro('KIỂM CHỨNG AI','Đánh giá mô hình','Phân tích các trường hợp nhận diện đúng, sai và bỏ sót từ nhãn được người kiểm thử xác nhận.')
 st.caption('Đánh giá mức ảnh (có/không có hư hỏng) dựa trên nhãn do NGƯỜI gán. Không thay thế mAP trên tập có nhãn khung. '
            'Ảnh lấy từ kho mô hình có thể trùng tập huấn luyện — không gọi là kiểm thử độc lập nếu chưa xác nhận.')
 folder = data_dir() / 'test_images'

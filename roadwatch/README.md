@@ -1,111 +1,61 @@
-# RoadWatch AI
+# RoadWatch AI — Giao diện Professional v4
 
-Hệ thống Streamlit: gửi ảnh → nhận diện YOLO (D00/D10/D20/D40) → **cán bộ xác minh** → điểm nóng & xếp hạng → lộ trình/giao việc → ảnh trước/sau → báo cáo PDF/MD.
+**Bản này được chỉnh trực tiếp từ `roadwatch-ai-main.zip` do nhóm cung cấp**, giữ logic YOLO D00/D10/D20/D40, bản đồ, hàng chờ duyệt, ưu tiên 50/30/20, báo cáo, video, quản trị.
 
-## Tính năng
-| Nhóm | Có gì |
-|---|---|
-| Gửi báo cáo | Tải nhiều ảnh, chụp từ điện thoại, lấy GPS từ EXIF hoặc trình duyệt hoặc nhập tay, đồng ý lưu dữ liệu, chống ảnh trùng (SHA-256), chấm chất lượng ảnh, gắn cờ báo cáo gửi dồn |
-| Xác minh | Hàng chờ duyệt/từ chối, sửa mức độ và cấp tuyến, lịch sử trạng thái, thông báo Telegram khi "Cần kiểm tra sớm" |
-| Bản đồ | Gom cụm marker, heatmap, lọc mức độ; công khai chỉ hiện điểm đã xác minh |
-| Ưu tiên | Gom điểm nóng (bán kính chỉnh được), tần suất tự tính, 50-30-20, so sánh hai bộ trọng số + Spearman, cộng điểm xu hướng nặng thêm, dự báo mưa (Open-Meteo) |
-| Hiện trường | Lộ trình láng giềng gần nhất, link Google Maps, mã QR, phiếu giao việc CSV |
-| Sau sửa chữa | So sánh ảnh trước/sau, đóng điểm, diễn tiến theo thời gian |
-| Báo cáo | Mẫu cố định, Gemini tùy chọn (chỉ diễn giải), xuất .md và .pdf tiếng Việt kèm ảnh |
-| Khảo sát | Video + GPX → khung hình có phát hiện kèm tọa độ nội suy → hàng chờ |
-| Đánh giá | Precision/Recall/F1/tỷ lệ báo động giả/bỏ sót ở nhiều ngưỡng, từ nhãn người gán |
-| Quản trị | Xuất CSV, sao lưu/khôi phục zip |
+## 1. Bắt đầu deploy (không cần Colab)
 
----
+1. Giải nén gói ZIP; mở thư mục chứa trực tiếp `app.py`, `requirements.txt`, `core/`, `views/`, `.streamlit/`, `models/`.
+2. Tạo repository GitHub mới (Private khi chưa kiểm tra giấy phép của checkpoint); tải **nội dung thư mục**, không tải nguyên ZIP. Trong bản này có `models/model.pt` từ file nhóm gửi; kiểm tra giấy phép checkpoint trước khi đưa vào repo công khai.
+3. Mở [Streamlit Community Cloud](https://share.streamlit.io/) → **Create app** → **Yup, I have an app**.
+4. Chọn repo, branch `main`, **Main file path:** `app.py`. Chọn Python 3.11 hoặc 3.12.
+5. Trong **Advanced settings → Secrets** nhập mật khẩu quản trị mạnh:
 
-## Chuẩn bị Mô hình YOLO (D00/D10/D20/D40)
-
-1. Tải checkpoint YOLO 4 lớp (ví dụ từ Hugging Face: `yolo-rdd2022-benchmark`, tìm `yolov8s_seed0_best.pt` hoặc checkpoint 4 lớp tương đương).
-2. Đặt file vào `models/model.pt` trong thư mục dự án (hoặc tải lên `MyDrive/RoadWatch_AI/models/model.pt` nếu chạy trên Colab).
-3. `.gitignore` đã được cấu hình cho phép commit `models/model.pt` lên GitHub.
-
----
-
-## Chạy cục bộ
-```bash
-pip install -r requirements.txt
-# Đặt checkpoint 4 lớp vào models/model.pt
-export ROADWATCH_OFFICER_PASSWORD=mat-khau-cua-ban
-streamlit run app.py
-```
-Kiểm thử tự động: `pytest tests/test_core.py -q` (không cần mô hình hay GPU).
-
----
-
-## Chạy trên Google Colab
-Mở `RoadWatch_Colab_Launcher.ipynb`, làm theo hướng dẫn trong ô đầu:
-1. Tạo thư mục `MyDrive/RoadWatch_AI/` trên Google Drive.
-2. Nén dự án thành `roadwatch.zip` và upload lên đó.
-3. Đặt model tại `MyDrive/RoadWatch_AI/models/model.pt`.
-4. Trong Colab → Biểu tượng chìa khóa (Secrets), đặt:
-   - `ROADWATCH_OFFICER_PASSWORD` (bắt buộc)
-   - `NGROK_AUTHTOKEN` (bắt buộc để tạo tunnel)
-   - Tùy chọn: `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
-5. Chạy tuần tự từng ô trong notebook. Dữ liệu có thể sao lưu định kỳ về Drive bằng ô "Sao lưu lên Drive".
-
----
-
-## Deploy lên Streamlit Community Cloud
-
-### Điều kiện tiên quyết
-1. **Repo GitHub public** (Streamlit Community Cloud miễn phí).
-2. Checkpoint **`models/model.pt`** phải có trong repo (`.gitignore` đã cấu hình cho phép commit file này).
-3. Tài khoản [share.streamlit.io](https://share.streamlit.io/) kết nối với GitHub.
-
-### Bước thực hiện
-1. Push toàn bộ mã nguồn và `models/model.pt` lên GitHub.
-2. Vào **[share.streamlit.io](https://share.streamlit.io/)** → *New app* → chọn repository → Branch: `main` → Main file path: `app.py`.
-3. Mở **Advanced settings → Secrets** và thêm:
    ```toml
-   ROADWATCH_OFFICER_PASSWORD = "mật-khẩu-cán-bộ"
-   # Tùy chọn Gemini & Telegram:
-   GEMINI_API_KEY = "AIza..."
-   TELEGRAM_BOT_TOKEN = "..."
-   TELEGRAM_CHAT_ID = "..."
-
-   # Tùy chọn đồng bộ Google Drive (nếu muốn giữ dữ liệu khi app khởi động lại):
-   # GDRIVE_FOLDER_ID = "1AbCdEf..."
-   # GDRIVE_SERVICE_ACCOUNT_JSON = '{"type": "service_account", ...}'
+   ROADWATCH_OFFICER_PASSWORD = "THAY_BANG_MAT_KHAU_DU_MẠNH"
    ```
-4. Nhấn **Deploy** — app sẽ tự cài đặt thư viện và khởi động.
 
-### Tối ưu PyTorch CPU-only & RAM
-Community Cloud cấp **~1 GB RAM free**. 
-- Trong `requirements.txt` đã cấu hình `--extra-index-url https://download.pytorch.org/whl/cpu` và ghim `torch>=2.2,<3`, `torchvision>=0.17,<1` để tải bản CPU nhẹ (~300–600 MB) thay vì bản CUDA (~2–3 GB).
-- Module nhận diện (`core/detector.py`) tự động giới hạn cạnh dài ảnh đầu vào tối đa `1920 px` trước khi dự đoán để tránh spike bộ nhớ.
-- Trọng số mô hình được cache bằng `@st.cache_resource`, chỉ nạp 1 lần duy nhất trong toàn bộ vòng đời ứng dụng.
-- Ước tính mức tiêu thụ RAM ổn định: **~500–650 MB**, an toàn trong hạn mức 1 GB.
+6. Nhấn **Deploy**. Community Cloud cài `requirements.txt` và apt từ `packages.txt`. Truy cập website qua HTTPS (`*.streamlit.app`).
+7. Trên điện thoại: vào **Gửi phản ánh** → cấp quyền **Camera** → chụp → cấp quyền vị trí/nhập tọa độ → đồng ý lưu → gửi.
+8. Trên máy tính: **Cổng cán bộ** → nhập mật khẩu → **Hàng chờ xác minh** → kiểm tra ảnh/địa điểm → duyệt → kiểm tra bản đồ, xếp hạng, báo cáo.
 
-### Giới hạn của Community Cloud (free tier)
-| Giới hạn | Giá trị | Ảnh hưởng |
-|---|---|---|
-| RAM | ~1 GB | Cần PyTorch CPU-only; ảnh lớn tự scale xuống ≤ 1920 px |
-| Ổ đĩa | Ephemeral (tạm thời) | Dữ liệu local mất khi app ngủ/reboot. Cần đồng bộ Drive hoặc Postgres |
-| Tự ngủ | Sau 12 giờ không có truy cập | Khởi động lại sau ~30 giây khi có người truy cập |
-| Truy cập | Công khai | Tuyệt đối không lưu dữ liệu thật khi app demo công khai |
+## 2. Bố cục mã nguồn và vai trò
 
-### Lưu trữ dữ liệu bền vững
-1. **Google Drive Sync (đã tích hợp trong code):**
-   - Thêm `GDRIVE_FOLDER_ID` và `GDRIVE_SERVICE_ACCOUNT_JSON` vào Streamlit Secrets.
-   - Ứng dụng tự động tải `roadwatch.db` về khi khởi động, đồng bộ DB và upload ảnh (gốc, annotated, after) lên Drive sau mỗi lượt ghi.
-   - Thích hợp cho thử nghiệm và quy mô nội bộ/vừa phải.
-2. **Postgres & Object Storage (khi mở rộng người dùng đồng thời):**
-   - Có thể chuyển sang Supabase (Postgres + Storage) hoặc Neon + Cloudflare R2 khi có số lượng người dùng gửi báo cáo đồng thời lớn.
+| File / Thư mục | Vai trò |
+| --- | --- |
+| `app.py` | Entrypoint, cấu hình trang và navigation theo quyền. |
+| `core/theme.py` | Toàn bộ design system, font, responsive, component styles. |
+| `core/ui.py` | Header trang, khối điều hướng chung, nhận diện quyền cán bộ. |
+| `views/home.py` | Landing page thông điệp chính, CTA, quy trình, thống kê số liệu thật. |
+| `views/submit.py` | Luồng gửi ảnh: công dân camera-only, cán bộ upload/camera, GPS, bản đồ, gửi. |
+| `views/map.py` | Bản đồ các vị trí đã xác minh (OpenStreetMap/Folium). |
+| `views/queue.py` | Cán bộ duyệt/từ chối phản ánh và ghi lịch sử. |
+| `views/priority.py` | Điểm nóng và bảng xếp hạng nhiều tiêu chí. |
+| `views/route.py` | Lộ trình kiểm tra và giao việc. |
+| `views/detail.py` / `compare.py` | Chi tiết vị trí và ảnh trước–sau sửa chữa. |
+| `views/reports.py` | Báo cáo theo mẫu/Gemini tùy chọn và xuất PDF/Markdown. |
+| `views/video.py` / `evaluation.py` | Khảo sát video và đánh giá mô hình. |
+| `views/login.py` / `admin.py` | Đăng nhập bằng mật khẩu chung và quản trị/sao lưu. |
+| `core/detector.py` / `service.py` | Mô hình nhận diện, quy tắc mức độ, sàng lọc và lưu phản ánh. |
+| `core/db.py` / `gdrive.py` | SQLite và tùy chọn sao lưu lên Google Drive. |
+| `requirements.txt` / `packages.txt` | Các thư viện Python / gói hệ thống khi deploy. |
+| `models/model.pt` | Checkpoint do nhóm cung cấp, không cần Colab để inference web. |
 
----
+## 3. Chỗ thay đổi về UI/UX và hiệu năng
 
-## Bảo mật & tuân thủ
-- **Không commit** file `.env`, service account key, hay mật khẩu lên GitHub. Dùng Streamlit Secrets hoặc biến môi trường.
-- **Không dùng dữ liệu thật của người dân** trên môi trường thử nghiệm công khai.
-- Ảnh và vị trí của người gửi là **dữ liệu cá nhân** — luôn yêu cầu người dùng xác nhận đồng ý (`consent`) trước khi lưu.
-- Mật khẩu cán bộ dùng để phân quyền ở mức cơ bản cho mô hình demo.
+- Trang chủ: H1 lớn và **CTA ở màn hình đầu tiên**, minh họa quy trình ngay trên hero, KPI lấy từ dữ liệu, không chế số.
+- Người dân: chỉ camera; không tải ảnh từ máy. Cán bộ: lựa chọn upload khảo sát hoặc chụp tại chỗ.
+- Chia rõ 3 bước: ảnh → vị trí → xác nhận. Không mở sẵn bản đồ nặng; chỉ tải Folium khi người dùng bật.
+- YOLO được giữ trong cache và chỉ nạp khi thực sự gửi ảnh. Khung ảnh kết quả lưu JPEG chất lượng 83, kích thước tối đa 2000px.
+- CSS responsive desktop/tablet/mobile, font Be Vietnam Pro và fallback Segoe UI; heading, màu sắc, khoảng cách và nút thống nhất.
+- Thêm escape cho dữ liệu tên cán bộ khi xuất thành HTML; bộ khôi phục ZIP giới hạn kích thước và chặn đường dẫn vượt thư mục/symlink.
+- Loại lớp tile Google Maps không chính thức trong app, thay bằng OpenStreetMap.
 
-## Giới hạn cần nói rõ (SPEC.md)
-- Mức độ hư hỏng và điểm ưu tiên là **quy tắc giả định** do nhóm nghiên cứu thiết kế, không đo đạc cơ học hay phản ánh trực tiếp chi phí thực tế.
-- Gemini chỉ hỗ trợ viết **diễn giải ngôn ngữ tự nhiên**; toàn bộ số liệu thống kê đều được trích xuất trực tiếp từ bảng cơ sở dữ liệu.
-- Hệ thống không tự ý phát sinh hay điền giả tọa độ GPS khi người dùng không cung cấp.
+## 4. Phạm vi thực tế
+
+- **Bảo mật production:** Streamlit Cloud có HTTPS nhưng mẫu này vẫn sử dụng mật khẩu cán bộ *chia sẻ*, không phải xác thực tài khoản cá nhân. Nếu vận hành thật cần đăng nhập từng người, phân quyền và database ngoài.
+- **SEO:** title, H1 và cấu trúc nội dung đã cải thiện; Streamlit không phải framework server-side rendering cho SEO mạnh. Cần landing page HTML/SSR riêng nếu muốn lên kết quả tìm kiếm tốt.
+- **Lưu trữ:** SQLite + Google Drive sync (tùy chọn) thích hợp demo, chưa phù hợp đa người dùng đồng thời quy mô lớn.
+- **Camera/GPS:** camera web không thể loại bỏ mọi ảnh giả; EXIF GPS không xác thực vị trí; người duyệt phải kiểm tra.
+- **Kiểm chứng AI:** bản này không tự tạo kết quả Precision/Recall/mAP cho bộ 60 ảnh của nhóm.
+
+Xem `SECURITY_AND_SEO.md` để đọc kỹ giới hạn và khuyến nghị. Không đưa mật khẩu hoặc khóa API vào repository.

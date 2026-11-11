@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import folium
 import streamlit as st
 from folium.plugins import HeatMap, MarkerCluster
@@ -9,7 +10,7 @@ from core.priority import build_hotspots
 from core.ui import disclaimer, is_officer, weights_sidebar
 from html import escape
 
-st.header('🗺️ Bản đồ điểm hư hỏng đã xác minh')
+page_intro('BẢN ĐỒ CÔNG KHAI', 'Bản đồ điểm hư hỏng', 'Chỉ hiển thị vị trí đã được xác minh. Có thể lọc theo mức độ để xem khu vực cần quan tâm.')
 weights, radius = weights_sidebar()
 df = db.fetch_df()
 hs = build_hotspots(df, weights, radius)

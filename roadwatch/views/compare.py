@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import io
 from datetime import datetime
 
@@ -10,7 +11,7 @@ from core.priority import build_hotspots
 from core.ui import detector_or_stop, disclaimer, image_file, img_show, require_officer, weights_sidebar
 
 require_officer()
-st.header('🛠️ So sánh ảnh trước / sau sửa chữa')
+page_intro('THEO DÕI KHẮC PHỤC','Trước và sau sửa chữa','Đối chiếu ảnh trước/sau và cập nhật trạng thái xử lý.')
 weights, radius = weights_sidebar()
 df = db.fetch_df()
 hs = build_hotspots(df, weights, radius)

@@ -1,4 +1,5 @@
 import hmac
+from html import escape
 from datetime import datetime
 
 import streamlit as st
@@ -26,11 +27,11 @@ def show():
     """, unsafe_allow_html=True)
 
     if is_officer():
-        name = st.session_state.get('officer_name', 'Cán bộ kỹ thuật')
-        unit = st.session_state.get('officer_unit', 'Ban Quản lý Hạ tầng Giao thông')
-        login_time = st.session_state.get('officer_login_time', 'Phiên hiện tại')
+        name = escape(str(st.session_state.get('officer_name', 'Cán bộ kỹ thuật')))
+        unit = escape(str(st.session_state.get('officer_unit', 'Ban Quản lý Hạ tầng Giao thông')))
+        login_time = escape(str(st.session_state.get('officer_login_time', 'Phiên hiện tại')))
 
-        st.success(f"🟢 **Đã xác thực thành công**: Chào mừng **{name}** ({unit})")
+        st.success(f"🟢 **Đã mở phiên quản trị**: Chào mừng **{name}** ({unit})")
 
         col1, col2 = st.columns([2, 1])
         with col1:
@@ -124,7 +125,7 @@ def show():
           <div style="display: flex; gap: 10px; align-items: flex-start;">
             <span style="font-size: 1.2rem;">🔒</span>
             <div style="font-size: 0.85rem; color: #1E40AF; line-height: 1.5;">
-              <strong>Bảo mật thông tin:</strong> Hệ thống lưu nhật ký mọi thao tác phê duyệt của cán bộ. Vui lòng bảo mật mật khẩu truy cập được cấp bởi ban quản trị.
+              <strong>Bảo mật thông tin:</strong> Đây là bản demo dùng mật khẩu chung; người dùng nhập tên cán bộ thủ công. Không sử dụng như hệ thống xác thực danh tính chính thức.
             </div>
           </div>
         </div>
@@ -166,7 +167,7 @@ def show():
                     st.session_state['officer_name'] = officer_name.strip() or 'Cán bộ trực ca'
                     st.session_state['officer_unit'] = officer_unit
                     st.session_state['officer_login_time'] = datetime.now().strftime('%H:%M:%S %d/%m/%Y')
-                    st.success('✅ Xác thực danh tính thành công! Đang chuyển hướng...')
+                    st.success('✅ Đăng nhập thành công. Đang mở khu vực quản trị...')
                     try:
                         st.switch_page('views/queue.py')
                     except Exception:

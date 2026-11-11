@@ -7,6 +7,7 @@ GDRIVE_SERVICE_ACCOUNT_JSON được đặt trong Streamlit Secrets,
 """
 import logging
 import sqlite3
+import threading
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
@@ -16,21 +17,23 @@ import pandas as pd
 from .config import data_dir
 
 log = logging.getLogger(__name__)
+_INIT_LOCK = threading.RLock()
+_INITIALIZED_PATHS = set()
 
 COLUMNS = [
     'id', 'created_at', 'image_hash', 'image_file', 'annotated_file', 'location_name',
-    'latitude', 'longitude', 'gps_source', 'captured_at', 'status', 'source', 'contact', 'consent',
+    'latitude', 'longitude', 'gps_source', 'gps_accuracy_m', 'captured_at', 'status', 'source', 'capture_method', 'contact', 'consent',
     'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40', 'avg_confidence',
     'bbox_union_pct', 'ai_level', 'ai_score', 'final_level', 'final_score', 'road_type', 'road_score',
     'note', 'quality_flags', 'screen_flags', 'detections_json', 'elapsed_ms',
     'reviewed_by', 'reviewed_at', 'reject_reason', 'assigned_to', 'due_date',
     'fixed_at', 'after_image_file', 'after_boxes', 'merged_into',
 ]
-NUMERIC = ['latitude', 'longitude', 'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40',
+NUMERIC = ['latitude', 'longitude', 'gps_accuracy_m', 'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40',
            'avg_confidence', 'bbox_union_pct', 'ai_score', 'final_score', 'road_score', 'elapsed_ms',
            'consent', 'after_boxes']
 INT_COLS = {'consent', 'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40', 'after_boxes'}
-REAL_COLS = {'latitude', 'longitude', 'avg_confidence', 'bbox_union_pct', 'ai_score', 'final_score',
+REAL_COLS = {'latitude', 'longitude', 'gps_accuracy_m', 'avg_confidence', 'bbox_union_pct', 'ai_score', 'final_score',
              'road_score', 'elapsed_ms'}
 
 
@@ -60,7 +63,17 @@ def connect():
 
 
 def init():
-    _pull_db()   # kéo DB từ Drive về (no-op nếu Drive chưa cấu hình)
+    db_file = db_path()
+    key = str(db_file.resolve())
+    with _INIT_LOCK:
+        if key in _INITIALIZED_PATHS and db_file.is_file():
+            _initialize_schema()  # Nhanh trên local; vẫn tự sửa schema nếu DB vừa khôi phục.
+            return
+        _pull_db()   # Chỉ khôi phục bản sao Drive một lần mỗi phiên máy chủ, tránh tải mỗi rerun.
+        _initialize_schema()
+        _INITIALIZED_PATHS.add(key)
+
+def _initialize_schema():
     cols = ', '.join(
         f'{c} TEXT PRIMARY KEY' if c == 'id' else
         f'{c} TEXT UNIQUE' if c == 'image_hash' else f'{c} {_col_type(c)}' for c in COLUMNS)

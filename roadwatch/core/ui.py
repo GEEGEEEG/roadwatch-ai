@@ -1,5 +1,6 @@
 """Tiện ích dùng chung cho giao diện Streamlit."""
 import hmac
+from html import escape
 from datetime import datetime
 
 import streamlit as st
@@ -33,69 +34,22 @@ def is_officer():
 
 
 def officer_login_box():
-    pw = cfg('ROADWATCH_OFFICER_PASSWORD')
+    """Nhãn thương hiệu cố định + chuyển vào cổng quản trị; không gây rối sidebar."""
     with st.sidebar:
+        st.markdown('''<div class="rw-sidebar-brand">
+          <div class="rw-logo"><span class="rw-logo-mark">RW</span> RoadWatch AI</div>
+          <p class="rw-sidebar-sub">Giám sát & quản lý mặt đường</p>
+        </div>''',unsafe_allow_html=True)
         if is_officer():
-            name = st.session_state.get('officer_name', 'Cán bộ kỹ thuật')
-            unit = st.session_state.get('officer_unit', 'Ban Quản lý Hạ tầng Giao thông')
-
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-                        border: 1px solid #334155; border-radius: 12px; padding: 14px; margin-bottom: 12px; color: #fff;">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <div style="font-size: 22px; background: rgba(37,99,235,0.25); border: 1px solid #3B82F6; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">🛡️</div>
-                <div style="line-height: 1.3;">
-                  <div style="font-weight: 700; font-size: 13px; color: #F8FAFC;">{name}</div>
-                  <div style="font-size: 11px; color: #94A3B8;">{unit}</div>
-                </div>
-              </div>
-              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #334155; padding-top: 8px; margin-top: 4px;">
-                <span style="font-size: 11px; color: #10B981; font-weight: 600;">🟢 Trực tuyến</span>
-                <span style="font-size: 10px; background: #2563EB; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 600;">CÁN BỘ</span>
-              </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            if st.button('🚪 Đăng xuất cán bộ', key='btn_officer_logout', **stretch(st.button)):
-                st.session_state['role'] = 'citizen'
-                st.session_state.pop('officer_name', None)
-                st.session_state.pop('officer_unit', None)
-                st.session_state.pop('officer_login_time', None)
+            officer = escape(str(st.session_state.get('officer_name','Cán bộ trực ca')))
+            st.markdown(f'<div class="rw-sidebar-info">🟢 Đang đăng nhập: <b>{officer}</b></div>',unsafe_allow_html=True)
+            if st.button('Đăng xuất',key='btn_officer_logout',use_container_width=True):
+                for key in ('officer_name','officer_unit','officer_login_time'):
+                    st.session_state.pop(key,None)
+                st.session_state['role']='citizen'
                 st.rerun()
-            return
-
-        # Khi chưa đăng nhập
-        st.markdown("""
-        <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <span style="font-size: 16px;">🏛️</span>
-            <strong style="font-size: 13px; color: #0F172A;">Cổng Cán Bộ Quản Lý</strong>
-          </div>
-          <p style="font-size: 11px; color: #64748B; margin: 0; line-height: 1.4;">
-            Dành cho cán bộ kỹ thuật kiểm tra và điều phối khắc phục mặt đường.
-          </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        try:
-            st.page_link('views/login.py', label='Cổng Đăng Nhập Cán Bộ', icon='🔐')
-        except Exception:
-            pass
-
-        with st.expander('Đăng nhập nhanh'):
-            if not pw:
-                st.caption('Chưa đặt ROADWATCH_OFFICER_PASSWORD nên chức năng cán bộ đang khóa.')
-                return
-            entered = st.text_input('Mật khẩu', type='password', key='officer_pw')
-            if st.button('Đăng nhập', key='quick_login_btn', **stretch(st.button)):
-                if hmac.compare_digest(entered.encode(), pw.encode()):
-                    st.session_state['role'] = 'officer'
-                    st.session_state['officer_name'] = 'Cán bộ trực ca'
-                    st.session_state['officer_unit'] = 'Đội Quản lý & Duy tu Đường bộ'
-                    st.session_state['officer_login_time'] = datetime.now().strftime('%H:%M:%S %d/%m/%Y')
-                    st.rerun()
-                else:
-                    st.error('Sai mật khẩu.')
+        else:
+            st.markdown('<div class="rw-sidebar-info">🔒 Thông tin quản trị chỉ dành cho người được cấp quyền.</div>',unsafe_allow_html=True)
 
 
 def require_officer():
@@ -163,3 +117,21 @@ def qr_png(text):
     buf = io.BytesIO()
     qrcode.make(text).save(buf, format='PNG')
     return buf.getvalue()
+
+
+def page_intro(kicker,title,description):
+    """Tiêu đề trang đồng nhất, tách bạch nhiệm vụ và nội dung phụ."""
+    st.markdown('<div class="rw-page-intro"><span class="rw-overline">'+escape(kicker)+'</span><h1>'+escape(title)+'</h1><p>'+escape(description)+'</p></div>',unsafe_allow_html=True)
+
+
+def steps(*items,active=0):
+    pills=''.join('<span'+(' class="active"' if i==active else '')+'>'+escape(str(i+1))+'. '+escape(v)+'</span>' for i,v in enumerate(items))
+    st.markdown('<div class="rw-progress">'+pills+'</div>',unsafe_allow_html=True)
+
+
+def safe_csv_export(df):
+    """Ngăn công thức spreadsheet ngoài ý muốn từ chuỗi do người dùng nhập."""
+    clone=df.copy()
+    for col in clone.select_dtypes(include=['object','string']).columns:
+        clone[col]=clone[col].map(lambda v: "'"+v if isinstance(v,str) and v.lstrip().startswith(('=','+','-','@','\t','\r')) else v)
+    return clone.to_csv(index=False).encode('utf-8-sig')

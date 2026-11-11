@@ -12,12 +12,12 @@ from core.detector import extract_exif_gps
 from core.geo import reverse_geocode
 from core.pin_map import add_draggable_marker
 from core.service import SubmitError, submit_report
-from core.ui import detector_or_stop, disclaimer, img_show, is_officer
+from core.ui import detector_or_stop, disclaimer, img_show, is_officer, page_intro, steps
 
 officer = is_officer()
-st.header('📷 Gửi báo cáo hư hỏng mặt đường')
-st.caption('Báo cáo của người dân vào **hàng chờ xác minh**; chỉ báo cáo đã duyệt mới tính vào bản đồ và xếp hạng.')
-det = detector_or_stop()
+page_intro('GỬI PHẢN ÁNH', 'Ghi nhận tình trạng mặt đường', 'Chụp ảnh rõ mặt đường hoặc tải ảnh từ máy, xác nhận vị trí và gửi đến hàng chờ kiểm tra.')
+steps('Chụp/Tải ảnh', 'Xác nhận vị trí', 'Gửi phản ánh', active=0)
+st.markdown('<div class="rw-hint">🛡️ <b>An toàn trước tiên:</b> hãy đứng ở vị trí an toàn và không sử dụng camera khi đang điều khiển phương tiện. Báo cáo chưa được công khai trước khi cán bộ xác minh.</div>', unsafe_allow_html=True)
 
 if officer:  # chỉ cán bộ thấy tùy chỉnh kỹ thuật; người dân dùng giá trị mặc định
     threshold = st.sidebar.slider('Ngưỡng tin cậy', 0.10, 0.90, 0.25, 0.05)
@@ -28,15 +28,48 @@ if officer:  # chỉ cán bộ thấy tùy chỉnh kỹ thuật; người dân d
 else:
     threshold, imgsz, tta = 0.25, 640, False
 
-tab_up, tab_cam = st.tabs(['Tải ảnh (nhiều ảnh)', 'Chụp bằng điện thoại'])
-with tab_up:
-    ups = st.file_uploader('Ảnh JPG/PNG (≤ 12 MB mỗi ảnh)', type=['jpg', 'jpeg', 'png'], accept_multiple_files=True)
-with tab_cam:
-    cam = st.camera_input('Chụp mặt đường')
+# Cho phép cả người dân và cán bộ linh hoạt: Chụp bằng camera hoặc Tải ảnh từ thiết bị
+st.subheader('01 · Thu thập hình ảnh hư hỏng')
+st.caption('Chụp trực tiếp tại hiện trường hoặc tải ảnh có sẵn từ bộ nhớ thiết bị/thư viện ảnh.')
 
-items = [(f.name, f.getvalue()) for f in ups or []]
+mode = st.radio(
+    'Phương thức gửi ảnh',
+    ['📷 Chụp trực tiếp bằng camera', '📁 Tải ảnh từ thiết bị / thư viện'],
+    horizontal=True,
+    help='Khuyến khích chụp trực tiếp tại hiện trường để có tọa độ GPS chính xác nhất.'
+)
+
+ups, cam = [], None
+if mode.startswith('📷'):
+    cam = st.camera_input('Chạm để mở camera và chụp ảnh mặt đường')
+else:
+    ups = st.file_uploader(
+        'Tải ảnh JPG/PNG, tối đa 12 MB mỗi ảnh',
+        type=['jpg', 'jpeg', 'png'],
+        accept_multiple_files=True,
+        help='Có thể tải 1 hoặc nhiều ảnh chụp hiện trường.'
+    ) or []
+
+items = [(f.name, f.getvalue()) for f in ups]
 if cam is not None:
     items.append(('camera.jpg', cam.getvalue()))
+
+if not items:
+    st.markdown('<div class="rw-empty"><b>Chưa có ảnh.</b><br>Hãy chụp ảnh qua camera hoặc tải ảnh từ máy để tiếp tục. Nếu camera bị chặn, kiểm tra quyền Camera của trình duyệt.</div>', unsafe_allow_html=True)
+    disclaimer()
+    st.stop()
+
+from PIL import ImageOps
+preview_name, preview_raw = items[0]
+try:
+    with Image.open(io.BytesIO(preview_raw)) as im:
+        thumb = ImageOps.exif_transpose(im).convert('RGB')
+        thumb.thumbnail((960, 720))
+    st.image(thumb, caption='Ảnh đã chọn · ' + preview_name, use_container_width=True)
+except Exception:
+    st.warning('Không hiển thị được ảnh xem trước; vui lòng kiểm tra lại định dạng.')
+st.caption(f'Đã có {len(items)} ảnh. Bước tiếp theo: xác nhận vị trí chính xác nơi chụp.')
+st.markdown('<div class="rw-progress"><span>✓ 1. Chọn ảnh</span><span class="active">2. Xác nhận vị trí</span><span>3. Gửi phản ánh</span></div>', unsafe_allow_html=True)
 
 st.session_state.setdefault('sub_lat', '')
 st.session_state.setdefault('sub_lon', '')
@@ -58,7 +91,7 @@ for name, raw in items:
         exif_info.append({'has_gps': False})
 n_exif = sum(1 for e in exif_info if e.get('has_gps'))
 if items:
-    st.write(f'{len(items)} ảnh; {n_exif} ảnh có EXIF GPS (ảnh có GPS dùng tọa độ riêng của ảnh).')
+    st.caption(f'Thông tin ảnh: {n_exif}/{len(items)} ảnh chứa EXIF GPS. EXIF chỉ là gợi ý và cần được kiểm tra trước khi lưu.')
 
 # Tự động đọc tọa độ từ ảnh EXIF nếu có và session chưa có
 if n_exif > 0 and not st.session_state.get('sub_lat'):
@@ -72,6 +105,7 @@ if n_exif > 0 and not st.session_state.get('sub_lat'):
         st.session_state['sub_loc_name'] = addr
 
 browser_loc = None
+browser_accuracy = None
 col_btn1, col_btn2 = st.columns([1, 1])
 with col_btn1:
     if st.checkbox('📍 Lấy vị trí GPS từ thiết bị / trình duyệt'):
@@ -82,6 +116,11 @@ with col_btn1:
                 b_lat = round(g['coords']['latitude'], 6)
                 b_lon = round(g['coords']['longitude'], 6)
                 browser_loc = (b_lat, b_lon)
+                browser_accuracy = g.get('coords', {}).get('accuracy')
+                if browser_accuracy is not None:
+                    st.caption(f'Độ chính xác GPS do thiết bị ước tính: khoảng {browser_accuracy:.0f} m. Đây không phải sai số đã kiểm chứng.')
+                    if browser_accuracy > 100:
+                        st.warning('Độ chính xác ước tính vượt 100 m. Vui lòng đối chiếu lại vị trí trên bản đồ.')
                 st.success(f'Vị trí GPS: {b_lat}, {b_lon}')
                 if st.session_state.get('_last_b_loc') != browser_loc:
                     st.session_state['_last_b_loc'] = browser_loc
@@ -96,6 +135,7 @@ with col_btn1:
                 st.info('Đang chờ trình duyệt cấp quyền định vị...')
         except ImportError:
             st.warning('Chưa cài streamlit-js-eval; bạn có thể chọn vị trí trực tiếp trên bản đồ dưới đây.')
+
 
 def _norm(v):
     return str(v).strip().replace(',', '.')   # chấp nhận dấu phẩy kiểu Việt Nam
@@ -115,7 +155,8 @@ def _coords_typed():
             st.session_state['sub_loc_name'] = addr
 
 
-st.caption('Tọa độ vị trí: **nhập tay** (bản đồ tự ghim), hoặc **kéo ghim / bấm lên bản đồ** để tự điền.')
+st.subheader('02 · Xác nhận vị trí hư hỏng')
+st.caption('Bật định vị trình duyệt hoặc nhập tọa độ thực tế. Tọa độ EXIF nếu có được điền làm gợi ý, không tự coi là đã xác minh.')
 c1, c2 = st.columns(2)
 lat_txt = c1.text_input('Vĩ độ (Latitude)', key='sub_lat', on_change=_coords_typed, placeholder='Ví dụ: 16.054407')
 lon_txt = c2.text_input('Kinh độ (Longitude)', key='sub_lon', on_change=_coords_typed, placeholder='Ví dụ: 108.202167')
@@ -130,18 +171,40 @@ if lat_txt.strip() or lon_txt.strip():
     except ValueError:
         st.warning('Tọa độ chưa hợp lệ: vĩ độ từ -90 đến 90, kinh độ từ -180 đến 180.')
 
-with st.expander('🗺️ Bản đồ Google Maps vệ tinh: ghim, kéo thả hoặc bấm để chọn vị trí', expanded=True):
-    st.caption('Ghim đỏ xuất hiện khi có tọa độ. **Kéo ghim** tới đúng chỗ rồi thả, hoặc **bấm lên bản đồ**: '
-               'tọa độ và tên đường tự cập nhật.')
+if st.toggle('🗺️ Mở bản đồ để chọn / điều chỉnh tọa độ', value=False, key='show_location_picker'):
+    st.caption('Ghim xuất hiện khi có tọa độ. **Kéo ghim** để chỉnh hoặc **bấm lên bản đồ**: tọa độ và tên đường tự cập nhật.')
     center_pos = [cur_lat, cur_lon] if cur_lat is not None else [16.0544, 108.2022]
     zoom_lvl = 18 if cur_lat is not None else 13
     m_preview = folium.Map(location=center_pos, zoom_start=zoom_lvl, control_scale=True, tiles=None)
-    folium.TileLayer(tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', attr='Google Maps Vệ tinh',
-                     name='Google Vệ tinh (Hybrid)', overlay=False, control=True).add_to(m_preview)
-    folium.TileLayer(tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', attr='Google Maps',
-                     name='Google Bản đồ đường', overlay=False, control=True).add_to(m_preview)
-    folium.TileLayer(tiles='OpenStreetMap', name='OpenStreetMap', overlay=False, control=True).add_to(m_preview)
-    folium.LayerControl(position='topright').add_to(m_preview)
+    
+    # Lớp Google Maps Vệ tinh kết hợp đường sá (Hybrid)
+    folium.TileLayer(
+        tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+        attr='Google Maps Vệ tinh',
+        name='Google Vệ tinh (Hybrid)',
+        overlay=False,
+        control=True
+    ).add_to(m_preview)
+    
+    # Lớp Google Maps Đường sá
+    folium.TileLayer(
+        tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        attr='Google Maps',
+        name='Google Bản đồ đường',
+        overlay=False,
+        control=True
+    ).add_to(m_preview)
+    
+    # Lớp OpenStreetMap
+    folium.TileLayer(
+        tiles='OpenStreetMap',
+        name='OpenStreetMap',
+        overlay=False,
+        control=True
+    ).add_to(m_preview)
+    
+    folium.LayerControl().add_to(m_preview)
+
     if cur_lat is not None:
         add_draggable_marker(m_preview, cur_lat, cur_lon, tooltip='Kéo để chỉnh vị trí',
                              popup=st.session_state.get('sub_loc_name') or f'{cur_lat}, {cur_lon}')
@@ -159,16 +222,17 @@ with st.expander('🗺️ Bản đồ Google Maps vệ tinh: ghim, kéo thả ho
     if cur_lat is not None:
         st.link_button('🧭 Mở vị trí này trong Google Maps', f'https://www.google.com/maps?q={cur_lat},{cur_lon}')
 
+st.subheader('03 · Xác nhận và gửi báo cáo')
 with st.form('submit_form'):
     loc = st.text_input(
         'Tên tuyến / điểm chụp (bắt buộc)',
-        value=st.session_state.get('sub_loc_name', ''),
+        value=st.session_state.get('sub_loc_name', ''), max_chars=160,
         placeholder='Ví dụ: Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1',
         help='Tự động cập nhật tên đường từ GPS/bản đồ. Bạn có thể chỉnh sửa lại theo thực tế.'
     )
     road = st.selectbox('Tầm quan trọng tuyến (thang giả định)', list(ROAD_TYPES), index=2)
-    note = st.text_area('Ghi chú / điều kiện chụp')
-    contact = st.text_input('Liên hệ (tùy chọn, chỉ cán bộ xem)') if not officer else ''
+    note = st.text_area('Ghi chú / điều kiện chụp', max_chars=600, placeholder='Ví dụ: ổ gà gần giao lộ, ảnh chụp lúc trời nắng...')
+    contact = st.text_input('Liên hệ (tùy chọn, chỉ cán bộ xem)', max_chars=120) if not officer else ''
     consent = st.checkbox('Tôi đồng ý cho lưu ảnh và vị trí để cán bộ xác minh') if not officer else True
     auto_verify = False
     final_level = None
@@ -176,14 +240,16 @@ with st.form('submit_form'):
         auto_verify = st.checkbox('Duyệt ngay (cán bộ đã xem ảnh), bỏ qua hàng chờ')
         pick = st.selectbox('Mức độ cán bộ xác nhận', ['Theo quy tắc sơ bộ'] + LEVELS)
         final_level = None if pick.startswith('Theo') else pick
-    go = st.form_submit_button('Gửi báo cáo', disabled=not items)
+    go = st.form_submit_button('✓ Gửi phản ánh đến hàng chờ', type='primary', disabled=not items, use_container_width=True)
 
 if go:
+    det = detector_or_stop()  # Tải YOLO khi cần suy luận, không tăng thời gian mở trang ban đầu.
     for (name, raw), exif in zip(items, exif_info):
         st.divider()
         st.subheader(name)
-        if exif.get('has_gps'):
-            lat, lon, src = exif['latitude'], exif['longitude'], 'EXIF GPS'
+        manual_override = st.session_state.get('sub_gps_src') in ('Nhập tay', 'Chọn trên bản đồ', 'GPS trình duyệt')
+        if exif.get('has_gps') and not manual_override:
+            lat, lon, src = exif['latitude'], exif['longitude'], 'EXIF GPS (chưa xác minh)'
             captured = exif.get('datetime')
         else:
             lat, lon, captured = lat_txt, lon_txt, None
@@ -198,7 +264,9 @@ if go:
                 source='officer' if officer else 'citizen', consent=consent, contact=contact, road_type=road,
                 note=note, threshold=threshold, status='verified' if auto_verify else 'pending',
                 actor='cán bộ' if officer else '', captured_at=captured, final_level=final_level,
-                imgsz=imgsz, tta=tta)
+                imgsz=imgsz, tta=tta,
+                capture_method='camera_web' if name == 'camera.jpg' else 'upload',
+                gps_accuracy_m=browser_accuracy if src == 'GPS trình duyệt' else None)
         except db.DuplicateImage as dup:
             st.warning(f'Ảnh này đã được gửi trước đó (mã {dup.existing_id}); không lưu trùng.')
             continue
@@ -208,6 +276,8 @@ if go:
         except Exception as err:
             st.error(f'Lỗi xử lý ảnh: {err}')
             continue
+        if not out['detections']:
+            st.info('AI chưa phát hiện vùng nào vượt ngưỡng. Phản ánh vẫn được gửi để cán bộ kiểm tra thủ công.')
         sev = out['severity']
         img_show(out['annotated_image'])
         a, b, c = st.columns(3)

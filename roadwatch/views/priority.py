@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import streamlit as st
 
 from core import db
@@ -6,7 +7,7 @@ from core.ui import disclaimer, df_show, require_officer, weights_sidebar
 from core.weather import fetch_rain_forecast, rain_bonus
 
 require_officer()
-st.header('📊 Ưu tiên kiểm tra (điểm nóng)')
+page_intro('HỖ TRỢ RA QUYẾT ĐỊNH','Ưu tiên kiểm tra','So sánh các điểm nóng dựa trên mức độ hư hỏng, tần suất phản ánh và cấp tuyến.')
 weights, radius = weights_sidebar()
 use_trend = st.sidebar.checkbox('Cộng điểm nếu điểm đang nặng thêm', value=True)
 use_weather = st.sidebar.checkbox('Cộng điểm ổ gà khi dự báo mưa nhiều (Open-Meteo)', value=False)

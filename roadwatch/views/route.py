@@ -1,3 +1,4 @@
+from core.ui import page_intro
 from datetime import date, timedelta
 
 import streamlit as st
@@ -9,7 +10,7 @@ from core.priority import build_hotspots
 from core.ui import df_show, disclaimer, qr_png, require_officer, weights_sidebar
 
 require_officer()
-st.header('🚗 Lộ trình kiểm tra & giao việc')
+page_intro('ĐIỀU PHỐI HIỆN TRƯỜNG','Lộ trình & giao việc','Gợi ý thứ tự kiểm tra tại hiện trường và xuất thông tin giao việc.')
 weights, radius = weights_sidebar()
 df = db.fetch_df()
 hs = build_hotspots(df, weights, radius)

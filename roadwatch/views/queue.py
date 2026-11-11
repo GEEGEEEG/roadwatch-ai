@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import streamlit as st
 
 from core import db
@@ -10,7 +11,7 @@ from core.ui import disclaimer, df_show, image_file, img_show, require_officer
 from datetime import datetime
 
 require_officer()
-st.header('✅ Hàng chờ xác minh')
+page_intro('QUẢN LÝ PHẢN ÁNH','Hàng chờ xác minh','Xem ảnh, đối chiếu tọa độ và điều chỉnh thông tin trước khi phê duyệt.')
 pending = db.fetch_df(['pending'])
 if pending.empty:
     st.success('Không có báo cáo nào đang chờ.')
@@ -41,7 +42,7 @@ for text in filter(None, (r.quality_flags or '').split('; ')):
     st.warning('Chất lượng ảnh: ' + text)
 for text in filter(None, (r.screen_flags or '').split('; ')):
     st.warning('Cờ kiểm tra: ' + text)
-st.caption(f"Tọa độ: {r.latitude}, {r.longitude} | Người gửi: {r.source} | Liên hệ: {r.contact or '—'}")
+st.caption(f"Tọa độ: {r.latitude}, {r.longitude} | Nguồn ảnh: {getattr(r, 'capture_method', None) or 'chưa ghi nhận'} | Nguồn GPS: {r.gps_source} | Liên hệ: {r.contact or '—'}")
 
 cands = nearby_points(active, r.latitude, r.longitude, MERGE_MAX_M)
 if cands:

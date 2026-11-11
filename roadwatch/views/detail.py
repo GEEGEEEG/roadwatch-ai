@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import streamlit as st
 
 from core import db
@@ -5,7 +6,7 @@ from core.geo import maps_link
 from core.ui import df_show, disclaimer, image_file, img_show, require_officer
 
 require_officer()
-st.header('🔎 Chi tiết điểm')
+page_intro('HỒ SƠ VỊ TRÍ','Chi tiết phản ánh','Xem hình ảnh, vị trí và lịch sử xử lý của từng bản ghi.')
 df = db.fetch_df()
 if df.empty:
     st.info('Chưa có dữ liệu.')

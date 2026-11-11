@@ -1,3 +1,4 @@
+from core.ui import page_intro
 import streamlit as st
 
 from core import db
@@ -7,7 +8,7 @@ from core.report import build_pdf, generate_report, hotspot_record
 from core.ui import disclaimer, image_file, require_officer, weights_sidebar
 
 require_officer()
-st.header('📄 Báo cáo đề xuất kiểm tra')
+page_intro('HỒ SƠ BÁO CÁO','Báo cáo quản lý','Tổng hợp dữ liệu đã xác minh và rà soát nội dung trước khi tải xuống.')
 weights, radius = weights_sidebar()
 df = db.fetch_df()
 hs = build_hotspots(df, weights, radius)

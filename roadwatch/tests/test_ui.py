@@ -94,7 +94,9 @@ def test_detector_pages_render(name, monkeypatch):
     no_exception(at)
 
 
-def test_detector_pages_stop_without_model():
+def test_public_submit_opens_without_model_and_waits_for_camera():
+    # Bản v4 không tải YOLO khi người dùng vừa mở trang.
     at = page('submit', officer=False).run()
     no_exception(at)
-    assert any('Thiếu mô hình' in e.value for e in at.error)
+    assert not at.get('file_uploader'), 'Người dân chỉ được chụp qua camera web.'
+    assert not at.error, 'Trang chụp ảnh không được yêu cầu model trước khi có ảnh.'
