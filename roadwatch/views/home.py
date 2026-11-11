@@ -21,7 +21,7 @@ st.markdown("""
 </section>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="rw-cta-label">BẮT ĐẦU NGAY</p>',unsafe_allow_html=True)
+st.markdown('<div style="height: 16px;"></div>', unsafe_allow_html=True)
 a,b = st.columns([1,1],gap='medium')
 with a:
     st.page_link('views/submit.py',label='📷  Chụp và gửi phản ánh',icon=None)
