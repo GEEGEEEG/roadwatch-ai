@@ -10,6 +10,7 @@ from core import db
 from core.constants import LEVELS, ROAD_TYPES, STATUS_LABELS
 from core.detector import extract_exif_gps
 from core.geo import reverse_geocode
+from core.pin_map import add_draggable_marker
 from core.service import SubmitError, submit_report
 from core.ui import detector_or_stop, disclaimer, img_show, is_officer
 
@@ -41,6 +42,13 @@ st.session_state.setdefault('sub_lat', '')
 st.session_state.setdefault('sub_lon', '')
 st.session_state.setdefault('sub_loc_name', '')
 st.session_state.setdefault('sub_gps_src', 'Nhập tay')
+
+# Tọa độ do bản đồ (bấm hoặc kéo ghim) gửi về: áp dụng TRƯỚC khi tạo ô nhập để không vướng giới hạn của Streamlit.
+_pending = st.session_state.pop('_pending_coords', None)
+if _pending:
+    st.session_state['sub_lat'], st.session_state['sub_lon'], st.session_state['sub_gps_src'] = _pending[:3]
+    if _pending[3]:
+        st.session_state['sub_loc_name'] = _pending[3]
 
 exif_info = []
 for name, raw in items:
@@ -89,71 +97,67 @@ with col_btn1:
         except ImportError:
             st.warning('Chưa cài streamlit-js-eval; bạn có thể chọn vị trí trực tiếp trên bản đồ dưới đây.')
 
-# Lấy tọa độ hiện tại để hiển thị ghim
-cur_lat, cur_lon = None, None
-try:
-    if st.session_state.get('sub_lat') and st.session_state.get('sub_lon'):
-        cur_lat = float(st.session_state['sub_lat'])
-        cur_lon = float(st.session_state['sub_lon'])
-except (TypeError, ValueError):
-    pass
+def _norm(v):
+    return str(v).strip().replace(',', '.')   # chấp nhận dấu phẩy kiểu Việt Nam
 
-# Bản đồ tương tác trực tuyến Google Maps
-with st.expander('🗺️ Bản đồ Google Maps vệ tinh: Xem ghim & Bấm chọn vị trí', expanded=False):
-    st.caption('Bản đồ vệ tinh tự động ghim vị trí khi có GPS. Bạn cũng có thể **bấm trực tiếp lên bản đồ** để chọn điểm và tự động điền tên đường.')
-    center_pos = [cur_lat, cur_lon] if (cur_lat and cur_lon) else [10.7769, 106.7009]
-    zoom_lvl = 17 if (cur_lat and cur_lon) else 13
+
+def _coords_typed():
+    for k in ('sub_lat', 'sub_lon'):
+        st.session_state[k] = _norm(st.session_state.get(k, ''))
+    st.session_state['sub_gps_src'] = 'Nhập tay'
+    try:
+        la, lo = float(st.session_state['sub_lat']), float(st.session_state['sub_lon'])
+    except ValueError:
+        return
+    if -90 <= la <= 90 and -180 <= lo <= 180:
+        addr = reverse_geocode(la, lo)
+        if addr:
+            st.session_state['sub_loc_name'] = addr
+
+
+st.caption('Tọa độ vị trí: **nhập tay** (bản đồ tự ghim), hoặc **kéo ghim / bấm lên bản đồ** để tự điền.')
+c1, c2 = st.columns(2)
+lat_txt = c1.text_input('Vĩ độ (Latitude)', key='sub_lat', on_change=_coords_typed, placeholder='Ví dụ: 16.054407')
+lon_txt = c2.text_input('Kinh độ (Longitude)', key='sub_lon', on_change=_coords_typed, placeholder='Ví dụ: 108.202167')
+
+cur_lat = cur_lon = None
+if lat_txt.strip() or lon_txt.strip():
+    try:
+        _la, _lo = float(_norm(lat_txt)), float(_norm(lon_txt))
+        if not (-90 <= _la <= 90 and -180 <= _lo <= 180):
+            raise ValueError
+        cur_lat, cur_lon = _la, _lo
+    except ValueError:
+        st.warning('Tọa độ chưa hợp lệ: vĩ độ từ -90 đến 90, kinh độ từ -180 đến 180.')
+
+with st.expander('🗺️ Bản đồ Google Maps vệ tinh: ghim, kéo thả hoặc bấm để chọn vị trí', expanded=True):
+    st.caption('Ghim đỏ xuất hiện khi có tọa độ. **Kéo ghim** tới đúng chỗ rồi thả, hoặc **bấm lên bản đồ**: '
+               'tọa độ và tên đường tự cập nhật.')
+    center_pos = [cur_lat, cur_lon] if cur_lat is not None else [16.0544, 108.2022]
+    zoom_lvl = 18 if cur_lat is not None else 13
     m_preview = folium.Map(location=center_pos, zoom_start=zoom_lvl, control_scale=True, tiles=None)
-
-    # Lớp Google Maps Vệ tinh kết hợp đường sá (Hybrid - chuẩn như Google Maps trong ảnh của bạn)
-    folium.TileLayer(
-        tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-        attr='Google Maps Vệ tinh',
-        name='Google Vệ tinh (Hybrid)',
-        overlay=False,
-        control=True
-    ).add_to(m_preview)
-
-    # Lớp Google Maps Đường sá thông thường
-    folium.TileLayer(
-        tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-        attr='Google Maps',
-        name='Google Bản đồ đường',
-        overlay=False,
-        control=True
-    ).add_to(m_preview)
-
-    # Lớp OpenStreetMap dự phòng
-    folium.TileLayer(
-        tiles='OpenStreetMap',
-        name='OpenStreetMap',
-        overlay=False,
-        control=True
-    ).add_to(m_preview)
-
+    folium.TileLayer(tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', attr='Google Maps Vệ tinh',
+                     name='Google Vệ tinh (Hybrid)', overlay=False, control=True).add_to(m_preview)
+    folium.TileLayer(tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', attr='Google Maps',
+                     name='Google Bản đồ đường', overlay=False, control=True).add_to(m_preview)
+    folium.TileLayer(tiles='OpenStreetMap', name='OpenStreetMap', overlay=False, control=True).add_to(m_preview)
     folium.LayerControl(position='topright').add_to(m_preview)
+    if cur_lat is not None:
+        add_draggable_marker(m_preview, cur_lat, cur_lon, tooltip='Kéo để chỉnh vị trí',
+                             popup=st.session_state.get('sub_loc_name') or f'{cur_lat}, {cur_lon}')
 
-    if cur_lat and cur_lon:
-        folium.Marker(
-            [cur_lat, cur_lon],
-            tooltip="Vị trí đã chọn",
-            popup=st.session_state.get('sub_loc_name') or f"{cur_lat}, {cur_lon}",
-            icon=folium.Icon(color='red', icon='info-sign')
-        ).add_to(m_preview)
-
-    map_out = st_folium(m_preview, height=350, width=None, key='submit_picker_map')
-    if map_out and map_out.get('last_clicked'):
-        clicked = map_out['last_clicked']
-        c_lat = round(clicked['lat'], 6)
-        c_lon = round(clicked['lng'], 6)
-        if (c_lat, c_lon) != (cur_lat, cur_lon):
-            st.session_state['sub_lat'] = str(c_lat)
-            st.session_state['sub_lon'] = str(c_lon)
-            st.session_state['sub_gps_src'] = 'Chọn trên bản đồ'
-            addr = reverse_geocode(c_lat, c_lon)
-            if addr:
-                st.session_state['sub_loc_name'] = addr
-            st.rerun()
+    map_out = st_folium(m_preview, height=380, width=None, key='submit_picker_map',
+                        returned_objects=['last_clicked'], center=center_pos, zoom=zoom_lvl)
+    clicked = (map_out or {}).get('last_clicked')
+    if clicked:
+        pt = (round(clicked['lat'], 6), round(clicked['lng'], 6))
+        if pt != st.session_state.get('_last_click'):   # chỉ xử lý điểm bấm/thả MỚI, không ghi đè tọa độ vừa nhập tay
+            st.session_state['_last_click'] = pt
+            if pt != (cur_lat, cur_lon):
+                st.session_state['_pending_coords'] = (str(pt[0]), str(pt[1]), 'Chọn trên bản đồ', reverse_geocode(*pt))
+                st.rerun()
+    if cur_lat is not None:
+        st.link_button('🧭 Mở vị trí này trong Google Maps', f'https://www.google.com/maps?q={cur_lat},{cur_lon}')
 
 with st.form('submit_form'):
     loc = st.text_input(
@@ -163,10 +167,6 @@ with st.form('submit_form'):
         help='Tự động cập nhật tên đường từ GPS/bản đồ. Bạn có thể chỉnh sửa lại theo thực tế.'
     )
     road = st.selectbox('Tầm quan trọng tuyến (thang giả định)', list(ROAD_TYPES), index=2)
-    st.caption('Tọa độ vị trí (tự động cập nhật từ GPS/Bản đồ, hoặc chỉnh sửa tay):')
-    c1, c2 = st.columns(2)
-    lat_txt = c1.text_input('Vĩ độ (Latitude)', value=st.session_state.get('sub_lat', ''))
-    lon_txt = c2.text_input('Kinh độ (Longitude)', value=st.session_state.get('sub_lon', ''))
     note = st.text_area('Ghi chú / điều kiện chụp')
     contact = st.text_input('Liên hệ (tùy chọn, chỉ cán bộ xem)') if not officer else ''
     consent = st.checkbox('Tôi đồng ý cho lưu ảnh và vị trí để cán bộ xác minh') if not officer else True
