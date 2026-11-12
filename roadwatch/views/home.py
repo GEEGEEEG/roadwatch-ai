@@ -21,14 +21,21 @@ st.markdown("""
 </section>
 """, unsafe_allow_html=True)
 
-st.markdown('<div style="height: 16px;"></div>', unsafe_allow_html=True)
-a,b = st.columns([1,1],gap='medium')
-with a:
-    st.page_link('views/submit.py',label='📷  Chụp và gửi phản ánh',icon=None)
-with b:
-    st.page_link('views/map.py',label='🗺️  Khám phá bản đồ đã xác minh',icon=None)
+st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
 if is_officer():
-    st.page_link('views/queue.py', label='✅  Mở hàng chờ cần xác minh')
+    c1, c2, c3 = st.columns([1, 1, 1], gap='medium')
+    with c1:
+        st.page_link('views/submit.py', label='📷  Chụp & gửi phản ánh', icon=None)
+    with c2:
+        st.page_link('views/map.py', label='🗺️  Khám phá bản đồ', icon=None)
+    with c3:
+        st.page_link('views/queue.py', label='✅  Hàng chờ thẩm định', icon=None)
+else:
+    a, b = st.columns([1, 1], gap='medium')
+    with a:
+        st.page_link('views/submit.py', label='📷  Chụp và gửi phản ánh', icon=None)
+    with b:
+        st.page_link('views/map.py', label='🗺️  Khám phá bản đồ đã xác minh', icon=None)
 
 st.markdown("""
 <section class="rw-section"><span class="rw-overline">Quy trình đơn giản</span>
@@ -42,22 +49,22 @@ st.markdown("""
   <article class="rw-card"><span class="rw-card-icon" aria-hidden="true">🛡️</span>
   <h3>03 · Được kiểm tra, xác minh</h3><p>AI khoanh vùng hư hỏng; cán bộ xem xét trước khi công khai thông tin.</p></article>
 </div>
-""",unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-df=db.fetch_df()
-counts={key:int((df.status==key).sum()) if not df.empty else 0 for key in STATUS_LABELS}
-verified = counts.get('verified',0)+counts.get('assigned',0)
-pending = counts.get('pending',0)
+df = db.fetch_df()
+counts = {key: int((df.status == key).sum()) if not df.empty else 0 for key in STATUS_LABELS}
+verified = counts.get('verified', 0) + counts.get('assigned', 0)
+pending = counts.get('pending', 0)
 all_count = len(df)
-fixed = counts.get('fixed',0)
+fixed = counts.get('fixed', 0)
 
 st.markdown('<section class="rw-section"><span class="rw-overline">Tình hình tiếp nhận</span><h2>Thông tin minh bạch, cập nhật theo dữ liệu</h2><p>Số liệu dưới đây được lấy từ các bản ghi hiện có, không phải số liệu minh họa.</p></section>', unsafe_allow_html=True)
 st.markdown(f"""<div class="rw-overview">
-<div class="rw-kpi"><small>Phản ánh tiếp nhận</small><strong>{all_count}</strong><em>Tất cả trạng thái</em></div>
-<div class="rw-kpi"><small>Đang chờ xác minh</small><strong>{pending}</strong><em>Cần cán bộ rà soát</em></div>
-<div class="rw-kpi"><small>Đã xác minh / giao việc</small><strong>{verified}</strong><em>Đủ điều kiện theo dõi</em></div>
-<div class="rw-kpi"><small>Đã xử lý</small><strong>{fixed}</strong><em>Đã cập nhật hoàn tất</em></div>
-</div>""",unsafe_allow_html=True)
+<div class="rw-kpi"><small>📥 Phản ánh tiếp nhận</small><strong>{all_count}</strong><em>Tất cả trạng thái</em></div>
+<div class="rw-kpi"><small>⏳ Đang chờ xác minh</small><strong>{pending}</strong><em>Cần cán bộ rà soát</em></div>
+<div class="rw-kpi"><small>✅ Đã xác minh / Duyệt</small><strong>{verified}</strong><em>Đủ điều kiện theo dõi</em></div>
+<div class="rw-kpi"><small>🛠️ Đã sửa chữa duy tu</small><strong>{fixed}</strong><em>Đã nghiệm thu hiện trường</em></div>
+</div>""", unsafe_allow_html=True)
 
 st.markdown("""
 <section class="rw-section"><span class="rw-overline">Hai cổng sử dụng</span><h2>Đúng thông tin, đúng người, đúng quy trình</h2></section>

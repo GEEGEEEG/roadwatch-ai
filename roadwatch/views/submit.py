@@ -12,11 +12,11 @@ from core.detector import extract_exif_gps
 from core.geo import reverse_geocode
 from core.pin_map import add_draggable_marker
 from core.service import SubmitError, submit_report
-from core.ui import detector_or_stop, disclaimer, img_show, is_officer, page_intro, steps
+from core.ui import confetti_celebrate, detector_or_stop, disclaimer, img_show, is_officer, page_intro, steps
 
 officer = is_officer()
 page_intro('GỬI PHẢN ÁNH', 'Ghi nhận tình trạng mặt đường', 'Chụp ảnh rõ mặt đường hoặc tải ảnh từ máy, xác nhận vị trí và gửi đến hàng chờ kiểm tra.')
-steps('Chụp/Tải ảnh', 'Xác nhận vị trí', 'Gửi phản ánh', active=0)
+steps('1. Chọn ảnh hiện trường', '2. Xác nhận tọa độ GPS', '3. AI Thẩm định & Gửi', active=0)
 st.markdown('<div class="rw-hint">🛡️ <b>An toàn trước tiên:</b> hãy đứng ở vị trí an toàn và không sử dụng camera khi đang điều khiển phương tiện. Báo cáo chưa được công khai trước khi cán bộ xác minh.</div>', unsafe_allow_html=True)
 
 if officer:  # chỉ cán bộ thấy tùy chỉnh kỹ thuật; người dân dùng giá trị mặc định
@@ -69,7 +69,7 @@ try:
 except Exception:
     st.warning('Không hiển thị được ảnh xem trước; vui lòng kiểm tra lại định dạng.')
 st.caption(f'Đã có {len(items)} ảnh. Bước tiếp theo: xác nhận vị trí chính xác nơi chụp.')
-st.markdown('<div class="rw-progress"><span>✓ 1. Chọn ảnh</span><span class="active">2. Xác nhận vị trí</span><span>3. Gửi phản ánh</span></div>', unsafe_allow_html=True)
+steps('1. Chọn ảnh hiện trường', '2. Xác nhận tọa độ GPS', '3. AI Thẩm định & Gửi', active=1)
 
 st.session_state.setdefault('sub_lat', '')
 st.session_state.setdefault('sub_lon', '')
@@ -300,5 +300,7 @@ if go:
             st.warning('Chất lượng ảnh: ' + q + ' — kết quả nhận diện có thể kém tin cậy.')
         for f in flags:
             st.warning('Cờ kiểm tra: ' + f)
-        st.success(f'Đã lưu {rid} — trạng thái: {STATUS_LABELS["verified" if auto_verify else "pending"]}.')
+        confetti_celebrate()
+        st.success(f'🎉 **Gửi phản ánh thành công!** Đã lưu hồ sơ **{rid}** — Trạng thái: **{STATUS_LABELS["verified" if auto_verify else "pending"]}**.')
+        steps('1. Chọn ảnh hiện trường', '2. Xác nhận tọa độ GPS', '3. AI Thẩm định & Gửi', active=2)
 disclaimer()

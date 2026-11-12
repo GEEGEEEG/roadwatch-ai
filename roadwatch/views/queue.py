@@ -15,14 +15,24 @@ require_officer()
 page_intro('QUẢN LÝ PHẢN ÁNH','Hàng chờ xác minh','Xem ảnh, đối chiếu tọa độ và điều chỉnh thông tin trước khi phê duyệt.')
 pending = db.fetch_df(['pending'])
 if pending.empty:
-    st.success('Không có báo cáo nào đang chờ.')
+    st.success('✅ Tuyệt vời! Hiện không có báo cáo nào đang chờ duyệt.')
     st.stop()
-st.write(f'**{len(pending)}** báo cáo đang chờ.')
+
+# Thanh thống kê nhanh tình trạng hồ sơ chờ thẩm định
+col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
+n_urgent = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Cần kiểm tra sớm')
+n_med = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Trung bình')
+n_low = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') in ('Nhẹ', 'Không phát hiện'))
+col_kpi1.metric('📥 Tổng hồ sơ chờ', len(pending))
+col_kpi2.metric('🚨 Khẩn cấp', n_urgent)
+col_kpi3.metric('⚠️ Trung bình', n_med)
+col_kpi4.metric('🟢 Mức độ nhẹ', n_low)
+
 active = db.fetch_df(list(ACTIVE_STATUSES))
 labels = {r.id: f"{r.id} — {r.location_name} ({r.ai_level})" + (' ⚠️' if r.screen_flags or r.quality_flags else '')
           + (' 🔁' if nearby_points(active, r.latitude, r.longitude, DUP_FLAG_M) else '')
           for r in pending.itertuples()}
-rid = st.selectbox('Chọn báo cáo', list(labels), format_func=labels.get)
+rid = st.selectbox('🔍 Chọn hồ sơ cần thẩm định', list(labels), format_func=labels.get)
 r = pending[pending.id == rid].iloc[0]
 
 left, right = st.columns(2)
