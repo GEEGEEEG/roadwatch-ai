@@ -172,7 +172,7 @@ if lat_txt.strip() or lon_txt.strip():
         st.warning('Tọa độ chưa hợp lệ: vĩ độ từ -90 đến 90, kinh độ từ -180 đến 180.')
 
 if st.toggle('🗺️ Mở bản đồ để chọn / điều chỉnh tọa độ', value=False, key='show_location_picker'):
-    st.caption('Ghim xuất hiện khi có tọa độ. **Kéo ghim** để chỉnh hoặc **bấm lên bản đồ**: tọa độ và tên đường tự cập nhật.')
+    st.caption('**Kéo ghim đỏ** để chỉnh hoặc **bấm vị trí mới** trên bản đồ → tọa độ & tên đường cập nhật tự động. Popup trên ghim hiển thị tọa độ realtime khi đang kéo.')
     center_pos = [cur_lat, cur_lon] if cur_lat is not None else [16.0544, 108.2022]
     zoom_lvl = 18 if cur_lat is not None else 13
     m_preview = folium.Map(location=center_pos, zoom_start=zoom_lvl, control_scale=True, tiles=None)
@@ -230,9 +230,13 @@ with st.form('submit_form'):
         placeholder='Ví dụ: Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1',
         help='Tự động cập nhật tên đường từ GPS/bản đồ. Bạn có thể chỉnh sửa lại theo thực tế.'
     )
-    road = st.selectbox('Tầm quan trọng tuyến (thang giả định)', list(ROAD_TYPES), index=2)
+    if officer:
+        road = st.selectbox('Tầm quan trọng tuyến (thang giả định)', list(ROAD_TYPES), index=2,
+                            help='Chỉ cán bộ mới xếp được; người dân không cần điền.')
+    else:
+        road = list(ROAD_TYPES)[2]  # mặc định "Đường khu dân cư (minh họa)"
     note = st.text_area('Ghi chú / điều kiện chụp', max_chars=600, placeholder='Ví dụ: ổ gà gần giao lộ, ảnh chụp lúc trời nắng...')
-    contact = st.text_input('Liên hệ (tùy chọn, chỉ cán bộ xem)', max_chars=120) if not officer else ''
+    contact = ''   # đã xóa trường liên hệ — người dân không cần
     consent = st.checkbox('Tôi đồng ý cho lưu ảnh và vị trí để cán bộ xác minh') if not officer else True
     auto_verify = False
     final_level = None
