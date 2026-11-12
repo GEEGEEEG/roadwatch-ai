@@ -4,8 +4,24 @@ from datetime import datetime
 
 import streamlit as st
 
+from core.auth import change_password, login
 from core.config import cfg
 from core.ui import disclaimer, is_officer, stretch
+
+
+# ─── Hằng: TK test nhanh ───────────────────────────────────────────────────
+_DEMO_USER = 'canbo01'
+_DEMO_PASS = 'canbo123'
+
+
+def _do_login(officer: dict):
+    """Ghi session sau khi xác thực thành công."""
+    st.session_state['role'] = 'officer'
+    st.session_state['officer_username'] = officer['username']
+    st.session_state['officer_name'] = officer['full_name'] or officer['username']
+    st.session_state['officer_unit'] = officer['unit'] or 'RoadWatch AI'
+    st.session_state['officer_role_level'] = officer['role']   # 'admin' | 'officer'
+    st.session_state['officer_login_time'] = datetime.now().strftime('%H:%M:%S %d/%m/%Y')
 
 
 def show():
@@ -26,44 +42,43 @@ def show():
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Đã đăng nhập ─────────────────────────────────────────────────────
     if is_officer():
-        name = escape(str(st.session_state.get('officer_name', 'Cán bộ kỹ thuật')))
-        unit = escape(str(st.session_state.get('officer_unit', 'Ban Quản lý Hạ tầng Giao thông')))
-        login_time = escape(str(st.session_state.get('officer_login_time', 'Phiên hiện tại')))
+        name = escape(str(st.session_state.get('officer_name', 'Cán bộ')))
+        unit = escape(str(st.session_state.get('officer_unit', '')))
+        login_time = escape(str(st.session_state.get('officer_login_time', '')))
+        role_lv = st.session_state.get('officer_role_level', 'officer')
+        badge = '👑 Quản trị viên' if role_lv == 'admin' else '🛡️ Cán bộ kỹ thuật'
 
-        st.success(f"🟢 **Đã mở phiên quản trị**: Chào mừng **{name}** ({unit})")
+        st.success(f"🟢 **Phiên đang mở** — Chào **{name}** ({badge})")
 
         col1, col2 = st.columns([2, 1])
         with col1:
             st.markdown(f"""
-            <div style="background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-              <h3 style="margin-top: 0; font-size: 1.1rem; color: #0F172A; display: flex; align-items: center; gap: 8px;">
-                <span>🛡️</span> Thông tin phiên làm việc Cán bộ
-              </h3>
-              <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <tr style="border-bottom: 1px solid #F1F5F9;">
-                  <td style="padding: 8px 0; color: #64748B; width: 35%;">Họ tên / Mã cán bộ:</td>
-                  <td style="padding: 8px 0; font-weight: 600; color: #0F172A;">{name}</td>
+            <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:20px;margin-bottom:16px;">
+              <h3 style="margin-top:0;font-size:1.1rem;color:#0F172A;">📋 Thông tin phiên làm việc</h3>
+              <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+                <tr style="border-bottom:1px solid #F1F5F9;">
+                  <td style="padding:8px 0;color:#64748B;width:38%;">Tên / Mã cán bộ:</td>
+                  <td style="padding:8px 0;font-weight:600;color:#0F172A;">{name}</td>
                 </tr>
-                <tr style="border-bottom: 1px solid #F1F5F9;">
-                  <td style="padding: 8px 0; color: #64748B;">Đơn vị phụ trách:</td>
-                  <td style="padding: 8px 0; font-weight: 600; color: #0F172A;">{unit}</td>
+                <tr style="border-bottom:1px solid #F1F5F9;">
+                  <td style="padding:8px 0;color:#64748B;">Đơn vị:</td>
+                  <td style="padding:8px 0;font-weight:600;color:#0F172A;">{unit}</td>
                 </tr>
-                <tr style="border-bottom: 1px solid #F1F5F9;">
-                  <td style="padding: 8px 0; color: #64748B;">Thời gian đăng nhập:</td>
-                  <td style="padding: 8px 0; color: #0F172A;">{login_time}</td>
+                <tr style="border-bottom:1px solid #F1F5F9;">
+                  <td style="padding:8px 0;color:#64748B;">Phân quyền:</td>
+                  <td style="padding:8px 0;font-weight:600;color:#1D4ED8;">{badge}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #64748B;">Phạm vi quyền hạn:</td>
-                  <td style="padding: 8px 0; color: #166534; font-weight: 600;">
-                    Toàn quyền duyệt hồ sơ, gom cụm ưu tiên, điều phối lộ trình và quản trị hệ thống
-                  </td>
+                  <td style="padding:8px 0;color:#64748B;">Đăng nhập lúc:</td>
+                  <td style="padding:8px 0;color:#0F172A;">{login_time}</td>
                 </tr>
               </table>
             </div>
             """, unsafe_allow_html=True)
 
-            st.subheader('Thao tác nhanh chuyên môn')
+            st.subheader('Thao tác nhanh')
             q1, q2, q3 = st.columns(3)
             with q1:
                 if st.button('✅ Hàng chờ xác minh', **stretch(st.button)):
@@ -84,98 +99,100 @@ def show():
                     except Exception:
                         st.rerun()
 
+            # Đổi mật khẩu cá nhân
+            with st.expander('🔑 Đổi mật khẩu cá nhân'):
+                with st.form('change_pw_form'):
+                    old_pw = st.text_input('Mật khẩu hiện tại', type='password')
+                    new_pw = st.text_input('Mật khẩu mới (tối thiểu 6 ký tự)', type='password')
+                    new_pw2 = st.text_input('Xác nhận mật khẩu mới', type='password')
+                    if st.form_submit_button('Lưu mật khẩu mới'):
+                        uname = st.session_state.get('officer_username', '')
+                        if new_pw != new_pw2:
+                            st.error('Mật khẩu xác nhận không khớp.')
+                        else:
+                            err = change_password(uname, old_pw, new_pw)
+                            st.success('✅ Đổi mật khẩu thành công!') if not err else st.error(err)
+
         with col2:
             st.markdown("""
-            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px;">
-              <h4 style="margin: 0 0 10px 0; font-size: 1rem; color: #0F172A;">Đóng phiên làm việc</h4>
-              <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 16px; line-height: 1.5;">
-                Đăng xuất khi hoàn thành ca trực để bảo đảm an toàn dữ liệu quản lý kết cấu hạ tầng giao thông.
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:20px;">
+              <h4 style="margin:0 0 10px 0;font-size:1rem;color:#0F172A;">Đóng phiên làm việc</h4>
+              <p style="font-size:0.85rem;color:#64748B;margin-bottom:16px;line-height:1.5;">
+                Đăng xuất khi hoàn thành ca trực để bảo đảm an toàn dữ liệu.
               </p>
             </div>
             """, unsafe_allow_html=True)
             if st.button('🚪 Đăng xuất ngay', key='logout_main_page', **stretch(st.button)):
-                st.session_state['role'] = 'citizen'
-                st.session_state.pop('officer_name', None)
-                st.session_state.pop('officer_unit', None)
-                st.session_state.pop('officer_login_time', None)
+                for k in ['role', 'officer_username', 'officer_name', 'officer_unit',
+                          'officer_role_level', 'officer_login_time']:
+                    st.session_state.pop(k, None)
                 st.rerun()
 
         disclaimer()
         return
 
-    # Khi chưa đăng nhập: Giao diện đăng nhập tiêu chuẩn
+    # ── Chưa đăng nhập ───────────────────────────────────────────────────
     col_info, col_form = st.columns([1.1, 1], gap='large')
 
     with col_info:
         st.markdown("""
-        <div style="background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px; margin-bottom: 16px;">
-          <h3 style="margin-top: 0; font-size: 1.15rem; color: #0F172A; display: flex; align-items: center; gap: 8px;">
-            <span>📋</span> Quyền hạn & Chức năng Cán bộ
-          </h3>
-          <ul style="font-size: 0.9rem; color: #334155; line-height: 1.8; padding-left: 20px; margin-bottom: 0;">
-            <li><strong>Thẩm định báo cáo hư hỏng:</strong> Kiểm tra hình ảnh nứt (D00/D10/D20), ổ gà (D40) do người dân gửi lên; duyệt hoặc từ chối kèm lý do.</li>
-            <li><strong>Gộp điểm trùng lặp:</strong> Phát hiện các phản ánh cùng vị trí hư hỏng để tránh chồng chéo xử lý.</li>
-            <li><strong>Xếp hạng ưu tiên (50-30-20):</strong> Phân bổ nguồn lực dựa trên mức độ nghiêm trọng, mật độ phản ánh và cấp đường.</li>
-            <li><strong>Lập lộ trình tuần tra:</strong> Tự động gom cụm các điểm hư hỏng gần nhau và xuất lộ trình kiểm tra thực địa.</li>
-            <li><strong>Đối chiếu trước/sau sửa chữa:</strong> Lưu trữ hồ sơ hoàn thành phục vụ nghiệm thu kỹ thuật.</li>
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:24px;margin-bottom:16px;">
+          <h3 style="margin-top:0;font-size:1.15rem;color:#0F172A;">📋 Quyền hạn & Chức năng Cán bộ</h3>
+          <ul style="font-size:0.9rem;color:#334155;line-height:1.9;padding-left:20px;margin-bottom:0;">
+            <li><strong>Thẩm định báo cáo hư hỏng:</strong> Duyệt/từ chối ảnh D00/D10/D20/D40 do người dân gửi lên.</li>
+            <li><strong>Gộp điểm trùng lặp:</strong> Phát hiện phản ánh cùng vị trí để tránh chồng chéo.</li>
+            <li><strong>Xếp hạng AHP (đa tiêu chí):</strong> Phân bổ nguồn lực khoa học theo 4 tiêu chí.</li>
+            <li><strong>Lập lộ trình tuần tra:</strong> Gom cụm điểm và xuất lộ trình kiểm tra thực địa.</li>
+            <li><strong>Đối chiếu trước/sau sửa chữa:</strong> Lưu hồ sơ hoàn thành để nghiệm thu.</li>
           </ul>
         </div>
-
-        <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 14px 16px;">
-          <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <span style="font-size: 1.2rem;">🔒</span>
-            <div style="font-size: 0.85rem; color: #1E40AF; line-height: 1.5;">
-              <strong>Bảo mật thông tin:</strong> Đây là bản demo dùng mật khẩu chung; người dùng nhập tên cán bộ thủ công. Không sử dụng như hệ thống xác thực danh tính chính thức.
-            </div>
-          </div>
-        </div>
         """, unsafe_allow_html=True)
+
+        # Nút đăng nhập test nhanh
+        st.markdown('---')
+        st.markdown('**🧪 Đăng nhập nhanh để test hệ thống**')
+        st.caption(f'Tài khoản demo: `{_DEMO_USER}` / `{_DEMO_PASS}`')
+        if st.button('⚡ Đăng nhập Demo (Test nhanh)', type='secondary', use_container_width=True):
+            officer = login(_DEMO_USER, _DEMO_PASS)
+            if officer:
+                _do_login(officer)
+                st.success('✅ Đăng nhập demo thành công!')
+                try:
+                    st.switch_page('views/queue.py')
+                except Exception:
+                    st.rerun()
+            else:
+                st.error('Tài khoản demo chưa được khởi tạo. Reload lại trang.')
 
     with col_form:
         st.markdown("""
-        <div style="background: #fff; border: 1px solid #CBD5E1; border-top: 4px solid #2563EB; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(15,23,42,0.04);">
-          <h3 style="margin-top: 0; font-size: 1.2rem; color: #0F172A;">🔐 Đăng nhập Cán bộ Quản lý</h3>
-          <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 16px;">Vui lòng điền thông tin cán bộ trực ca để truy cập các tính năng nghiệp vụ.</p>
+        <div style="background:#fff;border:1px solid #CBD5E1;border-top:4px solid #2563EB;border-radius:12px;padding:24px;box-shadow:0 4px 12px rgba(15,23,42,0.04);">
+          <h3 style="margin-top:0;font-size:1.2rem;color:#0F172A;">🔐 Đăng nhập Tài khoản Cán bộ</h3>
+          <p style="font-size:0.85rem;color:#64748B;margin-bottom:4px;">Mỗi cán bộ có tài khoản riêng do Quản trị viên cấp.</p>
         </div>
         """, unsafe_allow_html=True)
 
-        pw = cfg('ROADWATCH_OFFICER_PASSWORD')
-        if not pw:
-            st.warning('⚠️ Hệ thống chưa cấu hình `ROADWATCH_OFFICER_PASSWORD` trong Streamlit Secrets. Cán bộ tạm thời chưa thể đăng nhập.')
-            return
-
         with st.form('officer_login_form', clear_on_submit=False):
-            officer_name = st.text_input('👤 Họ và tên / Mã cán bộ', placeholder='Ví dụ: Nguyễn Văn A hoặc CB-01', value='Cán bộ trực ca')
-            officer_unit = st.selectbox('🏢 Đơn vị / Phòng ban công tác', [
-                'Đội Quản lý & Duy tu Đường bộ 1',
-                'Đội Quản lý & Duy tu Đường bộ 2',
-                'Ban Quản lý Dự án Giao thông Đô thị',
-                'Thanh tra Sở Giao thông Vận tải',
-                'Trung tâm Quản lý Điều hành Giao thông',
-                'Đội Tuần tra & Phản ứng nhanh',
-                'Khác (Cán bộ độc lập)',
-            ])
-            entered_pw = st.text_input('🔑 Mật khẩu xác thực', type='password', placeholder='Nhập mật khẩu được cấp')
-            
-            submitted = st.form_submit_button('Xác thực & Truy cập Cổng Cán Bộ', type='primary', **stretch(st.form_submit_button))
-
+            username = st.text_input('👤 Tên đăng nhập', placeholder='Ví dụ: nguyenvana hoặc cb01')
+            entered_pw = st.text_input('🔑 Mật khẩu', type='password', placeholder='Nhập mật khẩu được cấp')
+            submitted = st.form_submit_button('Xác thực & Truy cập Cổng Cán bộ',
+                                              type='primary', **stretch(st.form_submit_button))
             if submitted:
-                if not entered_pw:
-                    st.error('Vui lòng nhập mật khẩu xác thực.')
-                elif hmac.compare_digest(entered_pw.encode(), pw.encode()):
-                    st.session_state['role'] = 'officer'
-                    st.session_state['officer_name'] = officer_name.strip() or 'Cán bộ trực ca'
-                    st.session_state['officer_unit'] = officer_unit
-                    st.session_state['officer_login_time'] = datetime.now().strftime('%H:%M:%S %d/%m/%Y')
-                    st.success('✅ Đăng nhập thành công. Đang mở khu vực quản trị...')
-                    try:
-                        st.switch_page('views/queue.py')
-                    except Exception:
-                        st.rerun()
+                if not username or not entered_pw:
+                    st.error('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.')
                 else:
-                    st.error('❌ Mật khẩu không chính xác. Vui lòng kiểm tra lại.')
+                    officer = login(username, entered_pw)
+                    if officer:
+                        _do_login(officer)
+                        st.success('✅ Đăng nhập thành công!')
+                        try:
+                            st.switch_page('views/queue.py')
+                        except Exception:
+                            st.rerun()
+                    else:
+                        st.error('❌ Tên đăng nhập hoặc mật khẩu không đúng, hoặc tài khoản đã bị vô hiệu hoá.')
 
-        st.caption('Chưa có tài khoản hoặc cần đặt lại mật khẩu? Liên hệ: **Ban Quản trị Kỹ thuật RoadWatch AI**.')
+        st.caption('Chưa có tài khoản? Liên hệ **Quản trị viên RoadWatch AI** để được cấp.')
 
     disclaimer()
 
