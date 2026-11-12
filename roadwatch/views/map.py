@@ -39,7 +39,6 @@ if wide_degradations:
 # Chế độ Lái xe An toàn (Driver Alert Mode)
 with st.expander('🚗 Chế độ Lái xe An toàn (Cảnh báo giọng nói & âm thanh theo thời gian thực)', expanded=False):
     st.caption('Bật định vị trên điện thoại. Khi phương tiện tiến gần điểm hư hỏng nguy hiểm trong bán kính 100m, hệ thống tự động phát âm thanh và giọng nói cảnh báo.')
-    # Lấy danh sách các điểm nguy hiểm (Cần kiểm tra sớm hoặc có ổ gà)
     hazard_pts = []
     for _, r in hs.iterrows():
         if r['severity_label'] == 'Cần kiểm tra sớm' or r.get('has_pothole'):
@@ -116,7 +115,7 @@ with st.expander('🚗 Chế độ Lái xe An toàn (Cảnh báo giọng nói & 
 
       function speakAlert(text) {{
         const now = Date.now();
-        if (now - lastSpokenTime < 15000) return; // Không nói lặp lại trong 15s
+        if (now - lastSpokenTime < 15000) return;
         lastSpokenTime = now;
         playBeep();
         if ('speechSynthesis' in window) {{
