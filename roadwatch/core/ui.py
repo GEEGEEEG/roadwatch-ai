@@ -124,9 +124,107 @@ def page_intro(kicker,title,description):
     st.markdown('<div class="rw-page-intro"><span class="rw-overline">'+escape(kicker)+'</span><h1>'+escape(title)+'</h1><p>'+escape(description)+'</p></div>',unsafe_allow_html=True)
 
 
-def steps(*items,active=0):
-    pills=''.join('<span'+(' class="active"' if i==active else '')+'>'+escape(str(i+1))+'. '+escape(v)+'</span>' for i,v in enumerate(items))
-    st.markdown('<div class="rw-progress">'+pills+'</div>',unsafe_allow_html=True)
+def steps(*items, active=0):
+    """Custom Stepper 3 bước trực quan với vòng tròn số phát sáng và đường line đổi màu."""
+    if not items:
+        return
+    nodes_html = []
+    for i, label in enumerate(items):
+        if i < active:
+            cls = 'completed'
+            icon = '✓'
+        elif i == active:
+            cls = 'active'
+            icon = str(i + 1)
+        else:
+            cls = 'pending'
+            icon = str(i + 1)
+
+        node = f"""
+        <div class="rw-step-node {cls}">
+          <div class="rw-step-circle">{icon}</div>
+          <div class="rw-step-label">{escape(label)}</div>
+        </div>
+        """
+        nodes_html.append(node)
+        if i < len(items) - 1:
+            line_cls = 'completed-line' if i < active else ''
+            nodes_html.append(f'<div class="rw-step-line {line_cls}"></div>')
+
+    full_html = f"""
+    <div class="rw-stepper-box">
+      <div class="rw-stepper">
+        {''.join(nodes_html)}
+      </div>
+    </div>
+    """
+    st.markdown(full_html, unsafe_allow_html=True)
+
+
+def confetti_celebrate():
+    """Bắn pháo hoa Confetti siêu nhẹ (JS thuần, không phụ thuộc package ngoài)."""
+    import streamlit.components.v1 as components
+    js = """
+    <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999999;"></canvas>
+    <script>
+      (function() {
+        const canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const colors = ['#2563EB', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+        const pieces = [];
+        for (let i = 0; i < 75; i++) {
+          pieces.push({
+            x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+            y: canvas.height * 0.35,
+            vx: (Math.random() - 0.5) * 14,
+            vy: (Math.random() - 0.85) * 16,
+            size: Math.random() * 9 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            rotSpeed: (Math.random() - 0.5) * 10,
+            opacity: 1
+          });
+        }
+        
+        let startTime = Date.now();
+        function frame() {
+          const elapsed = Date.now() - startTime;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          let alive = false;
+          for (const p of pieces) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.38;
+            p.rotation += p.rotSpeed;
+            p.opacity = Math.max(0, 1 - elapsed / 2600);
+            
+            if (p.opacity > 0 && p.y < canvas.height + 20) {
+              alive = true;
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rotation * Math.PI / 180);
+              ctx.fillStyle = p.color;
+              ctx.globalAlpha = p.opacity;
+              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+              ctx.restore();
+            }
+          }
+          if (alive && elapsed < 2600) {
+            requestAnimationFrame(frame);
+          } else {
+            canvas.remove();
+          }
+        }
+        requestAnimationFrame(frame);
+      })();
+    </script>
+    """
+    components.html(js, height=0, width=0)
 
 
 def safe_csv_export(df):
