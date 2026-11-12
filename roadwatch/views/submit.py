@@ -284,10 +284,18 @@ if go:
             st.info('AI chưa phát hiện vùng nào vượt ngưỡng. Phản ánh vẫn được gửi để cán bộ kiểm tra thủ công.')
         sev = out['severity']
         img_show(out['annotated_image'])
-        a, b, c = st.columns(3)
-        a.metric('Số vùng phát hiện', len(out['detections']))
-        b.metric('Mức độ sơ bộ', sev['level'])
-        c.metric('Điểm quy tắc', f"{sev['score']}/100")
+        dmg = out.get('damage_analysis')
+        if dmg and dmg['total_damage_m2'] > 0:
+            a, b, c, d = st.columns(4)
+            a.metric('Số vùng phát hiện', len(out['detections']))
+            b.metric('Mức độ sơ bộ', sev['level'])
+            c.metric('Điểm quy tắc', f"{sev['score']}/100")
+            d.metric('Diện tích tổn thương', f"{dmg['total_damage_m2']:.2f} m²", help=dmg['damage_severity_desc'])
+        else:
+            a, b, c = st.columns(3)
+            a.metric('Số vùng phát hiện', len(out['detections']))
+            b.metric('Mức độ sơ bộ', sev['level'])
+            c.metric('Điểm quy tắc', f"{sev['score']}/100")
         for q in quality['flags']:
             st.warning('Chất lượng ảnh: ' + q + ' — kết quả nhận diện có thể kém tin cậy.')
         for f in flags:

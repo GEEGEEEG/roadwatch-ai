@@ -2,8 +2,8 @@ import re
 import subprocess
 import tempfile
 
-import folium
 import pytest
+folium = pytest.importorskip('folium')
 
 from core.pin_map import add_draggable_marker
 

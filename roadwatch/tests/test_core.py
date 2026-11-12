@@ -208,3 +208,61 @@ def test_metrics():
     assert (m['TP'], m['FP'], m['FN'], m['TN']) == (1, 1, 1, 1) and m['n_labeled'] == 4
     assert m['precision'] == 0.5 and m['recall'] == 0.5 and m['false_alarm_rate'] == 0.5
     assert len(metrics_table(df, 'gt')) == 3
+
+
+# ---------- damage_analysis & visual_dedup ----------
+def test_damage_analysis():
+    from core.damage_analysis import analyze_image_damage
+    im = Image.new('RGB', (100, 100), color=(180, 180, 180))
+    # Tạo một đốm đen giả lập ổ gà
+    for x in range(30, 70):
+        for y in range(30, 70):
+            im.putpixel((x, y), (20, 20, 20))
+    dets = [{'class_code': 'D40', 'confidence': 0.95, 'bbox_xyxy': [25, 25, 75, 75]}]
+    res = analyze_image_damage(im, dets)
+    assert res['total_damage_m2'] > 0
+    assert res['estimated_volume_liters'] > 0
+    assert len(res['detailed_boxes']) == 1
+
+
+def test_visual_dedup():
+    from core.visual_dedup import image_fingerprint, visual_similarity
+    im1 = Image.new('RGB', (64, 64), color=(100, 100, 100))
+    im2 = im1.copy()
+    im3 = Image.new('RGB', (64, 64), color=(255, 255, 255))
+    fp1 = image_fingerprint(im1)
+    fp2 = image_fingerprint(im2)
+    fp3 = image_fingerprint(im3)
+    assert visual_similarity(fp1, fp2) >= 0.99
+    assert visual_similarity(fp1, fp3) < 0.90
+
+
+# ---------- AHP & cost_estimation & corridor_hotspot ----------
+def test_ahp_calculation():
+    from core.ahp import compute_ahp_weights, compute_ahp_priority
+    res = compute_ahp_weights()
+    assert len(res['weights']) == 4
+    assert np.isclose(np.sum(res['weights']), 1.0)
+    assert res['is_consistent'] is True   # CR < 0.10
+    score, _ = compute_ahp_priority(80, 70, 50, 20)
+    assert 0 <= score <= 100
+
+
+def test_cost_estimation():
+    from core.cost_estimation import estimate_maintenance_cost
+    est = estimate_maintenance_cost(area_m2=0.2, volume_l=5.0)
+    assert est['total_estimate_vnd'] > 0
+    assert 'bao' in est['material_detail']
+
+
+def test_corridor_clustering():
+    from core.corridor_hotspot import analyze_corridor_clusters
+    df = pd.DataFrame([
+        {'id': '1', 'status': 'verified', 'latitude': 10.000, 'longitude': 106.000, 'location_name': 'Đường A'},
+        {'id': '2', 'status': 'verified', 'latitude': 10.001, 'longitude': 106.000, 'location_name': 'Đường A'},
+        {'id': '3', 'status': 'verified', 'latitude': 10.002, 'longitude': 106.000, 'location_name': 'Đường A'},
+    ])
+    clusters = analyze_corridor_clusters(df, max_distance_m=200, min_cluster_size=3)
+    assert len(clusters) == 1
+    assert clusters[0]['is_wide_degradation'] is True
+    assert clusters[0]['cluster_size'] == 3

@@ -4,10 +4,11 @@ import streamlit as st
 from core import db
 from core.config import cfg
 from core.constants import ACTIVE_STATUSES, DUP_FLAG_M, LEVELS, MERGE_MAX_M, ROAD_TYPES
+from core.cost_estimation import estimate_maintenance_cost
 from core.geo import nearby_points
 from core.notify import alert_text, send_telegram, telegram_configured
 from core.priority import final_score
-from core.ui import disclaimer, df_show, image_file, img_show, require_officer
+from core.ui import disclaimer, df_show, image_file, img_show, page_intro, require_officer
 from datetime import datetime
 
 require_officer()
@@ -33,11 +34,17 @@ with right:
     p = image_file(r.annotated_file)
     if p:
         img_show(p, caption='Ảnh có đánh dấu')
-c = st.columns(4)
+dmg_m2 = getattr(r, 'damage_area_m2', None) or 0.15
+dmg_vol = getattr(r, 'damage_volume_l', None) or 5.0
+cost_est = estimate_maintenance_cost(dmg_m2, dmg_vol)
+
+c = st.columns(5)
 c[0].metric('Số vùng', int(r.total_boxes))
 c[1].metric('Mức sơ bộ', r.ai_level)
 c[2].metric('Điểm quy tắc', r.ai_score)
-c[3].metric('Nguồn tọa độ', r.gps_source)
+c[3].metric('Diện tích AI (m²)', f"{dmg_m2:.2f} m²" if dmg_m2 else '—')
+c[4].metric('Dự toán sửa chữa', cost_est['formatted_total'])
+st.caption(f"💡 **Vật tư dự trù:** {cost_est['material_detail']}")
 for text in filter(None, (r.quality_flags or '').split('; ')):
     st.warning('Chất lượng ảnh: ' + text)
 for text in filter(None, (r.screen_flags or '').split('; ')):

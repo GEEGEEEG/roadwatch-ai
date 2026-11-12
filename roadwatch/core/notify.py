@@ -28,3 +28,4 @@ def alert_text(report):
     return (f"⚠️ RoadWatch: điểm cần kiểm tra sớm\n{report.get('location_name')}\n"
             f"Mã: {report.get('id')} | Điểm: {report.get('final_score')}\n"
             f"https://www.google.com/maps/search/?api=1&query={report.get('latitude')},{report.get('longitude')}")
+

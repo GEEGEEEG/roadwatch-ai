@@ -9,9 +9,11 @@ from PIL import Image
 from . import db
 from .config import data_dir
 from .constants import ACTIVE_STATUSES, DUP_FLAG_M, ROAD_TYPES
+from .damage_analysis import analyze_image_damage
 from .geo import nearby_points
 from .priority import final_score
 from .quality import assess_quality, screening_flags
+from .visual_dedup import check_visual_duplicate
 
 MAX_BYTES = 12 * 1024 * 1024
 
@@ -50,11 +52,20 @@ def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lo
     out = detector.predict_image(pil, threshold=threshold, imgsz=imgsz, tta=tta)
     sev, dets = out['severity'], out['detections']
     quality = assess_quality(pil)
+    damage_info = analyze_image_damage(pil, dets)
+    out['damage_analysis'] = damage_info
     now = datetime.now()
     df_all = db.fetch_df()
     flags = list(screening_flags(df_all, lat, lon, now, len(dets), quality['flags']))
+
+    # Kiểm tra trùng lặp vị trí GPS
     for near_id, near_m, _ in nearby_points(df_all, lat, lon, DUP_FLAG_M, ACTIVE_STATUSES)[:1]:
         flags.append(f'Có thể trùng điểm với hồ sơ {near_id} (cách {near_m:.0f} m)')
+
+    # Kiểm tra trùng lặp đa góc chụp bằng AI thị giác (Visual Deduplication)
+    visual_matches = check_visual_duplicate(df_all, pil, lat, lon, radius_m=35.0, threshold=0.72)
+    for vm in visual_matches[:1]:
+        flags.append(f'AI Thị giác: ảnh tương đồng {vm["similarity"]*100:.0f}% với hồ sơ {vm["id"]} (cách {vm["distance_m"]:.0f} m)')
 
     ext = (filename.rsplit('.', 1)[-1].lower() if '.' in filename else 'jpg')
     ext = ext if ext in ('jpg', 'jpeg', 'png') else 'jpg'
@@ -86,7 +97,11 @@ def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lo
         'contact': contact, 'consent': int(bool(consent)), 'total_boxes': len(dets),
         **{f'count_{k}': v for k, v in sev['counts'].items()},
         'avg_confidence': round(sum(d['confidence'] for d in dets) / len(dets), 3) if dets else 0.0,
-        'bbox_union_pct': sev['bbox_proxy_pct'], 'ai_level': sev['level'], 'ai_score': sev['score'],
+        'bbox_union_pct': sev['bbox_proxy_pct'],
+        'damage_area_m2': damage_info['total_damage_m2'],
+        'damage_volume_l': damage_info['estimated_volume_liters'],
+        'damage_depth_desc': damage_info['damage_severity_desc'],
+        'ai_level': sev['level'], 'ai_score': sev['score'],
         'final_level': level, 'final_score': final_score(sev['level'], sev['score'], level),
         'road_type': road_type, 'road_score': ROAD_TYPES[road_type], 'note': note,
         'quality_flags': '; '.join(quality['flags']), 'screen_flags': '; '.join(flags),

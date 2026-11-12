@@ -24,17 +24,18 @@ COLUMNS = [
     'id', 'created_at', 'image_hash', 'image_file', 'annotated_file', 'location_name',
     'latitude', 'longitude', 'gps_source', 'gps_accuracy_m', 'captured_at', 'status', 'source', 'capture_method', 'contact', 'consent',
     'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40', 'avg_confidence',
-    'bbox_union_pct', 'ai_level', 'ai_score', 'final_level', 'final_score', 'road_type', 'road_score',
+    'bbox_union_pct', 'damage_area_m2', 'damage_volume_l', 'damage_depth_desc',
+    'ai_level', 'ai_score', 'final_level', 'final_score', 'road_type', 'road_score',
     'note', 'quality_flags', 'screen_flags', 'detections_json', 'elapsed_ms',
     'reviewed_by', 'reviewed_at', 'reject_reason', 'assigned_to', 'due_date',
     'fixed_at', 'after_image_file', 'after_boxes', 'merged_into',
 ]
 NUMERIC = ['latitude', 'longitude', 'gps_accuracy_m', 'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40',
-           'avg_confidence', 'bbox_union_pct', 'ai_score', 'final_score', 'road_score', 'elapsed_ms',
+           'avg_confidence', 'bbox_union_pct', 'damage_area_m2', 'damage_volume_l', 'ai_score', 'final_score', 'road_score', 'elapsed_ms',
            'consent', 'after_boxes']
 INT_COLS = {'consent', 'total_boxes', 'count_D00', 'count_D10', 'count_D20', 'count_D40', 'after_boxes'}
-REAL_COLS = {'latitude', 'longitude', 'gps_accuracy_m', 'avg_confidence', 'bbox_union_pct', 'ai_score', 'final_score',
-             'road_score', 'elapsed_ms'}
+REAL_COLS = {'latitude', 'longitude', 'gps_accuracy_m', 'avg_confidence', 'bbox_union_pct', 'damage_area_m2', 'damage_volume_l',
+             'ai_score', 'final_score', 'road_score', 'elapsed_ms'}
 
 
 class DuplicateImage(Exception):
