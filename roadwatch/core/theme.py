@@ -93,10 +93,12 @@ section[data-testid="stSidebar"] {
 }
 
 [data-testid="stSidebarNav"] a {
+  display: flex !important;
+  align-items: center !important;
   border-radius: 12px !important;
-  min-height: 44px;
-  margin: 3px 8px;
-  padding: 8px 14px;
+  min-height: 42px;
+  margin: 2px 8px;
+  padding: 8px 12px;
   gap: 12px;
   font-weight: 600;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -115,8 +117,38 @@ section[data-testid="stSidebar"] {
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28);
 }
 
+[data-testid="stSidebarNav"] a span {
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+}
+
+[data-testid="stSidebarNav"] a span:first-child {
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 0 !important;
+}
+
+[data-testid="stSidebarNav"] a span:last-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1.3 !important;
+}
+
 [data-testid="stSidebarNav"] a[aria-current="page"] span {
   color: #FFFFFF !important;
+}
+
+[data-testid="stNavSectionHeader"] {
+  color: #64748B !important;
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 10px 14px 4px !important;
 }
 
 .rw-sidebar-brand {

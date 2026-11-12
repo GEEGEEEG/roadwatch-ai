@@ -140,24 +140,13 @@ def steps(*items, active=0):
             cls = 'pending'
             icon = str(i + 1)
 
-        node = f"""
-        <div class="rw-step-node {cls}">
-          <div class="rw-step-circle">{icon}</div>
-          <div class="rw-step-label">{escape(label)}</div>
-        </div>
-        """
+        node = f'<div class="rw-step-node {cls}"><div class="rw-step-circle">{icon}</div><div class="rw-step-label">{escape(label)}</div></div>'
         nodes_html.append(node)
         if i < len(items) - 1:
             line_cls = 'completed-line' if i < active else ''
             nodes_html.append(f'<div class="rw-step-line {line_cls}"></div>')
 
-    full_html = f"""
-    <div class="rw-stepper-box">
-      <div class="rw-stepper">
-        {''.join(nodes_html)}
-      </div>
-    </div>
-    """
+    full_html = f'<div class="rw-stepper-box"><div class="rw-stepper">{"".join(nodes_html)}</div></div>'
     st.markdown(full_html, unsafe_allow_html=True)
 
 
