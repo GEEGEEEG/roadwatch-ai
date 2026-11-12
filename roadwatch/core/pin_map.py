@@ -12,8 +12,25 @@ from jinja2 import Template
 class _DragToClick(MacroElement):
     _template = Template("""
         {% macro script(this, kwargs) %}
+        // Cập nhật popup tọa độ realtime khi đang kéo ghim
+        {{ this.marker_name }}.on('drag', function (e) {
+            var ll = e.target.getLatLng();
+            var txt = ll.lat.toFixed(6) + ', ' + ll.lng.toFixed(6);
+            if ({{ this.marker_name }}.getPopup()) {
+                {{ this.marker_name }}.getPopup().setContent(txt);
+            } else {
+                {{ this.marker_name }}.bindPopup(txt).openPopup();
+            }
+            {{ this.marker_name }}.openPopup();
+        });
+        // Khi thả ghim: fire click giả để streamlit-folium nhận last_clicked
         {{ this.marker_name }}.on('dragend', function (e) {
-            {{ this.map_name }}.fire('click', {latlng: e.target.getLatLng()});
+            var ll = e.target.getLatLng();
+            var txt = ll.lat.toFixed(6) + ', ' + ll.lng.toFixed(6);
+            if ({{ this.marker_name }}.getPopup()) {
+                {{ this.marker_name }}.getPopup().setContent(txt);
+            }
+            {{ this.map_name }}.fire('click', {latlng: ll});
         });
         {% endmacro %}
     """)
