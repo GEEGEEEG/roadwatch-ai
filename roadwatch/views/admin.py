@@ -26,6 +26,42 @@ with admin_tabs[0]:
     if telegram_configured() and st.button('Gửi thử Telegram'):
         st.success('OK') if send_telegram('RoadWatch: tin nhắn thử') else st.error('Gửi thất bại')
 
+    # ── Tích hợp Google Drive Cloud Storage ──
+    from core import gdrive
+    st.markdown('---')
+    st.subheader('☁️ Đồng bộ lưu trữ Google Drive')
+    
+    g_enabled = gdrive.is_enabled()
+    sa_email = gdrive.get_service_account_email()
+    
+    col_gd1, col_gd2 = st.columns([2, 1])
+    with col_gd1:
+        st.write(f'Trạng thái: **{"🟢 Đã bật cấu hình" if g_enabled else "⚪ Chưa cấu hình"}**')
+        if sa_email:
+            st.info(f'📧 **Email Service Account:** `{sa_email}`\n\n'
+                    '⚠️ **Quan trọng:** Bạn **PHẢI** mở Google Drive, click chuột phải vào thư mục **RoadWatch Data** ➔ chọn **Chia sẻ (Share)** ➔ thêm email trên với quyền **Người chỉnh sửa (Editor)** thì hệ thống mới có thể lưu file!')
+        else:
+            st.caption('Chưa phát hiện Service Account JSON trong Streamlit Secrets (GDRIVE_SERVICE_ACCOUNT_JSON).')
+            
+    with col_gd2:
+        if st.button('🔍 Kiểm tra kết nối Drive', use_container_width=True):
+            with st.spinner('Đang kiểm tra kết nối tới Google Drive...'):
+                diag = gdrive.test_connection()
+                if diag['ok']:
+                    st.success(diag['message'])
+                else:
+                    st.error(diag['message'])
+
+        if g_enabled:
+            if st.button('🔄 Đẩy toàn bộ dữ liệu lên Drive', use_container_width=True, help='Đồng bộ cơ sở dữ liệu và toàn bộ ảnh hiện trường lên Drive ngay bây giờ'):
+                with st.spinner('Đang tải dữ liệu và ảnh lên Google Drive...'):
+                    n_ok, n_total, errs = gdrive.sync_all_to_drive()
+                    if errs:
+                        st.warning(f'Đã tải {n_ok}/{n_total} tệp lên Drive. Một số tệp gặp lỗi:\n' + '\n'.join(errs[:5]))
+                    else:
+                        st.success(f'🎉 Đồng bộ thành công {n_ok}/{n_total} tệp lên Google Drive!')
+
+    st.markdown('---')
     if not df.empty:
         df_show(df.drop(columns=['detections_json']))
         st.download_button('⬇️ Tải toàn bộ bản ghi (.csv)',
