@@ -75,18 +75,18 @@ def submit_report(detector, raw: bytes, filename: str, *, location_name, lat, lo
     annotated_preview.thumbnail((2000, 2000), Image.Resampling.LANCZOS)
     annotated_preview.convert('RGB').save(data_dir() / annotated_file, 'JPEG', quality=83, optimize=True)
 
-    # Đồng bộ ảnh lên Google Drive nếu được cấu hình
+    # Đồng bộ ảnh lên Cloud Storage (GCS/Drive) nếu được cấu hình
     try:
-        from . import gdrive
-        if gdrive.is_enabled():
+        from . import storage
+        if storage.is_enabled():
             import io as _io
-            gdrive.upload(image_file, raw)
+            storage.upload(image_file, raw)
             buf = _io.BytesIO()
             annotated_preview.convert('RGB').save(buf, 'JPEG', quality=83, optimize=True)
-            gdrive.upload(annotated_file, buf.getvalue(), 'image/jpeg')
+            storage.upload(annotated_file, buf.getvalue(), 'image/jpeg')
     except Exception as _exc:
         import logging as _log
-        _log.getLogger(__name__).warning('Upload ảnh lên Drive thất bại: %s', _exc)
+        _log.getLogger(__name__).warning('Upload ảnh lên Cloud thất bại: %s', _exc)
 
     level = final_level or sev['level']
     row = {

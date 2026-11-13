@@ -93,11 +93,11 @@ def detector_or_stop(silent: bool = False):
 def image_file(rel):
     p = data_dir() / rel if rel else None
     if p and not p.is_file():
-        # Thử khôi phục từ Drive nếu file bị mất (sau khi app ngủ/restart)
+        # Thử khôi phục từ Cloud Storage nếu file bị mất (sau khi app ngủ/restart)
         try:
-            from . import gdrive
-            if gdrive.is_enabled():
-                data = gdrive.download(rel)
+            from . import storage
+            if storage.is_enabled():
+                data = storage.download(rel)
                 if data:
                     p.parent.mkdir(parents=True, exist_ok=True)
                     p.write_bytes(data)

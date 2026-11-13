@@ -161,37 +161,37 @@ def get_report(report_id):
     return None if hit.empty else hit.iloc[0].to_dict()
 
 
-# ── Google Drive sync (tùy chọn) ──────────────────────────────────────────
+# ── Cloud Storage sync (tùy chọn: GCS hoặc Google Drive) ──────────────────
 
 def _pull_db() -> None:
-    """Kéo roadwatch.db từ Drive về local nếu Drive được cấu hình.
-    Gọi ở đầu init() — no-op nếu Drive chưa đặt hoặc file chưa có trên Drive."""
+    """Kéo roadwatch.db từ Cloud (GCS/Drive) về local nếu được cấu hình.
+    Gọi ở đầu init() — no-op nếu chưa cấu hình hoặc file chưa có trên Cloud."""
     try:
-        from . import gdrive
-        if not gdrive.is_enabled():
+        from . import storage
+        if not storage.is_enabled():
             return
-        data = gdrive.download('roadwatch.db')
+        data = storage.download('roadwatch.db')
         if data:
             p = db_path()
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_bytes(data)
-            log.info('Đã kéo roadwatch.db từ Google Drive (%d bytes).', len(data))
+            log.info('Đã kéo roadwatch.db từ Cloud (%d bytes).', len(data))
         else:
-            log.info('GDrive: chưa có roadwatch.db trên Drive, dùng DB local.')
+            log.info('Cloud Storage: chưa có roadwatch.db trên Cloud, dùng DB local.')
     except Exception as exc:
-        log.warning('Kéo DB từ Drive thất bại (dùng DB local): %s', exc)
+        log.warning('Kéo DB từ Cloud thất bại (dùng DB local): %s', exc)
 
 
 def _push_db() -> None:
-    """Đẩy roadwatch.db lên Drive sau mỗi lần ghi.
-    No-op nếu Drive chưa cấu hình hoặc file chưa tồn tại."""
+    """Đẩy roadwatch.db lên Cloud sau mỗi lần ghi.
+    No-op nếu Cloud chưa cấu hình hoặc file chưa tồn tại."""
     try:
-        from . import gdrive
-        if not gdrive.is_enabled():
+        from . import storage
+        if not storage.is_enabled():
             return
         p = db_path()
         if not p.is_file():
             return
-        gdrive.upload('roadwatch.db', p.read_bytes(), 'application/x-sqlite3')
+        storage.upload('roadwatch.db', p.read_bytes(), 'application/x-sqlite3')
     except Exception as exc:
-        log.warning('Đẩy DB lên Drive thất bại: %s', exc)
+        log.warning('Đẩy DB lên Cloud thất bại: %s', exc)
