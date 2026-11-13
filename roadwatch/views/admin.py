@@ -27,39 +27,63 @@ with admin_tabs[0]:
         st.success('OK') if send_telegram('RoadWatch: tin nhắn thử') else st.error('Gửi thất bại')
 
     # ── Tích hợp Google Drive Cloud Storage ──
-    from core import gdrive
+    # ── Tích hợp Lưu trữ Đám mây Vĩnh viễn (Supabase / GCS / Drive) ──
+    from core import storage
     st.markdown('---')
-    st.subheader('☁️ Đồng bộ lưu trữ Google Drive')
+    st.subheader('☁️ Lưu trữ Đám mây Vĩnh viễn (Cloud Storage)')
     
-    g_enabled = gdrive.is_enabled()
-    sa_email = gdrive.get_service_account_email()
+    c_enabled = storage.is_enabled()
+    btype = storage.get_backend_type()
+    sa_email = storage.get_service_account_email()
     
     col_gd1, col_gd2 = st.columns([2, 1])
     with col_gd1:
-        st.write(f'Trạng thái: **{"🟢 Đã bật cấu hình" if g_enabled else "⚪ Chưa cấu hình"}**')
-        if sa_email:
-            st.info(f'📧 **Email Service Account:** `{sa_email}`\n\n'
-                    '⚠️ **Quan trọng:** Bạn **PHẢI** mở Google Drive, click chuột phải vào thư mục **RoadWatch Data** ➔ chọn **Chia sẻ (Share)** ➔ thêm email trên với quyền **Người chỉnh sửa (Editor)** thì hệ thống mới có thể lưu file!')
+        if btype == 'supabase':
+            st.write(f'Hạ tầng: **🟢 Supabase Storage** · 100% Miễn phí, không cần thẻ ngân hàng.')
+        elif btype == 'gcs':
+            st.write(f'Hạ tầng: **🟢 Google Cloud Storage (GCS)** · 5GB vĩnh viễn.')
+        elif btype == 'gdrive':
+            st.write(f'Hạ tầng: **🟡 Google Drive** (Chế độ tương thích).')
         else:
-            st.caption('Chưa phát hiện Service Account JSON trong Streamlit Secrets (GDRIVE_SERVICE_ACCOUNT_JSON).')
+            st.write(f'Hạ tầng: **⚪ Chưa kết nối Cloud** (Dữ liệu đang tạm lưu ở máy chủ local).')
+
+        if btype == 'supabase':
+            st.success(f'Đang đồng bộ với bucket: `{storage._cfg("SUPABASE_BUCKET", "roadwatch-data")}`')
+        elif sa_email:
+            st.info(f'📧 **Email Service Account:** `{sa_email}`')
+        else:
+            st.caption('Khuyên dùng **Supabase** (miễn phí 100%, không cần thẻ) để lưu trữ vĩnh viễn.')
             
     with col_gd2:
-        if st.button('🔍 Kiểm tra kết nối Drive', use_container_width=True):
-            with st.spinner('Đang kiểm tra kết nối tới Google Drive...'):
-                diag = gdrive.test_connection()
+        if st.button('🔍 Kiểm tra kết nối Cloud', use_container_width=True):
+            with st.spinner('Đang kiểm tra kết nối tới dịch vụ lưu trữ đám mây...'):
+                diag = storage.test_connection()
                 if diag['ok']:
                     st.success(diag['message'])
                 else:
                     st.error(diag['message'])
 
-        if g_enabled:
-            if st.button('🔄 Đẩy toàn bộ dữ liệu lên Drive', use_container_width=True, help='Đồng bộ cơ sở dữ liệu và toàn bộ ảnh hiện trường lên Drive ngay bây giờ'):
-                with st.spinner('Đang tải dữ liệu và ảnh lên Google Drive...'):
-                    n_ok, n_total, errs = gdrive.sync_all_to_drive()
+        if c_enabled:
+            if st.button('🔄 Đẩy toàn bộ dữ liệu lên Cloud', use_container_width=True, help='Đồng bộ cơ sở dữ liệu và toàn bộ ảnh hiện trường lên Cloud ngay bây giờ'):
+                with st.spinner('Đang tải dữ liệu và ảnh lên Cloud...'):
+                    n_ok, n_total, errs = storage.sync_all_to_cloud()
                     if errs:
-                        st.warning(f'Đã tải {n_ok}/{n_total} tệp lên Drive. Một số tệp gặp lỗi:\n' + '\n'.join(errs[:5]))
+                        st.warning(f'Đã tải {n_ok}/{n_total} tệp lên Cloud. Một số tệp gặp lỗi:\n' + '\n'.join(errs[:5]))
                     else:
-                        st.success(f'🎉 Đồng bộ thành công {n_ok}/{n_total} tệp lên Google Drive!')
+                        st.success(f'🎉 Đồng bộ thành công {n_ok}/{n_total} tệp lên Cloud Storage vĩnh viễn!')
+
+    with st.expander('📖 Hướng dẫn cấu hình Supabase (Miễn phí 100% - Không cần thẻ ngân hàng)'):
+        st.markdown('''
+### Cách cấu hình Streamlit Secrets với Supabase:
+1. Mở Streamlit Cloud ➔ **App Settings ➔ Secrets**.
+2. Thêm 3 dòng sau:
+```toml
+SUPABASE_URL = "https://xxxx.supabase.co"
+SUPABASE_KEY = "eyJhbGciOi..."
+SUPABASE_BUCKET = "roadwatch-data"
+```
+*(Trong đó `SUPABASE_URL` và `SUPABASE_KEY` lấy từ **Project Settings ➔ API** trên Supabase)*.
+        ''')
 
     st.markdown('---')
     if not df.empty:

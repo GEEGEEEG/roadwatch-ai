@@ -22,11 +22,11 @@ st.markdown('<div class="rw-hint">🛡️ <b>An toàn trước tiên:</b> hãy �
 if officer:  # chỉ cán bộ thấy tùy chỉnh kỹ thuật; người dân dùng giá trị mặc định
     threshold = st.sidebar.slider('Ngưỡng tin cậy', 0.10, 0.90, 0.25, 0.05)
     with st.sidebar.expander('Nâng cao'):
-        imgsz = st.selectbox('Kích thước suy luận (imgsz)', [640, 960, 1024], index=0,
-                             help='Lớn hơn bắt nứt nhỏ tốt hơn nhưng chậm hơn.')
+        imgsz = st.selectbox('Kích thước suy luận (imgsz)', [640, 800, 960, 1024], index=1,
+                             help='Mô hình mới tối ưu ở 800px; lớn hơn bắt nứt nhỏ tốt hơn.')
         tta = st.checkbox('Chế độ chính xác cao (TTA)', value=False)
 else:
-    threshold, imgsz, tta = 0.25, 640, False
+    threshold, imgsz, tta = 0.25, 800, False
 
 # Cho phép cả người dân và cán bộ linh hoạt: Chụp bằng camera hoặc Tải ảnh từ thiết bị
 st.subheader('01 · Thu thập hình ảnh hư hỏng')
