@@ -61,13 +61,52 @@ if not items:
 
 from PIL import ImageOps
 preview_name, preview_raw = items[0]
+
+# ─── PREVIEW AI REAL-TIME: 2 cột (Ảnh gốc | Ảnh annotated) ───────────────
+_preview_ok = False
 try:
-    with Image.open(io.BytesIO(preview_raw)) as im:
-        thumb = ImageOps.exif_transpose(im).convert('RGB')
-        thumb.thumbnail((960, 720))
-    st.image(thumb, caption='Ảnh đã chọn · ' + preview_name, use_container_width=True)
+    det_prev = detector_or_stop(silent=True)   # không st.stop() nếu chưa có model
+    if det_prev is not None:
+        with st.spinner('🔍 AI đang phân tích hư hỏng...'):
+            _img_prev = Image.open(io.BytesIO(preview_raw)).convert('RGB')
+            _out_prev = det_prev.predict_image(_img_prev, threshold=threshold)
+        _dets   = _out_prev['detections']
+        _sev    = _out_prev['severity']
+        _badge  = '🔴' if _sev['level'] == 'Cần kiểm tra sớm' else ('🟡' if _sev['level'] == 'Trung bình' else '🟢')
+        st.markdown('<div class="rw-preview-banner">📸 Xem trước kết quả nhận diện AI</div>', unsafe_allow_html=True)
+        col_orig, col_ann = st.columns(2)
+        with col_orig:
+            st.caption('**📷 Ảnh gốc**')
+            img_show(_img_prev, caption=preview_name)
+        with col_ann:
+            st.caption(f'**{_badge} AI: {_sev["level"]} · {len(_dets)} vùng phát hiện**')
+            img_show(_out_prev['annotated_image'], caption=f'Điểm quy tắc: {_sev["score"]}/100')
+        _dmg_prev = _out_prev.get('damage_analysis')
+        if _dmg_prev and _dmg_prev['total_damage_m2'] > 0:
+            _ma, _mb, _mc = st.columns(3)
+            _ma.metric('Số vùng', len(_dets))
+            _mb.metric('Mức độ sơ bộ', _sev['level'])
+            _mc.metric('Diện tích ước tính', f"{_dmg_prev['total_damage_m2']:.2f} m²")
+        else:
+            _ma, _mb = st.columns(2)
+            _ma.metric('Số vùng phát hiện', len(_dets))
+            _mb.metric('Mức độ sơ bộ', _sev['level'])
+        if not _dets:
+            st.info('AI chưa phát hiện vùng hư hỏng rõ ràng trong ảnh này. Phản ánh vẫn có thể được gửi để cán bộ kiểm tra thủ công.')
+        _preview_ok = True
 except Exception:
-    st.warning('Không hiển thị được ảnh xem trước; vui lòng kiểm tra lại định dạng.')
+    pass   # Chưa có model hoặc lỗi nhẹ → hiển thị thumbnail bình thường
+
+if not _preview_ok:
+    # fallback: thumbnail đơn giản
+    try:
+        with Image.open(io.BytesIO(preview_raw)) as im:
+            thumb = ImageOps.exif_transpose(im).convert('RGB')
+            thumb.thumbnail((960, 720))
+        st.image(thumb, caption='Ảnh đã chọn · ' + preview_name, use_container_width=True)
+    except Exception:
+        st.warning('Không hiển thị được ảnh xem trước; vui lòng kiểm tra lại định dạng.')
+
 st.caption(f'Đã có {len(items)} ảnh. Bước tiếp theo: xác nhận vị trí chính xác nơi chụp.')
 steps('1. Chọn ảnh hiện trường', '2. Xác nhận tọa độ GPS', '3. AI Thẩm định & Gửi', active=1)
 
