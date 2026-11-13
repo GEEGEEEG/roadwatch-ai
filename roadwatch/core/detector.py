@@ -7,7 +7,9 @@ from PIL import ExifTags, Image, ImageDraw, ImageOps
 
 from .constants import BASE, COLORS, LABELS
 
-DEFAULT_CLASS_THRESHOLDS = {}   # ví dụ {'D40': 0.20}: ổ gà bỏ sót nghiêm trọng hơn
+# Hạ ngưỡng riêng cho D40 (Ổ gà) xuống 0.15 vì ổ gà nguy hiểm tai nạn cao hơn,
+# và các hố to ngập nước thường có độ tin cậy thấp hơn nứt khô.
+DEFAULT_CLASS_THRESHOLDS = {'D40': 0.15}
 
 
 def decode_model_label(name):
