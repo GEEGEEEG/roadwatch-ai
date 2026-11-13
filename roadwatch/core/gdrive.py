@@ -46,12 +46,60 @@ def _root_id() -> str:
 
 # ── Kết nối ───────────────────────────────────────────────────────────────
 
+def _get_service_account_info() -> dict:
+    """Lấy dict thông tin Service Account từ secrets hoặc biến môi trường.
+    Xử lý an toàn cả trường hợp toml table dict hoặc json string."""
+    import os
+    # 1. Thử từ streamlit secrets
+    try:
+        import streamlit as st
+        val = st.secrets.get('GDRIVE_SERVICE_ACCOUNT_JSON')
+        if isinstance(val, dict):
+            return dict(val)
+        if hasattr(val, 'to_dict'):
+            return val.to_dict()
+    except Exception:
+        pass
+
+    # 2. Thử từ _cfg (chuỗi hoặc env)
+    raw = _cfg('GDRIVE_SERVICE_ACCOUNT_JSON')
+    if not raw:
+        raise RuntimeError('Chưa cấu hình GDRIVE_SERVICE_ACCOUNT_JSON trong Secrets.')
+    
+    if isinstance(raw, dict):
+        return raw
+
+    if isinstance(raw, str):
+        raw = raw.strip()
+        # Thử parse JSON chuẩn
+        try:
+            return json.loads(raw)
+        except Exception:
+            pass
+        # Thử parse Python dict string (nếu dùng single quotes)
+        import ast
+        try:
+            res = ast.literal_eval(raw)
+            if isinstance(res, dict):
+                return res
+        except Exception:
+            pass
+
+    raise RuntimeError('GDRIVE_SERVICE_ACCOUNT_JSON không đúng định dạng JSON hoặc Dictionary hợp lệ.')
+
+
+def get_service_account_email() -> str:
+    """Lấy email của Service Account để hướng dẫn người dùng Share thư mục Drive."""
+    try:
+        info = _get_service_account_info()
+        return info.get('client_email', '')
+    except Exception:
+        return ''
+
+
 def _build_service():
     """Tạo Google Drive API service từ service account JSON.
     Import muộn để không lỗi khi chưa cài google-api-python-client."""
-    raw = _cfg('GDRIVE_SERVICE_ACCOUNT_JSON')
-    if not raw:
-        raise RuntimeError('Chưa đặt GDRIVE_SERVICE_ACCOUNT_JSON trong Secrets.')
     try:
         from google.oauth2.service_account import Credentials
         from googleapiclient.discovery import build
@@ -59,10 +107,145 @@ def _build_service():
         raise RuntimeError(
             'Thiếu thư viện Google Drive. Thêm vào requirements.txt:\n'
             '  google-api-python-client>=2.100\n  google-auth>=2.20')
-    info = json.loads(raw)
+    info = _get_service_account_info()
     creds = Credentials.from_service_account_info(
         info, scopes=['https://www.googleapis.com/auth/drive'])
     return build('drive', 'v3', credentials=creds, cache_discovery=False)
+
+
+def test_connection() -> dict:
+    """Kiểm tra chi tiết kết nối Google Drive và quyền truy cập thư mục.
+    Trả về dict chứa:
+      - ok (bool): Thành công hay thất bại
+      - email (str): Email của Service Account
+      - folder_id (str): ID thư mục được cấu hình
+      - folder_name (str): Tên thư mục tìm thấy trên Drive (nếu truy cập được)
+      - message (str): Thông báo chi tiết hoặc hướng dẫn sửa lỗi
+    """
+    res = {
+        'ok': False,
+        'email': '',
+        'folder_id': '',
+        'folder_name': '',
+        'message': ''
+    }
+    
+    # 1. Kiểm tra Folder ID
+    try:
+        fid = _root_id()
+        res['folder_id'] = fid
+    except Exception as e:
+        res['message'] = f'Chưa cấu hình GDRIVE_FOLDER_ID trong Secrets ({e})'
+        return res
+
+    # 2. Kiểm tra Service Account
+    try:
+        email = get_service_account_email()
+        res['email'] = email
+        if not email:
+            res['message'] = 'Không tìm thấy client_email trong GDRIVE_SERVICE_ACCOUNT_JSON.'
+            return res
+        svc = _build_service()
+    except Exception as e:
+        res['message'] = f'Lỗi xác thực Service Account JSON: {e}'
+        return res
+
+    # 3. Kiểm tra quyền truy cập thư mục mục tiêu trên Drive
+    try:
+        folder_meta = svc.files().get(
+            fileId=fid,
+            fields='id, name, capabilities, trashed',
+            supportsAllDrives=True
+        ).execute()
+
+        if folder_meta.get('trashed'):
+            res['message'] = f'Thư mục "{folder_meta.get("name")}" (ID: {fid}) đang nằm trong Thùng rác Google Drive.'
+            return res
+
+        res['folder_name'] = folder_meta.get('name', 'Thư mục Drive')
+        caps = folder_meta.get('capabilities', {})
+        can_add = caps.get('canAddChildren', False)
+
+        if not can_add:
+            res['message'] = (
+                f'Service Account ({email}) chỉ có quyền Xem (Viewer) đối với thư mục "{res["folder_name"]}". '
+                f'Vui lòng chia sẻ lại thư mục với quyền "Người chỉnh sửa" (Editor).'
+            )
+            return res
+
+        # 4. Thử tạo và xóa 1 file test nhỏ để xác minh quyền ghi
+        try:
+            from googleapiclient.http import MediaIoBaseUpload
+            test_content = b'roadwatch_connection_test'
+            media = MediaIoBaseUpload(io.BytesIO(test_content), mimetype='text/plain')
+            meta = {'name': '_test_connection.tmp', 'parents': [fid]}
+            tmp_file = svc.files().create(body=meta, media_body=media, fields='id').execute()
+            tmp_id = tmp_file.get('id')
+            if tmp_id:
+                svc.files().delete(fileId=tmp_id).execute()
+        except Exception as write_err:
+            res['message'] = (
+                f'Đã tìm thấy thư mục "{res["folder_name"]}" nhưng không thể ghi tệp: {write_err}. '
+                f'Hãy đảm bảo Service Account có quyền "Người chỉnh sửa" (Editor).'
+            )
+            return res
+
+        res['ok'] = True
+        res['message'] = f'Kết nối thành công! Đã cấp quyền chỉnh sửa cho thư mục "{res["folder_name"]}".'
+        return res
+
+    except Exception as e:
+        err_str = str(e)
+        if '404' in err_str or 'File not found' in err_str:
+            res['message'] = (
+                f'Không tìm thấy thư mục (ID: {fid}) hoặc Service Account chưa được cấp quyền truy cập!\n\n'
+                f'👉 **Cách khắc phục:**\n'
+                f'1. Mở Google Drive, click chuột phải vào thư mục **RoadWatch Data** chọn **Chia sẻ (Share)**.\n'
+                f'2. Thêm email: `{email}`\n'
+                f'3. Đặt vai trò là **Người chỉnh sửa (Editor)** rồi nhấn **Gửi**.'
+            )
+        else:
+            res['message'] = f'Lỗi khi truy vấn Google Drive API: {e}'
+        return res
+
+
+def sync_all_to_drive() -> tuple[int, int, list[str]]:
+    """Đồng bộ toàn bộ cơ sở dữ liệu và các ảnh hiện có lên Drive.
+    Trả về: (số_file_thành_công, tổng_số_file, danh_sách_lỗi)"""
+    if not is_enabled():
+        return 0, 0, ['Google Drive chưa được cấu hình.']
+
+    from .config import data_dir
+    p_data = data_dir()
+    db_file = p_data / 'roadwatch.db'
+    
+    files_to_sync: list[tuple[str, Path, str]] = []
+    
+    # 1. Database
+    if db_file.is_file():
+        files_to_sync.append(('roadwatch.db', db_file, 'application/x-sqlite3'))
+
+    # 2. Images, Annotated, After
+    for folder in ('images', 'annotated', 'after'):
+        fdir = p_data / folder
+        if fdir.is_dir():
+            for p in fdir.glob('*'):
+                if p.is_file():
+                    mime = 'image/jpeg' if p.suffix.lower() in ('.jpg', '.jpeg') else 'image/png'
+                    files_to_sync.append((f'{folder}/{p.name}', p, mime))
+
+    success = 0
+    errors = []
+    
+    for rel_path, path_obj, mime in files_to_sync:
+        try:
+            data = path_obj.read_bytes()
+            upload(rel_path, data, mime=mime)
+            success += 1
+        except Exception as exc:
+            errors.append(f'{rel_path}: {exc}')
+
+    return success, len(files_to_sync), errors
 
 
 # ── Thao tác nội bộ ───────────────────────────────────────────────────────
