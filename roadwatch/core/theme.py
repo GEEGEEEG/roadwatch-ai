@@ -508,6 +508,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
 
 .rw-hint{background:#EFF6FF;border-left:4px solid #2563EB;padding:14px 18px;border-radius:0 12px 12px 0;font-size:.88rem;color:#1E40AF;margin-bottom:18px}
 .rw-empty{background:#F8FAFC;padding:24px;border:2px dashed #CBD5E1;border-radius:16px;color:#475569;text-align:center}
+.rw-preview-banner{background:linear-gradient(135deg,#1E40AF,#3B82F6);color:#fff;padding:10px 20px;border-radius:12px;font-size:.93rem;font-weight:600;letter-spacing:.03em;margin:16px 0 10px;display:flex;align-items:center;gap:8px}
 
 @media(max-width:950px){.rw-hero-grid{grid-template-columns:1fr}.rw-overview{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:740px){

@@ -72,13 +72,20 @@ def get_detector():
     return RoadDamageDetector(model_path())
 
 
-def detector_or_stop():
+def detector_or_stop(silent: bool = False):
+    """Trả về detector YOLO.
+    silent=True → trả về None nếu không có model (thay vì st.stop()),
+    dùng cho preview không bắt buộc."""
     if not model_path().is_file():
+        if silent:
+            return None
         st.error(f'Thiếu mô hình tại {model_path()}. Tải checkpoint 4 lớp D00/D10/D20/D40 và đặt đúng vị trí.')
         st.stop()
     try:
         return get_detector()
     except Exception as exc:
+        if silent:
+            return None
         st.error(f'Không mở được checkpoint: {exc}')
         st.stop()
 
