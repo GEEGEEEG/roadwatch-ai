@@ -1,0 +1,31 @@
+# ── RoadWatch AI v5.0 — Streamlit Community Cloud Requirements ──────────────
+# Tối ưu cho Python 3.11 / 3.12 trên Streamlit Cloud + Supabase PostgreSQL/Storage
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# -- Core AI / CV (ONNX Runtime siêu nhẹ + Ultralytics YOLOv8 CPU) --
+onnxruntime>=1.18,<2
+ultralytics>=8.3,<9
+opencv-python-headless>=4.9,<5
+torch>=2.2,<3
+torchvision>=0.17,<1
+
+# -- Web Framework --
+streamlit>=1.40,<2
+streamlit-js-eval>=0.1.7
+
+# -- GIS & Maps --
+folium>=0.16,<1
+streamlit-folium>=0.20,<1
+
+# -- Data & Image --
+pandas>=2.2,<3
+numpy>=1.26,<3
+pillow>=10,<12
+
+# -- PDF & QR Code --
+reportlab>=4.0,<5
+qrcode>=7.4,<9
+
+# -- AI Narrative (Tùy chọn) --
+google-genai>=1.0,<2
