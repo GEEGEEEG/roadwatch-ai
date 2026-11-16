@@ -138,59 +138,109 @@ if not items:
     disclaimer()
     st.stop()
 
-preview_name, preview_raw = items[0]
-preview_digest = hashlib.sha256(preview_raw).hexdigest()
+# ─── PREVIEW AI REAL-TIME CHO TẤT CẢ ẢNH (CÓ CACHE THEO SHA-256) ──────────
+all_previews = {}
+with st.spinner(f'🔍 AI đang quét & phân tích hình thái hư hỏng {len(items)} ảnh hiện trường...'):
+    for idx, (p_name, p_raw) in enumerate(items):
+        p_digest = hashlib.sha256(p_raw).hexdigest()
+        try:
+            p_out = _cached_preview_analysis(p_digest, p_raw, threshold, imgsz, tta)
+            if p_out:
+                all_previews[idx] = p_out
+        except Exception:
+            all_previews[idx] = None
 
-# ─── PREVIEW AI REAL-TIME (CÓ CACHE THEO SHA-256) ──────────────────────────
-_preview_out = None
-try:
-    with st.spinner('🔍 AI đang phân tích hình thái hư hỏng & diện tích...'):
-        _preview_out = _cached_preview_analysis(preview_digest, preview_raw, threshold, imgsz, tta)
-except Exception:
-    _preview_out = None
+_preview_out = all_previews.get(0)
 
-if _preview_out is not None:
-    _dets = _preview_out['detections']
-    _sev = _preview_out['severity']
-    _dmg_prev = _preview_out.get('damage_analysis') or {}
-    _qual_prev = _preview_out.get('quality') or {'flags': []}
-    _badge = '🔴' if _sev['level'] == 'Cần kiểm tra sớm' else ('🟡' if _sev['level'] == 'Trung bình' else '🟢')
-    _tot_ms = _preview_out.get('total_pipeline_ms', _preview_out['elapsed_ms'])
+if len(items) == 1:
+    if _preview_out is not None:
+        _dets = _preview_out['detections']
+        _sev = _preview_out['severity']
+        _dmg_prev = _preview_out.get('damage_analysis') or {}
+        _qual_prev = _preview_out.get('quality') or {'flags': []}
+        _badge = '🔴' if _sev['level'] == 'Cần kiểm tra sớm' else ('🟡' if _sev['level'] == 'Trung bình' else '🟢')
+        _tot_ms = _preview_out.get('total_pipeline_ms', _preview_out['elapsed_ms'])
 
+        st.markdown(
+            f'<div class="rw-preview-banner">⚡ Phân tích AI hoàn tất trong {_tot_ms} ms '
+            f'(Suy luận mô hình: {_preview_out["elapsed_ms"]} ms · Đã lưu đệm 0 ms)</div>',
+            unsafe_allow_html=True,
+        )
+        col_orig, col_ann = st.columns(2)
+        with col_orig:
+            st.caption('**📷 Ảnh gốc**')
+            img_show(_preview_out.get('orig_jpeg_bytes') or items[0][1], caption=items[0][0])
+        with col_ann:
+            st.caption(f'**{_badge} AI: {_sev["level"]} · {len(_dets)} vùng phát hiện**')
+            img_show(_preview_out.get('annotated_jpeg_bytes') or _preview_out['annotated_image'], caption=f'Điểm quy tắc: {_sev["score"]}/100')
+
+        if _dmg_prev.get('total_damage_m2', 0) > 0:
+            _ma, _mb, _mc, _md = st.columns(4)
+            _ma.metric('Số vùng phát hiện', len(_dets))
+            _mb.metric('Mức độ sơ bộ', _sev['level'])
+            _mc.metric('Diện tích ước tính', f"{_dmg_prev['total_damage_m2']:.2f} m²")
+            _md.metric('Thể tích ổ gà', f"{_dmg_prev.get('estimated_volume_liters', 0.0):.1f} L")
+        else:
+            _ma, _mb = st.columns(2)
+            _ma.metric('Số vùng phát hiện', len(_dets))
+            _mb.metric('Mức độ sơ bộ', _sev['level'])
+
+        for qf in _qual_prev.get('flags', []):
+            st.warning(f'⚠️ Chất lượng ảnh đầu vào: **{qf}** — bạn có thể chụp lại ảnh rõ/sáng hơn để tăng độ chính xác.')
+        if not _dets:
+            st.info('AI chưa phát hiện vùng hư hỏng vượt ngưỡng trong ảnh này. Bạn vẫn có thể gửi để cán bộ kiểm tra thủ công.')
+    else:
+        try:
+            thumb_bytes = encode_jpeg_bytes(fast_prepare_rgb(items[0][1], max_side=960), max_side=960, quality=80)
+            img_show(thumb_bytes, caption='Ảnh đã chọn · ' + items[0][0])
+        except Exception:
+            st.warning('Không hiển thị được ảnh xem trước; vui lòng kiểm tra lại định dạng.')
+else:
+    tot_boxes = sum(len(p['detections']) for p in all_previews.values() if p)
+    tot_m2 = sum((p.get('damage_analysis') or {}).get('total_damage_m2', 0.0) for p in all_previews.values() if p)
     st.markdown(
-        f'<div class="rw-preview-banner">⚡ Phân tích AI hoàn tất trong {_tot_ms} ms '
-        f'(Suy luận mô hình: {_preview_out["elapsed_ms"]} ms · Đã lưu đệm 0 ms)</div>',
+        f'<div class="rw-preview-banner">⚡ AI đã quét & dán nhãn xong <b>{len(items)} ảnh</b> hiện trường '
+        f'· Phát hiện tổng cộng: <b>{tot_boxes} khuyết tật</b> (Tổng diện tích: ~<b>{tot_m2:.2f} m²</b>)</div>',
         unsafe_allow_html=True,
     )
-    col_orig, col_ann = st.columns(2)
-    with col_orig:
-        st.caption('**📷 Ảnh gốc**')
-        img_show(_preview_out.get('orig_jpeg_bytes') or preview_raw, caption=preview_name)
-    with col_ann:
-        st.caption(f'**{_badge} AI: {_sev["level"]} · {len(_dets)} vùng phát hiện**')
-        img_show(_preview_out.get('annotated_jpeg_bytes') or _preview_out['annotated_image'], caption=f'Điểm quy tắc: {_sev["score"]}/100')
+    st.write('👇 **Xem trước kết quả AI đã dán nhãn từng ảnh (chọn tab để xem):**')
+    tabs = st.tabs([f"🖼️ Ảnh {i+1} ({items[i][0][:18]})" for i in range(len(items))])
+    for i, tab in enumerate(tabs):
+        with tab:
+            p_out = all_previews.get(i)
+            p_name, p_raw = items[i]
+            if p_out is not None:
+                p_dets = p_out['detections']
+                p_sev = p_out['severity']
+                p_dmg = p_out.get('damage_analysis') or {}
+                p_qual = p_out.get('quality') or {'flags': []}
+                p_badge = '🔴' if p_sev['level'] == 'Cần kiểm tra sớm' else ('🟡' if p_sev['level'] == 'Trung bình' else '🟢')
 
-    if _dmg_prev.get('total_damage_m2', 0) > 0:
-        _ma, _mb, _mc, _md = st.columns(4)
-        _ma.metric('Số vùng phát hiện', len(_dets))
-        _mb.metric('Mức độ sơ bộ', _sev['level'])
-        _mc.metric('Diện tích ước tính', f"{_dmg_prev['total_damage_m2']:.2f} m²")
-        _md.metric('Thể tích ổ gà', f"{_dmg_prev.get('estimated_volume_liters', 0.0):.1f} L")
-    else:
-        _ma, _mb = st.columns(2)
-        _ma.metric('Số vùng phát hiện', len(_dets))
-        _mb.metric('Mức độ sơ bộ', _sev['level'])
+                c_orig, c_ann = st.columns(2)
+                with c_orig:
+                    st.caption(f'**📷 Ảnh gốc: {p_name}**')
+                    img_show(p_out.get('orig_jpeg_bytes') or p_raw, caption=p_name)
+                with c_ann:
+                    st.caption(f'**{p_badge} AI đã dán nhãn ({len(p_dets)} vùng khuyết tật)**')
+                    img_show(p_out.get('annotated_jpeg_bytes') or p_out['annotated_image'], caption=f'Mức độ: {p_sev["level"]} ({p_sev["score"]}/100)')
 
-    for qf in _qual_prev.get('flags', []):
-        st.warning(f'⚠️ Chất lượng ảnh đầu vào: **{qf}** — bạn có thể chụp lại ảnh rõ/sáng hơn để tăng độ chính xác.')
-    if not _dets:
-        st.info('AI chưa phát hiện vùng hư hỏng vượt ngưỡng trong ảnh này. Bạn vẫn có thể gửi để cán bộ kiểm tra thủ công.')
-else:
-    try:
-        thumb_bytes = encode_jpeg_bytes(fast_prepare_rgb(preview_raw, max_side=960), max_side=960, quality=80)
-        img_show(thumb_bytes, caption='Ảnh đã chọn · ' + preview_name)
-    except Exception:
-        st.warning('Không hiển thị được ảnh xem trước; vui lòng kiểm tra lại định dạng.')
+                if p_dmg.get('total_damage_m2', 0) > 0:
+                    ma, mb, mc, md = st.columns(4)
+                    ma.metric('Số khuyết tật', len(p_dets))
+                    mb.metric('Mức độ sơ bộ', p_sev['level'])
+                    mc.metric('Diện tích ước tính', f"{p_dmg['total_damage_m2']:.2f} m²")
+                    md.metric('Thể tích bù phụ', f"{p_dmg.get('estimated_volume_liters', 0.0):.1f} L")
+                else:
+                    ma, mb = st.columns(2)
+                    ma.metric('Số khuyết tật', len(p_dets))
+                    mb.metric('Mức độ sơ bộ', p_sev['level'])
+
+                for qf in p_qual.get('flags', []):
+                    st.warning(f'⚠️ Chất lượng ảnh **{p_name}**: {qf}')
+                if not p_dets:
+                    st.info(f'Ảnh {p_name} không phát hiện hư hỏng rõ rệt vượt ngưỡng.')
+            else:
+                st.warning(f'Không phân tích được ảnh {p_name}')
 
 st.caption(f'Đã sẵn sàng {len(items)} ảnh. Bước tiếp theo: xác nhận vị trí chính xác nơi chụp.')
 steps('1. Chọn ảnh hiện trường', '2. Xác nhận tọa độ GPS', '3. AI Thẩm định & Gửi', active=1)
@@ -367,7 +417,7 @@ if go:
                 same = False
             src = 'GPS trình duyệt' if same else st.session_state.get('sub_gps_src', 'Nhập tay')
 
-        reuse_out = _preview_out if (idx == 0 and _preview_out is not None) else None
+        reuse_out = all_previews.get(idx) if (all_previews.get(idx) is not None) else None
         try:
             rid, out, quality, flags = submit_report(
                 det,
