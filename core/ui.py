@@ -169,27 +169,48 @@ def image_url_or_file(rel: str | None, public_only: bool = True) -> str | None:
 
 
 def add_legal_map_layers(fmap: folium.Map) -> None:
-    """Thêm 3 lớp bản đồ nền hợp pháp, tuân thủ điều khoản sử dụng và ghi công đầy đủ."""
+    """Thêm các lớp bản đồ nền trực quan, hiển thị đầy đủ tên đường (Google Maps, Google Hybrid, OSM)."""
+    # 1. Google Maps Đường phố (Mặc định: hiện đầy đủ tên đường, ngõ hẻm, địa danh tiếng Việt)
     folium.TileLayer(
-        tiles='OpenStreetMap',
+        tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        attr='Google Maps',
+        name='Bản đồ Đường phố (Google Maps)',
+        overlay=False,
+        control=True,
+        show=True,
+        max_zoom=20,
+    ).add_to(fmap)
+    # 2. Google Maps Vệ tinh Hybrid (Ảnh vệ tinh có tên đường & địa danh)
+    folium.TileLayer(
+        tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+        attr='Google Maps Hybrid',
+        name='Ảnh Vệ tinh có Tên đường (Google Hybrid)',
+        overlay=False,
+        control=True,
+        show=False,
+        max_zoom=20,
+    ).add_to(fmap)
+    # 3. Bản đồ OpenStreetMap tiêu chuẩn
+    folium.TileLayer(
+        tiles='https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         name='Bản đồ Đường phố (OpenStreetMap)',
         overlay=False,
         control=True,
+        show=False,
+        max_zoom=19,
     ).add_to(fmap)
-    folium.TileLayer(
-        tiles='CartoDB positron',
-        name='Nền Sáng Tối Giản (CartoDB)',
-        overlay=False,
-        control=True,
-    ).add_to(fmap)
+    # 4. Ảnh Vệ tinh thuần túy (Esri World Imagery)
     folium.TileLayer(
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attr='Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
-        name='Ảnh Vệ tinh (Esri World Imagery)',
+        name='Ảnh Vệ tinh thuần túy (Esri)',
         overlay=False,
         control=True,
+        show=False,
+        max_zoom=19,
     ).add_to(fmap)
-    folium.LayerControl().add_to(fmap)
+    folium.LayerControl(position='topright', collapsed=True).add_to(fmap)
 
 
 def weights_sidebar():
