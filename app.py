@@ -72,5 +72,5 @@ else:
         'Cán bộ': officer_pages,
     }
     
-st.navigation(pages).run()
+
 st.navigation(pages).run()
