@@ -545,6 +545,5 @@ button[data-baseweb="tab"][aria-selected="true"] {
 """
 
 def apply():
-   st.markdown(CSS, unsafe_allow_html=True)
   
     st.markdown(CSS, unsafe_allow_html=True)
