@@ -24,24 +24,25 @@ DEFECT_LABELS = {
 STATUS_ORDER = ['pending', 'verified', 'assigned', 'fixed']
 CHART_FONT = 'Arial'
 TREND_DAYS = 14
-CARD_VISUAL_HEIGHT = 215
+CARD_VISUAL_HEIGHT = 205
+MAP_VISUAL_HEIGHT = 250
 MAP_MAX_ZOOM = 16
 
 st.markdown("""
 <style>
 .sol-title {
-  font-size: clamp(1.35rem, 1.85vw, 1.65rem);
-  font-weight: 800;
-  line-height: 1.15;
-  color: #0F172A;
+  font-size: clamp(1.35rem, 1.8vw, 1.6rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  color: #0F172A !important;
   letter-spacing: -0.02em;
-  margin: 0 0 14px 0;
+  margin: 0 0 12px 0;
 }
 .sol-desc {
-  font-size: 0.96rem;
-  line-height: 1.6;
+  font-size: 0.94rem;
+  line-height: 1.55;
   color: #475569;
-  margin: 0 0 18px 0;
+  margin: 0 0 16px 0;
 }
 .sol-kpi-grid {
   display: grid;
@@ -62,6 +63,9 @@ st.markdown("""
   font-weight: 600;
   color: #64748B;
   margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sol-kpi strong {
   display: block;
@@ -174,16 +178,16 @@ left_col, right_col = st.columns([1.05, 2.15], gap='large')
 
 with left_col:
     st.markdown(
-        '<h1 class="sol-title">Dữ liệu &amp; AI phục vụ quản lý duy tu đường bộ</h1>'
+        '<div class="sol-title">Dữ liệu &amp; AI phục vụ quản lý duy tu đường bộ</div>'
         '<p class="sol-desc">RoadWatch AI tiếp nhận ảnh mặt đường kèm tọa độ GPS, tự động phát hiện ổ gà, '
         'vết nứt bằng mô hình thị giác máy tính và hỗ trợ cán bộ xác minh, xếp hạng ưu tiên kiểm tra.</p>',
         unsafe_allow_html=True,
     )
     st.markdown(f"""
     <div class="sol-kpi-grid">
-      <div class="sol-kpi"><small>📍 Điểm đã ghi nhận</small><strong>{total_recorded}</strong></div>
-      <div class="sol-kpi"><small>🆕 Mới trong ngày</small><strong>{new_today}</strong></div>
-      <div class="sol-kpi"><small>🚨 Mức nghiêm trọng</small><strong>{severe_count}</strong></div>
+      <div class="sol-kpi"><small>📍 Đã ghi nhận</small><strong>{total_recorded}</strong></div>
+      <div class="sol-kpi"><small>🆕 Mới hôm nay</small><strong>{new_today}</strong></div>
+      <div class="sol-kpi"><small>🚨 Nghiêm trọng</small><strong>{severe_count}</strong></div>
       <div class="sol-kpi"><small>⏳ Chờ xác minh</small><strong>{pending_count}</strong></div>
     </div>
     """, unsafe_allow_html=True)
@@ -211,24 +215,25 @@ with right_col:
                 if sum(all_vals) == 0:
                     st.info('AI chưa phát hiện vùng hư hỏng trong các hồ sơ.')
                 else:
-                    labels = list(DEFECT_LABELS.values())
-                    bar_df = pd.DataFrame({'Loại': labels, 'Số vùng': all_vals, 'Chuỗi': 'Tất cả hợp lệ'})
-                    line_df = pd.DataFrame({'Loại': labels, 'Số vùng': ver_vals, 'Chuỗi': 'Đã xác minh'})
+                    codes = ['D00', 'D10', 'D20', 'D40']
+                    full_names = list(DEFECT_LABELS.values())
+                    bar_df = pd.DataFrame({'Mã': codes, 'Tên': full_names, 'Số vùng': all_vals, 'Chuỗi': 'Tất cả hợp lệ'})
+                    line_df = pd.DataFrame({'Mã': codes, 'Tên': full_names, 'Số vùng': ver_vals, 'Chuỗi': 'Đã xác minh'})
                     mean_val = round(sum(all_vals) / len(all_vals), 1)
-                    rule_df = pd.DataFrame({'Ngưỡng': [mean_val], 'Chuỗi': 'Trung bình mỗi loại'})
+                    rule_df = pd.DataFrame({'Ngưỡng': [mean_val]})
 
-                    x_enc = alt.X('Loại:N', sort=labels, title=None, axis=alt.Axis(labelAngle=-12))
+                    x_enc = alt.X('Mã:N', sort=codes, title=None, axis=alt.Axis(labelAngle=0))
                     bars = alt.Chart(bar_df).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4, width=28, opacity=0.45).encode(
                         x=x_enc,
                         y=alt.Y('Số vùng:Q', title=None, axis=alt.Axis(tickMinStep=1)),
                         color=alt.Color('Chuỗi:N', scale=alt.Scale(domain=['Tất cả hợp lệ', 'Đã xác minh'], range=['#38BDF8', '#0F172A'])),
-                        tooltip=['Loại:N', 'Số vùng:Q'],
+                        tooltip=['Tên:N', 'Số vùng:Q'],
                     )
                     line = alt.Chart(line_df).mark_line(point=alt.OverlayMarkDef(filled=True, size=60), strokeWidth=2.4).encode(
                         x=x_enc,
                         y='Số vùng:Q',
                         color=alt.Color('Chuỗi:N', scale=alt.Scale(domain=['Tất cả hợp lệ', 'Đã xác minh'], range=['#38BDF8', '#0F172A'])),
-                        tooltip=['Loại:N', 'Số vùng:Q'],
+                        tooltip=['Tên:N', 'Số vùng:Q'],
                     )
                     rule = alt.Chart(rule_df).mark_rule(color='#0284C7', strokeDash=[5, 4], strokeWidth=1.8).encode(
                         y='Ngưỡng:Q',
@@ -277,7 +282,7 @@ with right_col:
                     padding=(28, 28),
                     max_zoom=MAP_MAX_ZOOM,
                 )
-                st_folium(fmap, height=CARD_VISUAL_HEIGHT, returned_objects=[], width=None, key='home_dashboard_map')
+                st_folium(fmap, height=MAP_VISUAL_HEIGHT, returned_objects=[], width=None, key='home_dashboard_map')
             _card_footer(
                 'Bản đồ phân bố hư hỏng',
                 f'Hiển thị {len(points)} điểm đã xác minh trên nền Google Maps, phân màu đỏ, cam, xanh theo mức độ.',
@@ -318,34 +323,39 @@ with right_col:
                 f'Theo dõi lượng báo cáo mới trong {TREND_DAYS} ngày gần nhất kèm đường trung bình trượt 3 ngày.',
             )
 
-    # ── Thẻ 4: Cơ cấu mức độ & tiến độ xử lý (Horizontal Stacked Bar) ───────
+    # ── Thẻ 4: Tiến độ xử lý hồ sơ (Horizontal Bar bắt đầu từ 0) ────────────
     with r2c2:
         with st.container(border=True):
             if df.empty:
                 st.info('Chưa có hồ sơ để thống kê tiến độ xử lý.')
             else:
-                active_df = df[df.status.isin(STATUS_ORDER)].copy()
-                if active_df.empty:
-                    st.info('Chưa có hồ sơ trong các bước xử lý.')
-                else:
-                    lv = active_df['final_level'].fillna('')
-                    lv = lv.where(lv != '', active_df['ai_level'].fillna('')).replace('', 'Chưa phân mức')
-                    active_df['Mức độ'] = lv
-                    active_df['Trạng thái'] = active_df['status'].map(STATUS_LABELS)
-                    agg = active_df.groupby(['Trạng thái', 'Mức độ']).size().reset_index(name='Số hồ sơ')
-                    status_labels = [STATUS_LABELS[k] for k in STATUS_ORDER]
-                    sev_domain = LEVEL_ORDER + ['Chưa phân mức']
-                    sev_range = ['#DC2626', '#F59E0B', '#16A34A', '#94A3B8']
-                    hbar = alt.Chart(agg).mark_bar(cornerRadiusEnd=4, size=24).encode(
-                        y=alt.Y('Trạng thái:N', sort=status_labels, title=None, axis=alt.Axis(labelLimit=130)),
-                        x=alt.X('Số hồ sơ:Q', title=None, axis=alt.Axis(tickMinStep=1)),
-                        color=alt.Color('Mức độ:N', sort=sev_domain, scale=alt.Scale(domain=sev_domain, range=sev_range)),
-                        tooltip=['Trạng thái:N', 'Mức độ:N', 'Số hồ sơ:Q'],
-                    ).properties(height=CARD_VISUAL_HEIGHT)
-                    _show_chart(hbar)
+                sc = df['status'].value_counts()
+                status_labels = [STATUS_LABELS[k] for k in STATUS_ORDER]
+                status_colors = ['#F59E0B', '#2563EB', '#0EA5E9', '#16A34A']
+                status_df = pd.DataFrame({
+                    'Trạng thái': status_labels,
+                    'Số hồ sơ': [int(sc.get(k, 0)) for k in STATUS_ORDER],
+                })
+                max_val = max(int(status_df['Số hồ sơ'].max()), 1)
+                base = alt.Chart(status_df).encode(
+                    y=alt.Y('Trạng thái:N', sort=status_labels, title=None, axis=alt.Axis(labelLimit=140)),
+                    x=alt.X('Số hồ sơ:Q', title=None, scale=alt.Scale(domain=[0, max_val + 1]), axis=alt.Axis(tickMinStep=1)),
+                )
+                hbar = base.mark_bar(cornerRadiusEnd=5, size=24).encode(
+                    color=alt.Color(
+                        'Trạng thái:N',
+                        legend=None,
+                        scale=alt.Scale(domain=status_labels, range=status_colors),
+                    ),
+                    tooltip=['Trạng thái:N', 'Số hồ sơ:Q'],
+                )
+                labels_txt = base.mark_text(align='left', dx=6, font=CHART_FONT, fontWeight='bold', color='#0F172A').encode(
+                    text='Số hồ sơ:Q'
+                )
+                _show_chart((hbar + labels_txt).properties(height=CARD_VISUAL_HEIGHT))
             _card_footer(
-                'Cơ cấu mức độ & tiến độ xử lý',
-                'Phân bố hồ sơ qua 4 bước từ chờ xác minh đến đã xử lý, tách màu theo mức độ nghiêm trọng.',
+                'Tiến độ xử lý hồ sơ',
+                'Số lượng hồ sơ qua 4 bước từ chờ xác minh, đã duyệt, đang giao xử lý đến đã hoàn thành.',
             )
 
 st.markdown(
