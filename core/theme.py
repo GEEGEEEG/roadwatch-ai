@@ -75,10 +75,11 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, select, button, td, th, li, a
 
 /* Typography */
 h1, h2, h3, h4 {
-  font-weight: 800;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-weight: 700 !important;
   color: var(--rw-navy);
-  letter-spacing: -0.03em;
-  line-height: 1.25;
+  letter-spacing: normal !important;
+  line-height: 1.28 !important;
 }
 
 h1 { font-size: clamp(1.85rem, 3.8vw, 2.6rem); }
@@ -485,7 +486,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
 .rw-hero-grid{position:relative;display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:32px}
 .rw-kicker{display:inline-block;font-size:.76rem;font-weight:750;letter-spacing:.075em;text-transform:uppercase;
  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 14px;margin-bottom:16px;color:#E6F1FF}
-.rw-hero h1{color:white;font-size:clamp(2rem,4.2vw,3.2rem);line-height:1.15;letter-spacing:-.04em;margin:0 0 16px}
+.rw-hero h1{font-family:Arial,Helvetica,sans-serif !important;color:white !important;font-size:clamp(1.75rem,3.3vw,2.6rem) !important;font-weight:700 !important;line-height:1.28 !important;letter-spacing:0.01em !important;margin:0 0 16px}
 .rw-hero .rw-lead{color:#E2E8F0;font-size:clamp(.95rem,1.5vw,1.06rem);line-height:1.75;max-width:560px;margin:0}
 .rw-hero-visual{position:relative;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);
  border-radius:20px;padding:22px;backdrop-filter:blur(10px);box-shadow:0 14px 34px rgba(0,0,0,.2)}
@@ -517,7 +518,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
 
 .rw-page-intro{position:relative;overflow:hidden;background:radial-gradient(circle at 85% 20%, rgba(56, 189, 248, 0.22), transparent 45%), linear-gradient(118deg,#0A192F 0%,#133B7A 52%,#1D64D8 100%);padding:clamp(22px,3.2vw,34px) clamp(24px,3.5vw,38px);border:1px solid rgba(255,255,255,.18);border-radius:22px;margin-bottom:22px;box-shadow:0 16px 40px rgba(13,39,80,.18);color:#FFFFFF}
 .rw-page-intro .rw-overline{display:inline-block;font-size:.74rem;color:#E6F1FF;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:5px 13px;letter-spacing:.08em;font-weight:750;text-transform:uppercase;margin-bottom:10px}
-.rw-page-intro h1{color:#FFFFFF !important;font-size:clamp(1.55rem,2.8vw,2.2rem);line-height:1.2;margin:4px 0 8px}
+.rw-page-intro h1{font-family:Arial,Helvetica,sans-serif !important;color:#FFFFFF !important;font-size:clamp(1.55rem,2.8vw,2.2rem);font-weight:700 !important;letter-spacing:normal !important;line-height:1.28 !important;margin:4px 0 8px}
 .rw-page-intro p{color:#DBEAFE !important;margin:0;font-size:.95rem;line-height:1.6;max-width:760px}
 
 .rw-hint{background:#EFF6FF;border-left:4px solid #2563EB;padding:14px 18px;border-radius:0 12px 12px 0;font-size:.88rem;color:#1E40AF;margin-bottom:18px}
