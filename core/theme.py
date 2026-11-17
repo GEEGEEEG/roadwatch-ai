@@ -229,16 +229,30 @@ section[data-testid="stSidebar"] {
   border-color: #CBD5E1 !important;
 }
 
-[data-testid="stMetricLabel"] {
+[data-testid="stMetricLabel"],
+[data-testid="stMetricLabel"] > div,
+[data-testid="stMetricLabel"] p {
   color: #64748B !important;
   font-size: 0.85rem !important;
   font-weight: 600 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  overflow-wrap: break-word !important;
 }
 
-[data-testid="stMetricValue"] {
+[data-testid="stMetricValue"],
+[data-testid="stMetricValue"] > div,
+[data-testid="stMetricValue"] p {
+  font-size: clamp(1.1rem, 1.4vw, 1.4rem) !important;
+  line-height: 1.3 !important;
   font-weight: 800 !important;
   color: var(--rw-navy) !important;
   letter-spacing: -0.02em;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  overflow-wrap: break-word !important;
 }
 
 /* Inputs, Textareas, Selectboxes */
