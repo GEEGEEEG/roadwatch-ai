@@ -5,7 +5,7 @@ from html import escape
 import folium
 import streamlit as st
 
-from .config import data_dir, model_path
+from .config import PROJECT_ROOT, data_dir, model_path
 from .constants import DISCLAIMER
 
 _OFFICER_SESSION_KEYS = (
@@ -89,7 +89,12 @@ def officer_login_box():
 
 
 def safe_page_link(page: str, label: str, icon: str | None = None) -> None:
-    """Liên kết chuyển trang an toàn cả khi chạy qua st.navigation lẫn khi chạy độc lập trong AppTest."""
+    """Liên kết chuyển trang an toàn cả khi chạy qua st.navigation (kể cả qua bridge) lẫn khi chạy độc lập."""
+    try:
+        st.page_link((PROJECT_ROOT / page).resolve(), label=label, icon=icon)
+        return
+    except Exception:
+        pass
     try:
         st.page_link(page, label=label, icon=icon)
     except Exception:
