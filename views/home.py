@@ -5,7 +5,7 @@ import altair as alt
 import folium
 import pandas as pd
 import streamlit as st
-from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 
 from core import db
 from core.constants import STATUS_LABELS
@@ -282,7 +282,7 @@ with right_col:
                     padding=(28, 28),
                     max_zoom=MAP_MAX_ZOOM,
                 )
-                st_folium(fmap, height=MAP_VISUAL_HEIGHT, returned_objects=[], width=None, key='home_dashboard_map')
+                components.html(fmap.get_root().render(), height=MAP_VISUAL_HEIGHT, scrolling=False)
             _card_footer(
                 'Bản đồ phân bố hư hỏng',
                 f'Hiển thị {len(points)} điểm đã xác minh trên nền Google Maps, phân màu đỏ, cam, xanh theo mức độ.',
