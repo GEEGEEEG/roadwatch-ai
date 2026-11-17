@@ -2,8 +2,8 @@ from html import escape
 
 import folium
 import streamlit as st
+import streamlit.components.v1 as components
 from folium.plugins import HeatMap, MarkerCluster
-from streamlit_folium import st_folium
 
 from core import db, storage
 from core.constants import LEVELS
@@ -122,6 +122,6 @@ for _, r in hs.iterrows():
 if heat:
     HeatMap([[r.latitude, r.longitude, r.priority_score / 100] for _, r in hs.iterrows()], radius=25).add_to(m)
 
-st_folium(m, height=540, returned_objects=[], width=None)
+components.html(m.get_root().render(), height=540, scrolling=False)
 st.caption('Bản đồ công khai chỉ hiển thị các vị trí đã được cán bộ xác minh. Vùng khoanh đỏ biểu thị cụm hư hỏng liên hoàn khuyến nghị thảm lại toàn phần.')
 disclaimer()
