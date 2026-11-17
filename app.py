@@ -1,11 +1,15 @@
 from pathlib import Path
+
 import streamlit as st
+
 from core import db, theme, ui
 
 BASE_DIR = Path(__file__).resolve().parent
 
+
 def _page(rel: str) -> Path:
     return (BASE_DIR / rel).resolve()
+
 
 st.set_page_config(
     page_title='RoadWatch AI | Giám sát và quản lý hư hỏng mặt đường đô thị',
@@ -60,7 +64,6 @@ else:
             st.Page(_page('views/compare.py'), title='Trước/sau sửa chữa', icon='🛠️', url_path='compare'),
             st.Page(_page('views/reports.py'), title='Báo cáo', icon='📄', url_path='reports'),
             st.Page(_page('views/video.py'), title='Khảo sát video + GPX', icon='🎥', url_path='video'),
-            st.Page(_page('views/evaluation.py'), title='Đánh giá mô hình', icon='🧪', url_path='evaluation'),
             st.Page(_page('views/admin.py'), title='Quản trị & sao lưu', icon='⚙️', url_path='admin'),
             st.Page(_page('views/login.py'), title='Hồ sơ cán bộ', icon='👤', url_path='officer-profile'),
         ]
@@ -68,5 +71,6 @@ else:
         'Công khai': public_pages,
         'Cán bộ': officer_pages,
     }
-
+    
+st.navigation(pages).run()
 st.navigation(pages).run()
