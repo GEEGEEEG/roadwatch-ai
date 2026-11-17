@@ -24,10 +24,10 @@ CSS = """
   --rw-radius: 16px;
 }
 
-html, body, .stApp, [data-testid="stAppViewContainer"],
-p, h1, h2, h3, h4, h5, h6, label, input, textarea, select, button,
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"],
+p, h1, h2, h3, h4, h5, h6, label, input, textarea, select, button, td, th, li, a,
 .stMarkdown, [data-testid="stText"] {
-  font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Times New Roman', Times, serif !important;
 }
 
 /* Material Symbols & Icon protection */
@@ -545,4 +545,6 @@ button[data-baseweb="tab"][aria-selected="true"] {
 """
 
 def apply():
+   st.markdown(CSS, unsafe_allow_html=True)
+  
     st.markdown(CSS, unsafe_allow_html=True)
