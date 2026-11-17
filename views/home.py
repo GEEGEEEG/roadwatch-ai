@@ -30,7 +30,7 @@ MAP_MAX_ZOOM = 16
 st.markdown("""
 <style>
 .sol-title {
-  font-size: clamp(1.75rem, 2.5vw, 2.35rem);
+  font-size: clamp(1.35rem, 1.85vw, 1.65rem);
   font-weight: 800;
   line-height: 1.15;
   color: #0F172A;
@@ -150,6 +150,24 @@ if recorded.empty:
 else:
     new_today = int((recorded['day'] == pd.Timestamp.now().normalize()).sum())
     severe_count = int((recorded['level'] == SEVERE_LEVEL).sum())
+
+st.markdown("""
+<section class="rw-hero" aria-labelledby="roadwatch-title">
+  <div class="rw-hero-grid">
+    <div>
+      <span class="rw-kicker">RoadWatch AI v5.0 · Giám sát hạ tầng đường bộ thông minh</span>
+      <h1 id="roadwatch-title">Mỗi phản ánh nhỏ.<br>Một tuyến đường an toàn hơn.</h1>
+      <p class="rw-lead">Chụp ảnh mặt đường, định vị GPS chuẩn xác. AI tự động khoanh vùng ổ gà, vết nứt &amp; ước lượng diện tích; cán bộ xác minh và xếp hạng ưu tiên duy tu theo mô hình AHP.</p>
+    </div>
+    <div class="rw-hero-visual" role="img" aria-label="Minh họa quy trình phản ánh hư hỏng mặt đường đến bản đồ và xác minh">
+      <div class="rw-visual-head"><span><span class="rw-visual-dot"></span>Quy trình khép kín</span><span>ROADWATCH v5</span></div>
+      <div class="rw-visual-road"><span class="rw-road-line"></span><span class="rw-road-pin"></span></div>
+      <div class="rw-visual-flow"><span>01 · Chụp ảnh</span><span>02 · AI phân tích</span><span>03 · Duy tu</span></div>
+    </div>
+  </div>
+</section>
+<div style="height: 18px;"></div>
+""", unsafe_allow_html=True)
 
 # ── Bố cục Solcast: Trái (Giới thiệu + KPI + Điều hướng) | Phải (Lưới 2x2) ──
 left_col, right_col = st.columns([1.05, 2.15], gap='large')
