@@ -173,6 +173,17 @@ def image_url_or_file(rel: str | None, public_only: bool = True) -> str | None:
     return image_file(rel)
 
 
+class _BaseLayerControl(folium.LayerControl):
+    """Chỉ đưa các lớp nền (TileLayer, overlay=False) vào bộ chuyển đổi nền bản đồ.
+    Ngăn lỗi JS undefined khi các lớp overlay (MarkerCluster, HeatMap, CircleMarker) được thêm sau."""
+    def render(self, **kwargs):
+        self.overlays.clear()
+        for item in self._parent._children.values():
+            if isinstance(item, folium.map.Layer) and item.control and not item.overlay:
+                self.base_layers[item.layer_name] = item.get_name()
+        super(folium.LayerControl, self).render(**kwargs)
+
+
 def add_legal_map_layers(fmap: folium.Map) -> None:
     """Thêm các lớp bản đồ nền trực quan, hiển thị đầy đủ tên đường (Google Maps, Google Hybrid, OSM)."""
     # 1. Google Maps Đường phố (Mặc định: hiện đầy đủ tên đường, ngõ hẻm, địa danh tiếng Việt)
@@ -215,7 +226,7 @@ def add_legal_map_layers(fmap: folium.Map) -> None:
         show=False,
         max_zoom=19,
     ).add_to(fmap)
-    folium.LayerControl(position='topright', collapsed=True).add_to(fmap)
+    _BaseLayerControl(position='topright', collapsed=True).add_to(fmap)
 
 
 def weights_sidebar():
