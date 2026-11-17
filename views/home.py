@@ -31,11 +31,12 @@ MAP_MAX_ZOOM = 16
 st.markdown("""
 <style>
 .sol-title {
+  font-family: Arial, Helvetica, sans-serif !important;
   font-size: clamp(1.35rem, 1.8vw, 1.6rem) !important;
-  font-weight: 800 !important;
-  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  line-height: 1.32 !important;
   color: #0F172A !important;
-  letter-spacing: -0.02em;
+  letter-spacing: normal !important;
   margin: 0 0 12px 0;
 }
 .sol-desc {
@@ -160,7 +161,7 @@ st.markdown("""
   <div class="rw-hero-grid">
     <div>
       <span class="rw-kicker">RoadWatch AI v5.0 · Giám sát hạ tầng đường bộ thông minh</span>
-      <h1 id="roadwatch-title">Mỗi phản ánh nhỏ.<br>Một tuyến đường an toàn hơn.</h1>
+      <h1 id="roadwatch-title">MỖI PHẢN ÁNH NHỎ.<br>MỘT TUYẾN ĐƯỜNG AN TOÀN HƠN.</h1>
       <p class="rw-lead">Chụp ảnh mặt đường, định vị GPS chuẩn xác. AI tự động khoanh vùng ổ gà, vết nứt &amp; ước lượng diện tích; cán bộ xác minh và xếp hạng ưu tiên duy tu theo mô hình AHP.</p>
     </div>
     <div class="rw-hero-visual" role="img" aria-label="Minh họa quy trình phản ánh hư hỏng mặt đường đến bản đồ và xác minh">
