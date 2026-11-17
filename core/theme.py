@@ -27,7 +27,7 @@ CSS = """
 html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"],
 p, h1, h2, h3, h4, h5, h6, label, input, textarea, select, button, td, th, li, a,
 .stMarkdown, [data-testid="stText"] {
-  font-family: 'Times New Roman', Times, serif !important;
+  font-family: Arial, Helvetica, sans-serif !important;
 }
 
 /* Material Symbols & Icon protection */
