@@ -70,7 +70,5 @@ else:
     pages = {
         'Công khai': public_pages,
         'Cán bộ': officer_pages,
-    }
-    
-
+    }    
 st.navigation(pages).run()
