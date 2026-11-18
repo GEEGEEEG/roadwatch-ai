@@ -67,10 +67,14 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, select, button, td, th, li, a
   border-bottom: 1px solid rgba(226, 232, 240, 0.7);
 }
 
-.main .block-container, .block-container {
-  max-width: 1200px;
-  padding-top: 2.2rem;
-  padding-bottom: 4rem;
+[data-testid="stMainBlockContainer"],
+.stMainBlockContainer,
+.main .block-container,
+.block-container {
+  max-width: 1320px !important;
+  width: 100% !important;
+  padding-top: 2rem !important;
+  padding-bottom: 4rem !important;
 }
 
 /* Typography */
@@ -93,14 +97,21 @@ section[data-testid="stSidebar"] {
   box-shadow: 2px 0 16px rgba(15, 23, 42, 0.02);
 }
 
+@media (min-width: 900px) {
+  section[data-testid="stSidebar"][aria-expanded="true"] {
+    min-width: 268px !important;
+    width: 268px !important;
+  }
+}
+
 [data-testid="stSidebarNav"] a {
   display: flex !important;
   align-items: center !important;
   border-radius: 12px !important;
   min-height: 42px;
-  margin: 2px 8px;
-  padding: 8px 12px;
-  gap: 12px;
+  margin: 2px 6px;
+  padding: 8px 10px;
+  gap: 10px;
   font-weight: 600;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -118,25 +129,25 @@ section[data-testid="stSidebar"] {
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28);
 }
 
-[data-testid="stSidebarNav"] a span {
-  display: inline-flex !important;
-  align-items: center !important;
-  line-height: 1 !important;
-}
-
-[data-testid="stSidebarNav"] a span:first-child {
-  font-size: 1.25rem !important;
+[data-testid="stSidebarNav"] a > span:first-child {
+  font-size: 1.15rem !important;
   line-height: 1 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  flex-shrink: 0 !important;
   margin-top: 0 !important;
 }
 
-[data-testid="stSidebarNav"] a span:last-child {
-  display: inline-flex !important;
-  align-items: center !important;
-  line-height: 1.3 !important;
+[data-testid="stSidebarNav"] a > span:last-child {
+  display: block !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  line-height: 1.35 !important;
+  font-size: 0.9rem !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 [data-testid="stSidebarNav"] a[aria-current="page"] span {
@@ -297,17 +308,27 @@ section[data-testid="stSidebar"] {
 }
 
 /* Modern Tabs */
-button[data-baseweb="tab"] {
-  min-height: 50px;
+button[data-baseweb="tab"],
+button[data-baseweb="tab"] p {
+  min-height: 48px;
   font-weight: 700 !important;
-  font-size: 0.95rem !important;
+  font-size: 0.94rem !important;
   border-radius: 10px 10px 0 0 !important;
-  padding: 10px 20px !important;
+  padding: 8px 16px !important;
   color: #64748B !important;
 }
 
-button[data-baseweb="tab"][aria-selected="true"] {
+button[data-baseweb="tab"] p {
+  min-height: auto;
+  padding: 0 !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"],
+button[data-baseweb="tab"][aria-selected="true"] p {
   color: #2563EB !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
   border-bottom: 3px solid #2563EB !important;
 }
 
@@ -469,6 +490,35 @@ button[data-baseweb="tab"][aria-selected="true"] {
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
 }
 
+/* Defect Semantic Badges from Figma Design System */
+.rw-badge-d40 {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  font-weight: 700;
+}
+
+.rw-badge-d20 {
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+  font-weight: 700;
+}
+
+.rw-badge-d10 {
+  background: #FEFCE8;
+  color: #CA8A04;
+  border: 1px solid #FEF08A;
+  font-weight: 700;
+}
+
+.rw-badge-d00 {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+  font-weight: 700;
+}
+
 /* Micro-animations */
 @keyframes pulseGlow {
   0% { transform: scale(0.95); opacity: 0.8; }
@@ -523,7 +573,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
 
 .rw-hint{background:#EFF6FF;border-left:4px solid #2563EB;padding:14px 18px;border-radius:0 12px 12px 0;font-size:.88rem;color:#1E40AF;margin-bottom:18px}
 .rw-empty{background:#F8FAFC;padding:24px;border:2px dashed #CBD5E1;border-radius:16px;color:#475569;text-align:center}
-.rw-preview-banner{background:linear-gradient(135deg,#1E40AF,#3B82F6);color:#fff;padding:10px 20px;border-radius:12px;font-size:.93rem;font-weight:600;letter-spacing:.03em;margin:16px 0 10px;display:flex;align-items:center;gap:8px}
+.rw-preview-banner{background:linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);border:1px solid #3B82F6;color:#FFFFFF;padding:12px 20px;border-radius:14px;font-size:.93rem;font-weight:600;letter-spacing:.02em;margin:16px 0 12px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(15, 23, 42, 0.15)}
 
 /* CTA Page Links & Two-Column Panels (Home / Submit / Auth) */
 [data-testid="stPageLink-NavLink"]{
