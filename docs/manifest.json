@@ -1,0 +1,36 @@
+{
+  "id": "/roadwatch-ai/",
+  "name": "RoadWatch AI — Giám sát Mặt đường",
+  "short_name": "RoadWatch AI",
+  "description": "Ứng dụng phát hiện ổ gà, vết nứt mặt đường bằng trí tuệ nhân tạo YOLO, định vị GPS và xếp hạng ưu tiên duy tu AHP.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0A192F",
+  "theme_color": "#2563EB",
+  "lang": "vi",
+  "dir": "ltr",
+  "categories": ["navigation", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
