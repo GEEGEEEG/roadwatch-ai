@@ -615,19 +615,90 @@ button[data-baseweb="tab"][aria-selected="true"] {
   .rw-overview { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ==========================================================================
+   MOBILE APP MODE (BOTTOM DOCK NAVIGATION & COMPACT RESPONSIVE)
+   ========================================================================== */
+@media (min-width: 769px) {
+  .st-key-rw_mobile_dock {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .st-key-rw_mobile_dock {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 999990 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-top: 1px solid #E2E8F0 !important;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)) 8px !important;
+    box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.08) !important;
+    margin: 0 !important;
+  }
+  .st-key-rw_mobile_dock [data-testid="stHorizontalBlock"] {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    margin: 0 !important;
+  }
+  .st-key-rw_mobile_dock [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+  .st-key-rw_mobile_dock [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .st-key-rw_mobile_dock [data-testid="stPageLink-NavLink"] {
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-height: 48px !important;
+    padding: 5px 2px !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 10px !important;
+    font-size: 0.72rem !important;
+    color: #475569 !important;
+  }
+  .st-key-rw_mobile_dock [data-testid="stPageLink-NavLink"]:hover {
+    transform: none !important;
+    background: #EFF6FF !important;
+    color: #2563EB !important;
+    box-shadow: none !important;
+  }
+  .st-key-rw_mobile_dock [data-testid="stPageLink-NavLink"]:hover * {
+    color: #2563EB !important;
+  }
+}
+
 @media (max-width: 740px) {
   [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
   [data-testid="stHorizontalBlock"] > [data-testid="column"] {
     flex: 1 1 100% !important;
     min-width: 100% !important;
   }
-  .block-container { padding: 1.2rem 1rem 3rem; }
-  .rw-hero { padding: 24px; border-radius: 18px; min-height: auto; }
-  .rw-page-intro { padding: 20px; border-radius: 16px; }
+  [data-testid="stMainBlockContainer"],
+  .stMainBlockContainer,
+  .main .block-container,
+  .block-container {
+    padding: 1rem 0.9rem 92px 0.9rem !important;
+  }
+  .rw-hero { padding: 20px; border-radius: 18px; min-height: auto; }
+  .rw-page-intro { padding: 18px; border-radius: 16px; }
   .rw-cards, .rw-two-col { grid-template-columns: 1fr; }
   .rw-overview { grid-template-columns: repeat(2, 1fr); }
-  .rw-stepper { flex-direction: column; gap: 12px; }
-  .rw-step-line { display: none; }
+  .rw-stepper-box { padding: 14px 10px; }
+  .rw-step-circle { width: 34px; height: 34px; font-size: 0.85rem; }
+  .rw-step-label { font-size: 0.72rem; margin-top: 6px; }
+  .rw-step-line { margin: -20px 4px 0; height: 3px; }
+}
+
+@media (max-width: 560px) {
+  .rw-hero-visual { display: none; }
 }
 
 @media (max-width: 480px) {
