@@ -81,6 +81,14 @@ st.markdown("""
   color: #0F172A;
   line-height: 1.15;
 }
+.sol-kpi-blue { border-top: 3px solid #2563EB; }
+.sol-kpi-blue strong { color: #1D4ED8; }
+.sol-kpi-green { border-top: 3px solid #10B981; }
+.sol-kpi-green strong { color: #059669; }
+.sol-kpi-red { border-top: 3px solid #EF4444; }
+.sol-kpi-red strong { color: #DC2626; }
+.sol-kpi-amber { border-top: 3px solid #F59E0B; }
+.sol-kpi-amber strong { color: #D97706; }
 .sol-card-foot {
   padding-top: 8px;
   margin-top: 4px;
@@ -236,10 +244,10 @@ with left_col:
     )
     st.markdown(f"""
     <div class="sol-kpi-grid">
-      <div class="sol-kpi"><small>📍 Đã ghi nhận</small><strong>{total_recorded}</strong></div>
-      <div class="sol-kpi"><small>🆕 Mới hôm nay</small><strong>{new_today}</strong></div>
-      <div class="sol-kpi"><small>🚨 Nghiêm trọng</small><strong>{severe_count}</strong></div>
-      <div class="sol-kpi"><small>⏳ Chờ xác minh</small><strong>{pending_count}</strong></div>
+      <div class="sol-kpi sol-kpi-blue"><small>📍 Đã ghi nhận</small><strong>{total_recorded}</strong></div>
+      <div class="sol-kpi sol-kpi-green"><small>🆕 Mới hôm nay</small><strong>{new_today}</strong></div>
+      <div class="sol-kpi sol-kpi-red"><small>🚨 Nghiêm trọng</small><strong>{severe_count}</strong></div>
+      <div class="sol-kpi sol-kpi-amber"><small>⏳ Chờ xác minh</small><strong>{pending_count}</strong></div>
     </div>
     """, unsafe_allow_html=True)
 

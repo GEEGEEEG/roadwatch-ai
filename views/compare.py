@@ -48,6 +48,17 @@ with a:
     if p:
         img_show(p, caption=f'TRƯỚC — {int(before.total_boxes)} vùng, mức {before.final_level}')
 
+if not after_file:
+    with b:
+        st.markdown(
+            '<div class="rw-empty" style="min-height: 240px; display: flex; flex-direction: column; '
+            'align-items: center; justify-content: center; gap: 6px;">'
+            '<b>Chưa có ảnh SAU sửa chữa</b>'
+            '<span>Tải ảnh mặt đường sau khi vá/thảm lại ở ô phía trên để AI kiểm tra và đối chiếu tự động.</span>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
 if after_file:
     raw = after_file.getvalue()
     out = det.predict_image(Image.open(io.BytesIO(raw)), threshold=thr)

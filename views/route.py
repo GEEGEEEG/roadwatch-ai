@@ -64,20 +64,20 @@ rows = []
 for order, (hid, lat, lon, leg) in enumerate(route, 1):
     r = by_id[hid]
     rows.append({
-        'thứ tự': order,
-        'điểm': r.location_name,
-        'hạng ưu tiên': r.priority_rank,
-        'mức': r.severity_label,
-        'cách điểm trước (m)': leg,
-        'chỉ đường': maps_link(lat, lon),
+        'Thứ tự': order,
+        'Điểm hư hỏng': r.location_name,
+        'Hạng ưu tiên': r.priority_rank,
+        'Mức độ': r.severity_label,
+        'Cách điểm trước (m)': leg,
+        'Chỉ đường': maps_link(lat, lon),
         'hotspot_id': hid,
     })
 
 table = pd.DataFrame(rows)
-st.dataframe(
+df_show(
     table.drop(columns='hotspot_id'),
     hide_index=True,
-    column_config={'chỉ đường': st.column_config.LinkColumn('chỉ đường', display_text='Mở Google Maps')},
+    column_config={'Chỉ đường': st.column_config.LinkColumn('Chỉ đường', display_text='Mở Google Maps')},
 )
 st.link_button('🧭 Mở toàn bộ lộ trình trong Google Maps', maps_multi_link([(a, b) for _, a, b, _ in route], start))
 st.caption('Thứ tự gợi ý theo thuật toán láng giềng gần nhất (Nearest Neighbor).')

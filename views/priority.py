@@ -119,14 +119,26 @@ with tab1:
     hs['diem_AHP'] = ahp_scores
 
     st.subheader('Bảng xếp hạng ưu tiên xử lý')
-    df_show(
-        hs[[
-            'priority_rank', 'location_name', 'severity_label', 'report_count', 'road_type',
-            'priority_score', 'diem_AHP', 'trend_bonus', 'weather_bonus', 'ranking_reason',
-        ]],
-        hide_index=True,
+    priority_display = hs[[
+        'priority_rank', 'location_name', 'severity_label', 'report_count', 'road_type',
+        'priority_score', 'diem_AHP', 'trend_bonus', 'weather_bonus', 'ranking_reason',
+    ]].rename(columns={
+        'priority_rank': 'Hạng',
+        'location_name': 'Tuyến / Điểm nóng',
+        'severity_label': 'Mức độ',
+        'report_count': 'Số phản ánh',
+        'road_type': 'Cấp đường',
+        'priority_score': 'Điểm ưu tiên',
+        'diem_AHP': 'Điểm AHP',
+        'trend_bonus': 'Cộng xu hướng',
+        'weather_bonus': 'Cộng thời tiết',
+        'ranking_reason': 'Lý do xếp hạng',
+    })
+    df_show(priority_display, hide_index=True)
+    chart_df = hs.set_index('location_name')[['priority_score', 'diem_AHP']].rename(
+        columns={'priority_score': 'Điểm ưu tiên', 'diem_AHP': 'Điểm AHP'}
     )
-    st.bar_chart(hs.set_index('location_name')[['priority_score', 'diem_AHP']])
+    st.bar_chart(chart_df)
 
     with st.expander('So sánh độ nhạy xếp hạng (Spearman Rank Correlation)'):
         c = st.columns(3)
