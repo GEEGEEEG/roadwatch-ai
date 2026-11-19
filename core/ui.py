@@ -229,15 +229,47 @@ def add_legal_map_layers(fmap: folium.Map) -> None:
     _BaseLayerControl(position='topright', collapsed=True).add_to(fmap)
 
 
+PRIORITY_PRESETS = {
+    '⚖️ Cân bằng tiêu chuẩn (Mặc định)': (50, 30, 20, 40, 'Cân bằng giữa độ nặng, phản ánh dân và cấp đường.'),
+    '🚨 An toàn khẩn cấp (Ổ gà sâu)': (70, 15, 15, 35, 'Ưu tiên tối đa các vị trí hư hại nặng, nguy cơ tai nạn.'),
+    '🛣️ Trục chính & Trường / Bệnh viện': (35, 15, 50, 45, 'Ưu tiên tuyến quốc lộ, huyết mạch lưu lượng xe lớn.'),
+    '📢 Theo phản ánh cộng đồng': (30, 55, 15, 50, 'Ưu tiên điểm nóng có nhiều người dân phản ánh lặp lại.'),
+    '⚙️ Tùy chỉnh thủ công (Chuyên gia)': (None, None, None, None, 'Tự điều chỉnh từng trọng số và bán kính bên dưới.'),
+}
+
+
 def weights_sidebar():
-    """Thanh trượt trọng số dành cho cán bộ phân tích. Trả về ((a, b, c), radius_m)."""
+    """Bộ chọn kịch bản ưu tiên trực quan cho cán bộ + tùy chỉnh nâng cao cho chuyên gia."""
     ss = st.session_state
-    a = st.sidebar.slider('Trọng số mức độ (%)', 0, 100, ss.get('_wa', 50), 5)
-    b = st.sidebar.slider('Trọng số số báo cáo (%)', 0, 100, ss.get('_wb', 30), 5)
-    c = st.sidebar.slider('Trọng số cấp tuyến (%)', 0, 100, ss.get('_wc', 20), 5)
-    r = st.sidebar.slider('Bán kính gom điểm nóng (m)', 10, 200, ss.get('_wr', 40), 5)
+    preset_names = list(PRIORITY_PRESETS.keys())
+    mode = st.sidebar.selectbox(
+        'Chế độ ưu tiên duy tu',
+        preset_names,
+        index=ss.get('_w_preset_idx', 0),
+        help='Cán bộ không cần hiểu công thức toán vẫn chọn nhanh được kịch bản phù hợp thực tế.',
+    )
+    ss['_w_preset_idx'] = preset_names.index(mode)
+    pa, pb, pc, pr, desc = PRIORITY_PRESETS[mode]
+    st.sidebar.caption(desc)
+
+    is_custom = pa is None
+    if not is_custom:
+        a, b, c, r = pa, pb, pc, pr
+        st.sidebar.caption(f'Áp dụng: **Mức độ {a}% · Phản ánh {b}% · Tuyến {c}% · Gom {r}m**')
+    else:
+        a, b, c, r = ss.get('_wa', 50), ss.get('_wb', 30), ss.get('_wc', 20), ss.get('_wr', 40)
+
+    with st.sidebar.expander('🎛️ Tinh chỉnh chi tiết (Nâng cao)', expanded=is_custom):
+        a = st.slider('Trọng số mức độ (%)', 0, 100, int(a), 5, disabled=not is_custom)
+        b = st.slider('Trọng số số báo cáo (%)', 0, 100, int(b), 5, disabled=not is_custom)
+        c = st.slider('Trọng số cấp tuyến (%)', 0, 100, int(c), 5, disabled=not is_custom)
+        r = st.slider('Bán kính gom điểm nóng (m)', 10, 200, int(r), 5, disabled=not is_custom)
+        if not is_custom:
+            st.caption('Chọn mục **"Tùy chỉnh thủ công"** ở trên nếu bạn muốn kéo tay các thông số này.')
+        else:
+            st.caption('Nếu tổng ≠ 100% hệ thống tự chuẩn hóa.')
+
     ss['_wa'], ss['_wb'], ss['_wc'], ss['_wr'] = a, b, c, r
-    st.sidebar.caption('Nếu tổng ≠ 100% hệ thống tự chuẩn hóa.')
     return (a, b, c), float(r)
 
 
