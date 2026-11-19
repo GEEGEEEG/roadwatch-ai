@@ -22,7 +22,7 @@ DEFECT_LABELS = {
     'count_D40': 'D40 · Ổ gà',
 }
 STATUS_ORDER = ['pending', 'verified', 'assigned', 'fixed']
-CHART_FONT = 'Arial'
+CHART_FONT = 'Be Vietnam Pro'
 TREND_DAYS = 14
 CARD_VISUAL_HEIGHT = 205
 MAP_VISUAL_HEIGHT = 250
@@ -31,12 +31,12 @@ MAP_MAX_ZOOM = 16
 st.markdown("""
 <style>
 .sol-title {
-  font-family: Arial, Helvetica, sans-serif !important;
+  font-family: var(--rw-font) !important;
   font-size: clamp(1.35rem, 1.8vw, 1.6rem) !important;
-  font-weight: 700 !important;
-  line-height: 1.32 !important;
+  font-weight: 800 !important;
+  line-height: 1.28 !important;
   color: #0F172A !important;
-  letter-spacing: normal !important;
+  letter-spacing: -0.02em !important;
   margin: 0 0 12px 0;
 }
 .sol-desc {
@@ -218,7 +218,7 @@ st.markdown("""
 <section class="rw-hero" aria-labelledby="roadwatch-title">
   <div class="rw-hero-grid">
     <div>
-      <span class="rw-kicker">RoadWatch AI v5.0 · Giám sát hạ tầng đường bộ thông minh</span>
+      <span class="rw-kicker"><span class="rw-kicker-dot"></span>RoadWatch AI v5.0 · YOLOv12 + Supabase Cloud</span>
       <h1 id="roadwatch-title">MỖI PHẢN ÁNH NHỎ.<br>MỘT TUYẾN ĐƯỜNG AN TOÀN HƠN.</h1>
       <p class="rw-lead">Chụp ảnh mặt đường, định vị GPS chuẩn xác. AI tự động khoanh vùng ổ gà, vết nứt &amp; ước lượng diện tích; cán bộ xác minh và xếp hạng ưu tiên duy tu theo mô hình AHP.</p>
     </div>
@@ -417,9 +417,33 @@ with right_col:
                 'Số lượng hồ sơ qua 4 bước từ chờ xác minh, đã duyệt, đang giao xử lý đến đã hoàn thành.',
             )
 
-st.markdown(
-    '<div class="rw-footnote">RoadWatch AI hỗ trợ sàng lọc kỹ thuật và lập kế hoạch duy tu đường bộ. '
-    'Không sử dụng điện thoại khi đang điều khiển phương tiện giao thông.</div>',
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<section class="rw-section">
+  <span class="rw-overline">Tiêu chuẩn nhận diện RDD2022</span>
+  <h2>Bốn nhóm khuyết tật mặt đường AI tự động phát hiện</h2>
+</section>
+<div class="rw-defect-grid">
+  <div class="rw-defect-card" style="border-top: 3px solid #EF4444;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d40">D40 · Ổ gà</span><span class="rw-defect-weight">Điểm nền: 75</span></div>
+    <h4>Ổ gà &amp; Sụt lún mặt đường</h4>
+    <p>Ngưỡng nhạy tăng cường (0.15) giúp phát hiện sớm hố sâu đọng nước, ưu tiên xử lý khẩn cấp.</p>
+  </div>
+  <div class="rw-defect-card" style="border-top: 3px solid #F59E0B;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d20">D20 · Rạn mai rùa</span><span class="rw-defect-weight">Điểm nền: 60</span></div>
+    <h4>Nứt dạng mạng / Liên kết</h4>
+    <p>Dấu hiệu suy yếu nền móng kết cấu áo đường, thường cần cắt vá hoặc thảm nhựa diện rộng.</p>
+  </div>
+  <div class="rw-defect-card" style="border-top: 3px solid #EAB308;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d10">D10 · Nứt ngang</span><span class="rw-defect-weight">Điểm nền: 35</span></div>
+    <h4>Vết nứt ngang làn đường</h4>
+    <p>Hình thành do co ngót nhiệt hoặc khe nối thi công, cần trám khe chống thấm nước mưa.</p>
+  </div>
+  <div class="rw-defect-card" style="border-top: 3px solid #10B981;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d00">D00 · Nứt dọc</span><span class="rw-defect-weight">Điểm nền: 25</span></div>
+    <h4>Vết nứt dọc theo vệt bánh</h4>
+    <p>Xuất hiện dọc tuyến xe chạy hoặc mép đường; theo dõi xu hướng lan rộng qua thời gian.</p>
+  </div>
+</div>
+<div class="rw-footnote">RoadWatch AI hỗ trợ sàng lọc kỹ thuật và lập kế hoạch duy tu đường bộ. Không sử dụng điện thoại khi đang điều khiển phương tiện giao thông.</div>
+""", unsafe_allow_html=True)
 disclaimer()

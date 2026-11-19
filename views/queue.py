@@ -1,4 +1,5 @@
 from datetime import datetime
+from html import escape
 
 import pandas as pd
 import streamlit as st
@@ -47,6 +48,18 @@ labels = {
 }
 rid = st.selectbox('🔍 Chọn hồ sơ cần thẩm định', list(labels), format_func=labels.get)
 r = pending[pending.id == rid].iloc[0]
+
+_ai_lvl = str(getattr(r, 'ai_level', '') or 'Chưa phân mức')
+_pill_cls = 'rw-badge-danger' if _ai_lvl == 'Cần kiểm tra sớm' else ('rw-badge-warning' if _ai_lvl == 'Trung bình' else 'rw-badge-success')
+_border_hex = '#EF4444' if _ai_lvl == 'Cần kiểm tra sớm' else ('#F59E0B' if _ai_lvl == 'Trung bình' else '#10B981')
+st.markdown(
+    f'<div class="rw-case-banner" style="border-left-color: {_border_hex};">'
+    f'<div><div class="rw-case-title">{escape(str(r.id))} · {escape(str(r.location_name))}</div>'
+    f'<div class="rw-case-meta">📍 {r.latitude}, {r.longitude} ({escape(str(r.gps_source))}) · 🕒 {escape(str(r.created_at))}</div></div>'
+    f'<span class="rw-badge-pill {_pill_cls}">AI đề xuất: {escape(_ai_lvl)} · {r.ai_score}/100</span>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
 
 left, right = st.columns(2)
 with left:
