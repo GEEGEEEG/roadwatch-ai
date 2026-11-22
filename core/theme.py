@@ -1064,10 +1064,11 @@ button[data-baseweb="tab"][aria-selected="true"] {
 /* 4-Class AI Recognition Showcase Grid (Smoked Frosted Glass) */
 .rw-defect-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:14px 0 8px}
 .rw-defect-card{background:linear-gradient(155deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.03) 55%, rgba(255,255,255,.01) 100%), var(--rw-glass-bg, rgba(10,20,40,.58));backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px;box-shadow:0 18px 42px rgba(2,6,23,.38), inset 0 1px 0 rgba(255,255,255,.22);transition:all .22s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
+.rw-defect-card::before{content:"";position:absolute;top:0;left:18px;right:18px;height:3px;border-radius:0 0 999px 999px;background:var(--defect-accent, #38BDF8);box-shadow:0 0 12px var(--defect-accent, #38BDF8);opacity:.9}
 .rw-defect-card:hover{transform:translateY(-3px);box-shadow:0 24px 52px rgba(2,6,23,.48);border-color:rgba(255,255,255,.34)}
-.rw-defect-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.rw-defect-code{font-size:.78rem;font-weight:800;padding:4px 10px;border-radius:999px;letter-spacing:.03em}
-.rw-defect-weight{font-size:.74rem;font-weight:700;color:#CBD5E1;font-variant-numeric:tabular-nums}
+.rw-defect-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.rw-defect-code{display:inline-flex;align-items:center;white-space:nowrap;flex-shrink:0;font-size:.72rem;line-height:1.2;font-weight:800;padding:4px 10px;border-radius:999px;letter-spacing:.02em}
+.rw-defect-weight{white-space:nowrap;font-size:.72rem;font-weight:600;color:#94A3B8;font-variant-numeric:tabular-nums;letter-spacing:.01em}
 .rw-defect-card h4{font-size:1rem !important;margin:0 0 6px !important;color:#FFFFFF !important;text-shadow:none !important}
 [data-testid="stMainBlockContainer"] .rw-defect-card p{font-size:.83rem;color:#CBD5E1 !important;text-shadow:none !important;margin:0;line-height:1.5}
 
