@@ -35,14 +35,16 @@ st.markdown("""
   font-size: clamp(1.35rem, 1.8vw, 1.6rem) !important;
   font-weight: 800 !important;
   line-height: 1.28 !important;
-  color: #0F172A !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 14px rgba(2, 8, 23, 0.55) !important;
   letter-spacing: -0.02em !important;
   margin: 0 0 12px 0;
 }
 .sol-desc {
   font-size: 0.94rem;
   line-height: 1.55;
-  color: #475569;
+  color: #E2E8F0;
+  text-shadow: 0 1px 8px rgba(2, 8, 23, 0.45);
   margin: 0 0 16px 0;
 }
 .sol-kpi-grid {
@@ -52,11 +54,13 @@ st.markdown("""
   margin: 14px 0 18px 0;
 }
 .sol-kpi {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(175%);
+  -webkit-backdrop-filter: blur(20px) saturate(175%);
+  border: 1px solid rgba(255, 255, 255, 0.70);
+  border-radius: 12px;
   padding: 12px 14px;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 14px 32px rgba(2, 8, 23, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.85);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .sol-kpi:hover {
@@ -110,17 +114,19 @@ st.markdown("""
   transition: border-left-color 0.25s ease, border-left-width 0.2s ease;
 }
 [data-testid="stVerticalBlockBorderWrapper"] {
-  background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04) !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(22px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.68) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 18px 44px rgba(2, 8, 23, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
   overflow: hidden !important;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease !important;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:hover {
   transform: translateY(-4px) !important;
-  border-color: #93C5FD !important;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.09) !important;
+  border-color: rgba(255, 255, 255, 0.90) !important;
+  box-shadow: 0 24px 54px rgba(2, 8, 23, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
 }
 [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVegaLiteChart"],
 [data-testid="stVerticalBlockBorderWrapper"] iframe {

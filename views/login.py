@@ -32,19 +32,10 @@ def _role_badge(role_lv: str) -> str:
 
 def show():
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 60%, #2563EB 100%);
-                color: #fff; border-radius: 16px; padding: clamp(24px, 4vw, 36px); margin-bottom: 24px;
-                box-shadow: 0 10px 25px -5px rgba(29, 78, 216, 0.4);">
-      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
-        <span style="font-size: 2.2rem; background: rgba(255,255,255,0.18); border-radius: 50%; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center;">🏛️</span>
-        <div>
-          <span style="display: inline-block; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">Cổng nội bộ phân quyền RBAC</span>
-          <h2 style="color: #fff; margin: 4px 0 0 0; font-size: clamp(1.4rem, 2.5vw, 1.8rem); font-weight: 700;">Xác thực & Điều hành Cán bộ RoadWatch AI</h2>
-        </div>
-      </div>
-      <p style="color: #DBEAFE; margin: 8px 0 0 0; font-size: 0.95rem; max-width: 70ch; line-height: 1.5;">
-        Hệ thống tiếp nhận, thẩm định hư hỏng mặt đường, chấm điểm đa tiêu chí AHP và điều phối duy tu đô thị.
-      </p>
+    <div class="rw-page-intro">
+      <span class="rw-overline">🏛️ Cổng nội bộ phân quyền RBAC</span>
+      <h1>Xác thực &amp; Điều hành Cán bộ RoadWatch AI</h1>
+      <p>Hệ thống tiếp nhận, thẩm định hư hỏng mặt đường, chấm điểm đa tiêu chí AHP và điều phối duy tu đô thị.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -61,7 +52,7 @@ def show():
         col1, col2 = st.columns([2, 1])
         with col1:
             st.markdown(f"""
-            <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:20px;margin-bottom:16px;">
+            <div class="rw-glass-card" style="padding:20px;margin-bottom:16px;">
               <h3 style="margin-top:0;font-size:1.1rem;color:#0F172A;">📋 Thông tin phiên làm việc</h3>
               <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
                 <tr style="border-bottom:1px solid #F1F5F9;">
@@ -114,7 +105,7 @@ def show():
 
         with col2:
             st.markdown("""
-            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:20px;">
+            <div class="rw-glass-card" style="padding:20px;margin-bottom:12px;">
               <h4 style="margin:0 0 10px 0;font-size:1rem;color:#0F172A;">Kết thúc ca trực</h4>
               <p style="font-size:0.85rem;color:#64748B;margin-bottom:16px;line-height:1.5;">
                 Mọi thao tác duyệt, gộp và nghiệm thu đều được ghi nhận gắn với mã tài khoản của bạn.
@@ -153,7 +144,7 @@ def show():
 
     with col_info:
         st.markdown("""
-        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:24px;margin-bottom:16px;">
+        <div class="rw-glass-card" style="padding:24px;margin-bottom:16px;">
           <h3 style="margin-top:0;font-size:1.15rem;color:#0F172A;">📋 Phân quyền Nghiệp vụ Cán bộ</h3>
           <ul style="font-size:0.9rem;color:#334155;line-height:1.9;padding-left:20px;margin-bottom:0;">
             <li><strong>Cán bộ thẩm định:</strong> Duyệt/từ chối ảnh D00/D10/D20/D40, gộp báo cáo trùng và xuất báo cáo PDF.</li>
@@ -180,7 +171,7 @@ def show():
 
     with col_form:
         st.markdown("""
-        <div style="background:#fff;border:1px solid #CBD5E1;border-top:4px solid #2563EB;border-radius:12px;padding:24px;box-shadow:0 4px 12px rgba(15,23,42,0.04);">
+        <div class="rw-glass-card" style="border-top:4px solid #2563EB !important;padding:24px;margin-bottom:14px;">
           <h3 style="margin-top:0;font-size:1.2rem;color:#0F172A;">🔐 Đăng nhập Tài khoản Cán bộ</h3>
           <p style="font-size:0.85rem;color:#64748B;margin-bottom:4px;">Sử dụng tài khoản cá nhân được Quản trị viên cấp trên hệ thống Supabase.</p>
         </div>

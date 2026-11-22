@@ -371,6 +371,11 @@ if st.toggle('🗺️ Mở bản đồ GIS để chọn / kéo thả ghim tọa 
         st.link_button('🧭 Kiểm tra vị trí này trên Google Maps', f'https://www.google.com/maps?q={cur_lat},{cur_lon}')
 
 st.subheader('03 · Xác nhận và gửi báo cáo')
+if cur_lat is None:
+    st.caption('⚠️ Chưa có tọa độ GPS — hãy tích **📍 Lấy vị trí GPS** hoặc **Mở bản đồ GIS** ở Bước 02 trước khi bấm gửi.')
+elif not str(st.session_state.get('sub_loc_name', '')).strip():
+    st.caption('✏️ Đã có tọa độ GPS, nhưng chưa tự tra được tên đường — vui lòng nhập **Tên tuyến / điểm chụp** ở ô đầu tiên bên dưới.')
+
 with st.form('submit_form'):
     loc = st.text_input(
         'Tên tuyến / điểm chụp (bắt buộc)',
@@ -393,6 +398,7 @@ with st.form('submit_form'):
     go = st.form_submit_button('✓ Gửi phản ánh đến hệ thống', type='primary', disabled=not items, use_container_width=True)
 
 if go:
+    st.session_state['sub_loc_name'] = loc
     if not officer:
         rl_err = _check_citizen_rate_limit(len(items))
         if rl_err:
@@ -401,6 +407,8 @@ if go:
 
     det = detector_or_stop()
     created_ids = []
+    attempt_map = st.session_state.setdefault('_session_attempt_ts', {})
+    submitted_map = st.session_state.setdefault('_session_submitted', {})
 
     for idx, ((name, raw), exif) in enumerate(zip(items, exif_info)):
         st.divider()
@@ -418,41 +426,66 @@ if go:
             src = 'GPS trình duyệt' if same else st.session_state.get('sub_gps_src', 'Nhập tay')
 
         reuse_out = all_previews.get(idx) if (all_previews.get(idx) is not None) else None
+        raw_digest = hashlib.sha256(raw).hexdigest()
+        prev_attempt_ts = attempt_map.get(raw_digest)
+        already_submitted_id = submitted_map.get(raw_digest)
+        has_required_inputs = bool((officer or consent) and str(loc).strip() and str(lat).strip() and str(lon).strip())
+        if has_required_inputs:
+            attempt_map[raw_digest] = time.time()
+
         try:
-            rid, out, quality, flags = submit_report(
-                det,
-                raw,
-                name,
-                location_name=loc,
-                lat=_norm(lat),
-                lon=_norm(lon),
-                gps_source=src,
-                source='officer' if officer else 'citizen',
-                consent=consent,
-                contact='',
-                road_type=road,
-                note=note,
-                threshold=threshold,
-                status='verified' if auto_verify else 'pending',
-                actor=current_actor() if officer else '',
-                captured_at=captured,
-                final_level=final_level,
-                imgsz=imgsz,
-                tta=tta,
-                capture_method='camera_web' if name == 'camera.jpg' else 'upload',
-                gps_accuracy_m=browser_accuracy if src == 'GPS trình duyệt' else None,
-                precomputed_out=reuse_out,
-            )
+            with st.spinner('⏳ Đang tải ảnh lên Cloud & lưu hồ sơ phản ánh...'):
+                rid, out, quality, flags = submit_report(
+                    det,
+                    raw,
+                    name,
+                    location_name=loc,
+                    lat=_norm(lat),
+                    lon=_norm(lon),
+                    gps_source=src,
+                    source='officer' if officer else 'citizen',
+                    consent=consent,
+                    contact='',
+                    road_type=road,
+                    note=note,
+                    threshold=threshold,
+                    status='verified' if auto_verify else 'pending',
+                    actor=current_actor() if officer else '',
+                    captured_at=captured,
+                    final_level=final_level,
+                    imgsz=imgsz,
+                    tta=tta,
+                    capture_method='camera_web' if name == 'camera.jpg' else 'upload',
+                    gps_accuracy_m=browser_accuracy if src == 'GPS trình duyệt' else None,
+                    precomputed_out=reuse_out,
+                )
             created_ids.append(rid)
+            submitted_map[raw_digest] = rid
             if not officer:
                 st.session_state.setdefault('_submit_ts', []).append(time.time())
         except db.DuplicateImage as dup:
-            st.warning(f'Ảnh này đã tồn tại trên hệ thống (Mã hồ sơ: **{dup.existing_id}**); không lưu trùng.')
+            was_own_recent = (
+                dup.existing_id == already_submitted_id
+                or dup.existing_id == st.session_state.get('_last_submitted_id')
+                or (prev_attempt_ts is not None and (time.time() - prev_attempt_ts) < 300)
+            )
+            if was_own_recent:
+                submitted_map[raw_digest] = dup.existing_id
+                st.session_state['_last_submitted_id'] = dup.existing_id
+                st.success(
+                    f'✅ **Phản ánh của bạn đã được ghi nhận!** Mã hồ sơ: **`{dup.existing_id}`** '
+                    '(hệ thống bỏ qua thao tác bấm trùng để không tạo bản ghi lặp).'
+                )
+            else:
+                st.warning(f'Ảnh này đã tồn tại trên hệ thống (Mã hồ sơ: **{dup.existing_id}**); không lưu trùng.')
+            safe_page_link('views/track.py', label=f'🔍 Tra cứu tiến độ hồ sơ {dup.existing_id}')
             continue
         except SubmitError as err:
+            attempt_map.pop(raw_digest, None)
             st.error(str(err))
             continue
         except Exception as err:
+            attempt_map.pop(raw_digest, None)
             st.error(f'Lỗi xử lý ảnh: {err}')
             continue
 
