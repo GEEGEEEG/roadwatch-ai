@@ -158,8 +158,8 @@ with tab2:
     if not corridors:
         st.info('Chưa phát hiện cụm hư hỏng tập trung nào.')
     else:
-        for c_item in corridors:
-            with st.container(border=True):
+        for c_idx, c_item in enumerate(corridors):
+            with st.container(border=True, key=f'rw_glass_corridor_{c_idx}'):
                 col_left, col_right = st.columns([2, 1])
                 with col_left:
                     st.markdown(f"### {c_item['proposal']}")

@@ -99,7 +99,7 @@ if cands:
     near_id, near_m, _ = cands[0]
     if near_m <= DUP_FLAG_M:
         st.warning(f'🔁 Có thể trùng điểm với hồ sơ {near_id} (cách {near_m:.0f} m).')
-    with st.container(border=True):
+    with st.container(border=True, key='rw_glass_queue_merge'):
         st.markdown('**Gộp vào điểm hiện hữu** — không tạo ghim mới, cộng lượt phản ánh vào điểm gốc.')
         pick = st.selectbox(
             'Điểm gốc',

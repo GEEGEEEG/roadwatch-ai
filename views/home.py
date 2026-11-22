@@ -100,54 +100,76 @@ st.markdown("""
 .sol-card-foot h4 {
   font-size: 1.02rem;
   font-weight: 700;
-  color: #0F172A;
+  color: #0F172A !important;
+  text-shadow: none !important;
   margin: 0 0 8px 0;
 }
 .sol-card-foot p {
   font-size: 0.85rem;
   line-height: 1.48;
-  color: #475569;
+  color: #334155 !important;
+  text-shadow: none !important;
   border-left: 3px solid #38BDF8;
   padding-left: 12px;
   margin: 0;
   min-height: 2.95em;
   transition: border-left-color 0.25s ease, border-left-width 0.2s ease;
 }
-[data-testid="stVerticalBlockBorderWrapper"] {
-  background: rgba(255, 255, 255, 0.86) !important;
+[data-testid="stVerticalBlockBorderWrapper"],
+[class*="st-key-rw_glass_sol_"] {
+  background: rgba(255, 255, 255, 0.90) !important;
   backdrop-filter: blur(22px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.68) !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
   border-radius: 18px !important;
-  box-shadow: 0 18px 44px rgba(2, 8, 23, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+  padding: 16px !important;
+  box-shadow: 0 18px 44px rgba(2, 8, 23, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
   overflow: hidden !important;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease !important;
 }
-[data-testid="stVerticalBlockBorderWrapper"]:hover {
+[data-testid="stVerticalBlockBorderWrapper"]:hover,
+[class*="st-key-rw_glass_sol_"]:hover {
   transform: translateY(-4px) !important;
-  border-color: rgba(255, 255, 255, 0.90) !important;
-  box-shadow: 0 24px 54px rgba(2, 8, 23, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
+  border-color: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 24px 54px rgba(2, 8, 23, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
 }
 [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVegaLiteChart"],
-[data-testid="stVerticalBlockBorderWrapper"] iframe {
+[class*="st-key-rw_glass_sol_"] [data-testid="stVegaLiteChart"] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVegaLiteChart"],
+[data-testid="stVerticalBlockBorderWrapper"] iframe,
+[class*="st-key-rw_glass_sol_"] [data-testid="stVegaLiteChart"],
+[class*="st-key-rw_glass_sol_"] iframe {
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 [data-testid="stVerticalBlockBorderWrapper"]:hover [data-testid="stVegaLiteChart"],
-[data-testid="stVerticalBlockBorderWrapper"]:hover iframe {
+[data-testid="stVerticalBlockBorderWrapper"]:hover iframe,
+[class*="st-key-rw_glass_sol_"]:hover [data-testid="stVegaLiteChart"],
+[class*="st-key-rw_glass_sol_"]:hover iframe {
   transform: scale(1.018);
 }
-[data-testid="stVerticalBlockBorderWrapper"]:hover .sol-card-foot p {
+[data-testid="stVerticalBlockBorderWrapper"]:hover .sol-card-foot p,
+[class*="st-key-rw_glass_sol_"]:hover .sol-card-foot p {
   border-left-color: #0284C7;
   border-left-width: 4px;
 }
 @media (max-width: 1180px) {
   [data-testid="stHorizontalBlock"]:has(.sol-kpi-grid),
-  [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]) {
+  [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]),
+  [data-testid="stHorizontalBlock"]:has([class*="st-key-rw_glass_sol_"]) {
     flex-wrap: wrap !important;
     gap: 14px !important;
   }
   [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]):not(:has(.sol-kpi-grid)) > [data-testid="stColumn"],
-  [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]):not(:has(.sol-kpi-grid)) > [data-testid="column"] {
+  [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]):not(:has(.sol-kpi-grid)) > [data-testid="column"],
+  [data-testid="stHorizontalBlock"]:has([class*="st-key-rw_glass_sol_"]):not(:has(.sol-kpi-grid)) > [data-testid="stColumn"],
+  [data-testid="stHorizontalBlock"]:has([class*="st-key-rw_glass_sol_"]):not(:has(.sol-kpi-grid)) > [data-testid="column"] {
     flex: 1 1 calc(50% - 14px) !important;
     min-width: min(100%, 260px) !important;
   }
@@ -159,7 +181,9 @@ st.markdown("""
 }
 @media (max-width: 680px) {
   [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]) > [data-testid="stColumn"],
-  [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]) > [data-testid="column"] {
+  [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]) > [data-testid="column"],
+  [data-testid="stHorizontalBlock"]:has([class*="st-key-rw_glass_sol_"]) > [data-testid="stColumn"],
+  [data-testid="stHorizontalBlock"]:has([class*="st-key-rw_glass_sol_"]) > [data-testid="column"] {
     flex: 1 1 100% !important;
     min-width: 100% !important;
   }
@@ -269,7 +293,7 @@ with right_col:
 
     # ── Thẻ 1: Phân loại khuyết tật mặt đường (Bar + Line + Ngưỡng TB) ─────
     with r1c1:
-        with st.container(border=True):
+        with st.container(border=True, key='rw_glass_sol_1'):
             if recorded.empty:
                 st.info('Chưa có dữ liệu khuyết tật để hiển thị.')
             else:
@@ -312,7 +336,7 @@ with right_col:
 
     # ── Thẻ 2: Bản đồ phân bố hư hỏng ────────────────────────────────────────
     with r1c2:
-        with st.container(border=True):
+        with st.container(border=True, key='rw_glass_sol_2'):
             points = pd.DataFrame()
             if not recorded.empty:
                 points = recorded[recorded.status.isin(MAP_STATUSES)].dropna(subset=['latitude', 'longitude'])
@@ -355,7 +379,7 @@ with right_col:
 
     # ── Thẻ 3: Xu hướng phản ánh theo ngày (Area + Line + Trung bình trượt) ─
     with r2c1:
-        with st.container(border=True):
+        with st.container(border=True, key='rw_glass_sol_3'):
             if recorded.empty:
                 st.info('Chưa có dữ liệu theo ngày để vẽ xu hướng.')
             else:
@@ -390,7 +414,7 @@ with right_col:
 
     # ── Thẻ 4: Tiến độ xử lý hồ sơ (Horizontal Bar bắt đầu từ 0) ────────────
     with r2c2:
-        with st.container(border=True):
+        with st.container(border=True, key='rw_glass_sol_4'):
             if df.empty:
                 st.info('Chưa có hồ sơ để thống kê tiến độ xử lý.')
             else:
