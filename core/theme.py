@@ -261,6 +261,29 @@ section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] * {
   color: #CBD5E1 !important;
 }
 
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] {
+  height: auto !important;
+  min-height: 84px !important;
+  padding: 14px 14px 8px !important;
+  align-items: center !important;
+}
+
+section[data-testid="stSidebar"] [data-testid="stSidebarLogo"],
+section[data-testid="stSidebar"] [data-testid="stLogo"],
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] img {
+  height: 74px !important;
+  width: auto !important;
+  max-width: 196px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 3px 14px rgba(251, 191, 36, 0.24));
+}
+
+[data-testid="stHeader"] [data-testid="stLogo"] {
+  height: 30px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] label p,
 section[data-testid="stSidebar"] .stMarkdown p,

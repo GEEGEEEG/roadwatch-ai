@@ -32,6 +32,9 @@ if st.query_params.get('healthz') == '1':
 
 db.init()
 st.session_state.setdefault('role', 'citizen')
+_logo_path = _page('assets/logo_roadwatch.png')
+if _logo_path.is_file():
+    st.logo(str(_logo_path), size='large', icon_image=str(_logo_path))
 ui.officer_login_box()
 
 p_home = st.Page(_page('views/home.py'), title='Trang chủ', url_path='home', default=True)

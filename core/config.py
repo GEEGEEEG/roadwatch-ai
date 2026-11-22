@@ -49,7 +49,11 @@ def model_path() -> Path:
     custom = cfg('ROADWATCH_MODEL', '')
     if custom:
         return Path(custom)
-    onnx_candidate = PROJECT_ROOT / 'models' / 'model.onnx'
-    if onnx_candidate.is_file():
-        return onnx_candidate
+    for base in (PROJECT_ROOT, PROJECT_ROOT.parent):
+        onnx_cand = base / 'models' / 'model.onnx'
+        if onnx_cand.is_file():
+            return onnx_cand
+        pt_cand = base / 'models' / 'model.pt'
+        if pt_cand.is_file():
+            return pt_cand
     return PROJECT_ROOT / 'models' / 'model.pt'
