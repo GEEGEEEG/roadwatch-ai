@@ -31,7 +31,6 @@ if st.query_params.get('healthz') == '1':
     st.stop()
 
 db.init()
-theme.apply()
 st.session_state.setdefault('role', 'citizen')
 ui.officer_login_box()
 
@@ -77,6 +76,7 @@ else:
     }
 
 pg = st.navigation(pages)
+theme.apply(getattr(pg, 'url_path', 'home') or 'home')
 
 # Thanh điều hướng Mobile App Bottom Dock (chỉ hiện trên màn hình điện thoại <= 768px)
 with st.container(key='rw_mobile_dock'):
