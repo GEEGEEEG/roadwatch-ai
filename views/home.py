@@ -54,25 +54,27 @@ st.markdown("""
   margin: 14px 0 18px 0;
 }
 .sol-kpi {
-  background: rgba(255, 255, 255, 0.88);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%),
+    var(--rw-glass-bg, rgba(10, 20, 40, 0.56));
   backdrop-filter: blur(20px) saturate(175%);
   -webkit-backdrop-filter: blur(20px) saturate(175%);
-  border: 1px solid rgba(255, 255, 255, 0.70);
-  border-radius: 12px;
-  padding: 12px 14px;
-  box-shadow: 0 14px 32px rgba(2, 8, 23, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 14px 32px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .sol-kpi:hover {
   transform: translateY(-3px);
-  border-color: #93C5FD;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+  border-color: rgba(125, 211, 252, 0.55);
+  box-shadow: 0 18px 38px rgba(2, 6, 23, 0.44);
 }
 .sol-kpi small {
   display: block;
   font-size: 0.76rem;
   font-weight: 600;
-  color: #64748B;
+  color: #CBD5E1;
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -82,34 +84,34 @@ st.markdown("""
   display: block;
   font-size: 1.45rem;
   font-weight: 800;
-  color: #0F172A;
+  color: #FFFFFF;
   line-height: 1.15;
 }
-.sol-kpi-blue { border-top: 3px solid #2563EB; }
-.sol-kpi-blue strong { color: #1D4ED8; }
-.sol-kpi-green { border-top: 3px solid #10B981; }
-.sol-kpi-green strong { color: #059669; }
-.sol-kpi-red { border-top: 3px solid #EF4444; }
-.sol-kpi-red strong { color: #DC2626; }
-.sol-kpi-amber { border-top: 3px solid #F59E0B; }
-.sol-kpi-amber strong { color: #D97706; }
+.sol-kpi-blue { border-top: 3px solid #38BDF8; }
+.sol-kpi-blue strong { color: #7DD3FC; }
+.sol-kpi-green { border-top: 3px solid #34D399; }
+.sol-kpi-green strong { color: #6EE7B7; }
+.sol-kpi-red { border-top: 3px solid #FB7185; }
+.sol-kpi-red strong { color: #FDA4AF; }
+.sol-kpi-amber { border-top: 3px solid #FBBF24; }
+.sol-kpi-amber strong { color: #FDE68A; }
 .sol-card-foot {
-  padding-top: 8px;
+  padding: 10px 2px 4px 2px;
   margin-top: 4px;
 }
 .sol-card-foot h4 {
   font-size: 1.02rem;
   font-weight: 700;
-  color: #0F172A !important;
+  color: #FFFFFF !important;
   text-shadow: none !important;
   margin: 0 0 8px 0;
 }
 .sol-card-foot p {
   font-size: 0.85rem;
   line-height: 1.48;
-  color: #334155 !important;
+  color: #CBD5E1 !important;
   text-shadow: none !important;
-  border-left: 3px solid #38BDF8;
+  border-left: 3px solid var(--rw-accent, #38BDF8);
   padding-left: 12px;
   margin: 0;
   min-height: 2.95em;
@@ -117,21 +119,27 @@ st.markdown("""
 }
 [data-testid="stVerticalBlockBorderWrapper"],
 [class*="st-key-rw_glass_sol_"] {
-  background: rgba(255, 255, 255, 0.90) !important;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 55%, rgba(255, 255, 255, 0.01) 100%),
+    var(--rw-glass-bg, rgba(10, 20, 40, 0.58)) !important;
   backdrop-filter: blur(22px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.72) !important;
-  border-radius: 18px !important;
-  padding: 16px !important;
-  box-shadow: 0 18px 44px rgba(2, 8, 23, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 20px !important;
+  padding: 18px 18px 20px !important;
+  box-shadow: 0 20px 48px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
   overflow: hidden !important;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease !important;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:hover,
 [class*="st-key-rw_glass_sol_"]:hover {
   transform: translateY(-4px) !important;
-  border-color: rgba(255, 255, 255, 0.92) !important;
-  box-shadow: 0 24px 54px rgba(2, 8, 23, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.34) !important;
+  box-shadow: 0 24px 56px rgba(2, 6, 23, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+}
+[class*="st-key-rw_glass_sol_"] iframe {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVegaLiteChart"],
 [class*="st-key-rw_glass_sol_"] [data-testid="stVegaLiteChart"] {
@@ -199,9 +207,9 @@ def _style(chart: alt.Chart) -> alt.Chart:
         .configure_axis(
             labelFont=CHART_FONT,
             titleFont=CHART_FONT,
-            labelColor='#64748B',
-            gridColor='#E2E8F0',
-            domainColor='#CBD5E1',
+            labelColor='#CBD5E1',
+            gridColor='rgba(255, 255, 255, 0.10)',
+            domainColor='rgba(255, 255, 255, 0.20)',
         )
         .configure_legend(
             labelFont=CHART_FONT,
@@ -209,6 +217,7 @@ def _style(chart: alt.Chart) -> alt.Chart:
             title=None,
             orient='bottom',
             labelFontSize=11,
+            labelColor='#E2E8F0',
         )
     )
 
@@ -312,19 +321,19 @@ with right_col:
                     rule_df = pd.DataFrame({'Ngưỡng': [mean_val]})
 
                     x_enc = alt.X('Mã:N', sort=codes, title=None, axis=alt.Axis(labelAngle=0))
-                    bars = alt.Chart(bar_df).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4, width=28, opacity=0.45).encode(
+                    bars = alt.Chart(bar_df).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4, width=28, opacity=0.72).encode(
                         x=x_enc,
                         y=alt.Y('Số vùng:Q', title=None, axis=alt.Axis(tickMinStep=1)),
-                        color=alt.Color('Chuỗi:N', scale=alt.Scale(domain=['Tất cả hợp lệ', 'Đã xác minh'], range=['#38BDF8', '#0F172A'])),
+                        color=alt.Color('Chuỗi:N', scale=alt.Scale(domain=['Tất cả hợp lệ', 'Đã xác minh'], range=['#38BDF8', '#FBBF24'])),
                         tooltip=['Tên:N', 'Số vùng:Q'],
                     )
                     line = alt.Chart(line_df).mark_line(point=alt.OverlayMarkDef(filled=True, size=60), strokeWidth=2.4).encode(
                         x=x_enc,
                         y='Số vùng:Q',
-                        color=alt.Color('Chuỗi:N', scale=alt.Scale(domain=['Tất cả hợp lệ', 'Đã xác minh'], range=['#38BDF8', '#0F172A'])),
+                        color=alt.Color('Chuỗi:N', scale=alt.Scale(domain=['Tất cả hợp lệ', 'Đã xác minh'], range=['#38BDF8', '#FBBF24'])),
                         tooltip=['Tên:N', 'Số vùng:Q'],
                     )
-                    rule = alt.Chart(rule_df).mark_rule(color='#0284C7', strokeDash=[5, 4], strokeWidth=1.8).encode(
+                    rule = alt.Chart(rule_df).mark_rule(color='#7DD3FC', strokeDash=[5, 4], strokeWidth=1.8).encode(
                         y='Ngưỡng:Q',
                         tooltip=[alt.Tooltip('Ngưỡng:Q', title='Trung bình vùng/loại')],
                     )
@@ -394,15 +403,15 @@ with right_col:
                 x_t = alt.X('Ngày:T', title=None, axis=alt.Axis(format='%d/%m', labelAngle=0, tickCount=6))
                 area = alt.Chart(trend).mark_area(
                     color='#38BDF8',
-                    opacity=0.22,
-                    line={'color': '#0F172A', 'strokeWidth': 2.2},
-                    point={'color': '#0F172A', 'filled': True, 'size': 36},
+                    opacity=0.26,
+                    line={'color': '#7DD3FC', 'strokeWidth': 2.2},
+                    point={'color': '#FFFFFF', 'filled': True, 'size': 38},
                 ).encode(
                     x=x_t,
                     y=alt.Y('Số phản ánh:Q', title=None, axis=alt.Axis(tickMinStep=1)),
                     tooltip=[alt.Tooltip('Ngày:T', format='%d/%m/%Y'), 'Số phản ánh:Q', 'TB trượt 3 ngày:Q'],
                 )
-                ma_line = alt.Chart(trend).mark_line(color='#0284C7', strokeDash=[5, 4], strokeWidth=2).encode(
+                ma_line = alt.Chart(trend).mark_line(color='#FBBF24', strokeDash=[5, 4], strokeWidth=2).encode(
                     x=x_t,
                     y='TB trượt 3 ngày:Q',
                 )
@@ -420,7 +429,7 @@ with right_col:
             else:
                 sc = df['status'].value_counts()
                 status_labels = [STATUS_LABELS[k] for k in STATUS_ORDER]
-                status_colors = ['#F59E0B', '#2563EB', '#0EA5E9', '#16A34A']
+                status_colors = ['#FBBF24', '#3B82F6', '#38BDF8', '#34D399']
                 status_df = pd.DataFrame({
                     'Trạng thái': status_labels,
                     'Số hồ sơ': [int(sc.get(k, 0)) for k in STATUS_ORDER],
@@ -438,7 +447,7 @@ with right_col:
                     ),
                     tooltip=['Trạng thái:N', 'Số hồ sơ:Q'],
                 )
-                labels_txt = base.mark_text(align='left', dx=6, font=CHART_FONT, fontWeight='bold', color='#0F172A').encode(
+                labels_txt = base.mark_text(align='left', dx=6, font=CHART_FONT, fontWeight='bold', color='#F8FAFC').encode(
                     text='Số hồ sơ:Q'
                 )
                 _show_chart((hbar + labels_txt).properties(height=CARD_VISUAL_HEIGHT))

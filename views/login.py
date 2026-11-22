@@ -53,23 +53,23 @@ def show():
         with col1:
             st.markdown(f"""
             <div class="rw-glass-card" style="padding:20px;margin-bottom:16px;">
-              <h3 style="margin-top:0;font-size:1.1rem;color:#0F172A;">📋 Thông tin phiên làm việc</h3>
+              <h3 style="margin-top:0;font-size:1.1rem;color:#FFFFFF;">📋 Thông tin phiên làm việc</h3>
               <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
-                <tr style="border-bottom:1px solid #F1F5F9;">
-                  <td style="padding:8px 0;color:#64748B;width:38%;">Họ tên & Tài khoản:</td>
-                  <td style="padding:8px 0;font-weight:600;color:#0F172A;">{name} (<code>{uname}</code>)</td>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+                  <td style="padding:8px 0;color:#CBD5E1;width:38%;">Họ tên & Tài khoản:</td>
+                  <td style="padding:8px 0;font-weight:600;color:#FFFFFF;">{name} (<code>{uname}</code>)</td>
                 </tr>
-                <tr style="border-bottom:1px solid #F1F5F9;">
-                  <td style="padding:8px 0;color:#64748B;">Đơn vị chuyên môn:</td>
-                  <td style="padding:8px 0;font-weight:600;color:#0F172A;">{unit}</td>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+                  <td style="padding:8px 0;color:#CBD5E1;">Đơn vị chuyên môn:</td>
+                  <td style="padding:8px 0;font-weight:600;color:#FFFFFF;">{unit}</td>
                 </tr>
-                <tr style="border-bottom:1px solid #F1F5F9;">
-                  <td style="padding:8px 0;color:#64748B;">Cấp phân quyền:</td>
-                  <td style="padding:8px 0;font-weight:600;color:#1D4ED8;">{badge}</td>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+                  <td style="padding:8px 0;color:#CBD5E1;">Cấp phân quyền:</td>
+                  <td style="padding:8px 0;font-weight:600;color:#7DD3FC;">{badge}</td>
                 </tr>
                 <tr>
-                  <td style="padding:8px 0;color:#64748B;">Đăng nhập lúc:</td>
-                  <td style="padding:8px 0;color:#0F172A;">{login_time}</td>
+                  <td style="padding:8px 0;color:#CBD5E1;">Đăng nhập lúc:</td>
+                  <td style="padding:8px 0;color:#FFFFFF;">{login_time}</td>
                 </tr>
               </table>
             </div>
@@ -106,8 +106,8 @@ def show():
         with col2:
             st.markdown("""
             <div class="rw-glass-card" style="padding:20px;margin-bottom:12px;">
-              <h4 style="margin:0 0 10px 0;font-size:1rem;color:#0F172A;">Kết thúc ca trực</h4>
-              <p style="font-size:0.85rem;color:#64748B;margin-bottom:16px;line-height:1.5;">
+              <h4 style="margin:0 0 10px 0;font-size:1rem;color:#FFFFFF;">Kết thúc ca trực</h4>
+              <p style="font-size:0.85rem;color:#CBD5E1;margin-bottom:16px;line-height:1.5;">
                 Mọi thao tác duyệt, gộp và nghiệm thu đều được ghi nhận gắn với mã tài khoản của bạn.
               </p>
             </div>
@@ -145,8 +145,8 @@ def show():
     with col_info:
         st.markdown("""
         <div class="rw-glass-card" style="padding:24px;margin-bottom:16px;">
-          <h3 style="margin-top:0;font-size:1.15rem;color:#0F172A;">📋 Phân quyền Nghiệp vụ Cán bộ</h3>
-          <ul style="font-size:0.9rem;color:#334155;line-height:1.9;padding-left:20px;margin-bottom:0;">
+          <h3 style="margin-top:0;font-size:1.15rem;color:#FFFFFF;">📋 Phân quyền Nghiệp vụ Cán bộ</h3>
+          <ul style="font-size:0.9rem;color:#E2E8F0;line-height:1.9;padding-left:20px;margin-bottom:0;">
             <li><strong>Cán bộ thẩm định:</strong> Duyệt/từ chối ảnh D00/D10/D20/D40, gộp báo cáo trùng và xuất báo cáo PDF.</li>
             <li><strong>Quy hoạch & Xếp hạng AHP:</strong> Tinh chỉnh ma trận Saaty 4 tiêu chí, phát hiện hành lang xuống cấp và dự toán kinh phí.</li>
             <li><strong>Đội duy tu hiện trường:</strong> Nhận lộ trình giao việc, chạy chế độ Tuần đường GPS và cập nhật ảnh nghiệm thu Trước/Sau.</li>
@@ -171,9 +171,9 @@ def show():
 
     with col_form:
         st.markdown("""
-        <div class="rw-glass-card" style="border-top:4px solid #2563EB !important;padding:24px;margin-bottom:14px;">
-          <h3 style="margin-top:0;font-size:1.2rem;color:#0F172A;">🔐 Đăng nhập Tài khoản Cán bộ</h3>
-          <p style="font-size:0.85rem;color:#64748B;margin-bottom:4px;">Sử dụng tài khoản cá nhân được Quản trị viên cấp trên hệ thống Supabase.</p>
+        <div class="rw-glass-card" style="border-top:4px solid #38BDF8 !important;padding:24px;margin-bottom:14px;">
+          <h3 style="margin-top:0;font-size:1.2rem;color:#FFFFFF;">🔐 Đăng nhập Tài khoản Cán bộ</h3>
+          <p style="font-size:0.85rem;color:#CBD5E1;margin-bottom:4px;">Sử dụng tài khoản cá nhân được Quản trị viên cấp trên hệ thống Supabase.</p>
         </div>
         """, unsafe_allow_html=True)
 
