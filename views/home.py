@@ -462,23 +462,23 @@ st.markdown("""
   <h2>Bốn nhóm khuyết tật mặt đường AI tự động phát hiện</h2>
 </section>
 <div class="rw-defect-grid">
-  <div class="rw-defect-card" style="border-top: 3px solid #EF4444;">
-    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d40">D40 · Ổ gà</span><span class="rw-defect-weight">Điểm nền: 75</span></div>
+  <div class="rw-defect-card" style="--defect-accent: #F87171;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d40">D40 · Ổ gà</span><span class="rw-defect-weight">Điểm: 75</span></div>
     <h4>Ổ gà &amp; Sụt lún mặt đường</h4>
     <p>Ngưỡng nhạy tăng cường (0.15) giúp phát hiện sớm hố sâu đọng nước, ưu tiên xử lý khẩn cấp.</p>
   </div>
-  <div class="rw-defect-card" style="border-top: 3px solid #F59E0B;">
-    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d20">D20 · Rạn mai rùa</span><span class="rw-defect-weight">Điểm nền: 60</span></div>
+  <div class="rw-defect-card" style="--defect-accent: #FBBF24;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d20">D20 · Rạn mai rùa</span><span class="rw-defect-weight">Điểm: 60</span></div>
     <h4>Nứt dạng mạng / Liên kết</h4>
     <p>Dấu hiệu suy yếu nền móng kết cấu áo đường, thường cần cắt vá hoặc thảm nhựa diện rộng.</p>
   </div>
-  <div class="rw-defect-card" style="border-top: 3px solid #EAB308;">
-    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d10">D10 · Nứt ngang</span><span class="rw-defect-weight">Điểm nền: 35</span></div>
+  <div class="rw-defect-card" style="--defect-accent: #FACC15;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d10">D10 · Nứt ngang</span><span class="rw-defect-weight">Điểm: 35</span></div>
     <h4>Vết nứt ngang làn đường</h4>
     <p>Hình thành do co ngót nhiệt hoặc khe nối thi công, cần trám khe chống thấm nước mưa.</p>
   </div>
-  <div class="rw-defect-card" style="border-top: 3px solid #10B981;">
-    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d00">D00 · Nứt dọc</span><span class="rw-defect-weight">Điểm nền: 25</span></div>
+  <div class="rw-defect-card" style="--defect-accent: #34D399;">
+    <div class="rw-defect-top"><span class="rw-defect-code rw-badge-d00">D00 · Nứt dọc</span><span class="rw-defect-weight">Điểm: 25</span></div>
     <h4>Vết nứt dọc theo vệt bánh</h4>
     <p>Xuất hiện dọc tuyến xe chạy hoặc mép đường; theo dõi xu hướng lan rộng qua thời gian.</p>
   </div>
