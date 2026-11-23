@@ -24,7 +24,7 @@ c[2].metric('Điểm mức độ', r.final_score)
 c[3].metric('Số vùng AI', int(r.total_boxes))
 
 st.write(f"**{r.location_name}** — `{r.latitude}, {r.longitude}` (Nguồn: {r.gps_source})")
-st.link_button('🧭 Chỉ đường Google Maps', maps_link(r.latitude, r.longitude))
+st.link_button('Chỉ đường Google Maps', maps_link(r.latitude, r.longitude))
 
 a, b = st.columns(2)
 for col, rel, cap in ((a, r.image_file, 'Ảnh gốc'), (b, r.annotated_file, 'Ảnh khoanh vùng AI')):

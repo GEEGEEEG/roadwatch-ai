@@ -20,7 +20,7 @@ photos = sorted(p for p in folder.iterdir() if p.suffix.lower() in ('.jpg', '.jp
 st.write(f'Hiện có **{len(photos)}** ảnh kiểm thử trong `{folder}`.')
 
 imgsz = st.selectbox('Kích thước suy luận (imgsz)', [640, 800, 960, 1024], index=1)
-if st.button('🧪 Chạy đánh giá hàng loạt', type='primary', disabled=not photos):
+if st.button('Chạy đánh giá hàng loạt', type='primary', disabled=not photos):
     det = detector_or_stop()
     with st.spinner('Đang chạy mô hình qua tập ảnh kiểm thử...'):
         res = run_batch(det, photos, 0.10, imgsz)
@@ -42,7 +42,7 @@ if res is not None:
     df_show(table, hide_index=True)
     st.caption(f"Thời gian suy luận trung bình: **{res.elapsed_ms.mean():.1f} ms/ảnh**.")
     st.download_button(
-        '⬇️ Tải bảng kết quả thực nghiệm (.csv)',
+        'Tải bảng kết quả thực nghiệm (.csv)',
         safe_csv_export(merged.drop(columns=['detections'])),
         file_name='RoadWatch_danh_gia_mo_hinh.csv',
         mime='text/csv',

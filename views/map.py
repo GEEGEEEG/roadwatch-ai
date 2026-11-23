@@ -39,7 +39,7 @@ wide_degradations = [c for c in corridors if c['is_wide_degradation']]
 if wide_degradations:
     top_c = wide_degradations[0]
     st.error(
-        f"🚨 **CẢNH BÁO QUY HOẠCH TUYẾN:** **{top_c['location_summary']}** xuất hiện cụm **{top_c['cluster_size']} điểm hư hỏng liên hoàn** "
+        f"**CẢNH BÁO QUY HOẠCH TUYẾN:** **{top_c['location_summary']}** xuất hiện cụm **{top_c['cluster_size']} điểm hư hỏng liên hoàn** "
         f"(trải dài ~{top_c['span_length_m']} m). **{top_c['proposal']}** · Dự toán: ~{top_c['formatted_cost']}."
     )
 
@@ -62,7 +62,7 @@ if show_corridors and wide_degradations:
     for cor in wide_degradations:
         coords = cor.get('ordered_coords') or []
         pop_cor = (
-            f"<b>🚨 Hành lang xuống cấp diện rộng</b><br>"
+            f"<b>Hành lang xuống cấp diện rộng</b><br>"
             f"Tuyến: {escape(cor['location_summary'])}<br>"
             f"Quy mô: {cor['cluster_size']} điểm (~{cor['span_length_m']} m)<br>"
             f"Tổng diện tích hư hại: {cor['total_area_m2']} m²<br>"
@@ -76,7 +76,7 @@ if show_corridors and wide_degradations:
                 opacity=0.65,
                 dash_array='10, 8',
                 popup=folium.Popup(pop_cor, max_width=300),
-                tooltip=f"🚨 Cụm xuống cấp ({cor['cluster_size']} điểm)",
+                tooltip=f"Cụm xuống cấp ({cor['cluster_size']} điểm)",
             ).add_to(m)
         folium.Circle(
             location=[cor['center_lat'], cor['center_lon']],

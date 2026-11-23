@@ -24,16 +24,16 @@ def _do_login(officer: dict):
 
 def _role_badge(role_lv: str) -> str:
     if role_lv == 'admin':
-        return '👑 Quản trị viên hệ thống'
+        return 'Quản trị viên hệ thống'
     if role_lv == 'field_team':
-        return '🚧 Đội duy tu hiện trường'
-    return '🛡️ Cán bộ kỹ thuật thẩm định'
+        return 'Đội duy tu hiện trường'
+    return 'Cán bộ kỹ thuật thẩm định'
 
 
 def show():
     st.markdown("""
     <div class="rw-page-intro">
-      <span class="rw-overline">🏛️ Cổng nội bộ phân quyền RBAC</span>
+      <span class="rw-overline">Cổng nội bộ phân quyền RBAC</span>
       <h1>Xác thực &amp; Điều hành Cán bộ RoadWatch AI</h1>
       <p>Hệ thống tiếp nhận, thẩm định hư hỏng mặt đường, chấm điểm đa tiêu chí AHP và điều phối duy tu đô thị.</p>
     </div>
@@ -47,13 +47,13 @@ def show():
         role_lv = st.session_state.get('officer_role_level', 'officer')
         badge = _role_badge(role_lv)
 
-        st.success(f'🟢 **Phiên đang mở** — Chào **{name}** (`{uname}` · {badge})')
+        st.success(f'**Phiên đang mở** — Chào **{name}** (`{uname}` · {badge})')
 
         col1, col2 = st.columns([2, 1])
         with col1:
             st.markdown(f"""
             <div class="rw-glass-card" style="padding:20px;margin-bottom:16px;">
-              <h3 style="margin-top:0;font-size:1.1rem;color:#FFFFFF;">📋 Thông tin phiên làm việc</h3>
+              <h3 style="margin-top:0;font-size:1.1rem;color:#FFFFFF;">Thông tin phiên làm việc</h3>
               <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
                   <td style="padding:8px 0;color:#CBD5E1;width:38%;">Họ tên & Tài khoản:</td>
@@ -79,19 +79,19 @@ def show():
             q1, q2, q3 = st.columns(3)
             with q1:
                 target_p1 = 'views/route.py' if role_lv == 'field_team' else 'views/queue.py'
-                lbl_p1 = '🚗 Lộ trình được giao' if role_lv == 'field_team' else '✅ Hàng chờ xác minh'
+                lbl_p1 = 'Lộ trình được giao' if role_lv == 'field_team' else 'Hàng chờ xác minh'
                 if st.button(lbl_p1, **stretch(st.button)):
                     st.switch_page(target_p1)
             with q2:
                 target_p2 = 'views/compare.py' if role_lv == 'field_team' else 'views/priority.py'
-                lbl_p2 = '🛠️ Nghiệm thu sửa chữa' if role_lv == 'field_team' else '📊 Ưu tiên AHP & Dự toán'
+                lbl_p2 = 'Nghiệm thu sửa chữa' if role_lv == 'field_team' else 'Ưu tiên AHP & Dự toán'
                 if st.button(lbl_p2, **stretch(st.button)):
                     st.switch_page(target_p2)
             with q3:
-                if st.button('🎥 Tuần đường & Video', **stretch(st.button)):
+                if st.button('Tuần đường & Video', **stretch(st.button)):
                     st.switch_page('views/video.py')
 
-            with st.expander('🔑 Đổi mật khẩu cá nhân'):
+            with st.expander('Đổi mật khẩu cá nhân'):
                 with st.form('change_pw_form'):
                     old_pw = st.text_input('Mật khẩu hiện tại', type='password')
                     new_pw = st.text_input('Mật khẩu mới (tối thiểu 6 ký tự)', type='password')
@@ -101,7 +101,7 @@ def show():
                             st.error('Mật khẩu xác nhận không khớp.')
                         else:
                             err = change_password(st.session_state.get('officer_username', ''), old_pw, new_pw)
-                            st.success('✅ Đổi mật khẩu thành công!') if not err else st.error(err)
+                            st.success('Đổi mật khẩu thành công!') if not err else st.error(err)
 
         with col2:
             st.markdown("""
@@ -112,7 +112,7 @@ def show():
               </p>
             </div>
             """, unsafe_allow_html=True)
-            if st.button('🚪 Đăng xuất an toàn', key='logout_main_page', **stretch(st.button)):
+            if st.button('Đăng xuất an toàn', key='logout_main_page', **stretch(st.button)):
                 clear_officer_session()
                 st.rerun()
 
@@ -121,13 +121,13 @@ def show():
 
     # ── Nếu hệ thống mới triển khai chưa có tài khoản Admin nào ───────────
     if not has_any_admin():
-        st.info('🚀 **Thiết lập lần đầu:** Hệ thống chưa có Quản trị viên. Hãy tạo tài khoản Quản trị viên đầu tiên (hoặc đặt `ROADWATCH_ADMIN_PASSWORD` trong Streamlit Secrets).')
+        st.info('**Thiết lập lần đầu:** Hệ thống chưa có Quản trị viên. Hãy tạo tài khoản Quản trị viên đầu tiên (hoặc đặt `ROADWATCH_ADMIN_PASSWORD` trong Streamlit Secrets).')
         with st.form('bootstrap_admin_form'):
             b_user = st.text_input('Tên đăng nhập Quản trị viên', value='admin')
             b_name = st.text_input('Họ và tên', value='Quản trị viên hệ thống')
             b_pw1 = st.text_input('Mật khẩu Quản trị viên (tối thiểu 8 ký tự)', type='password')
             b_pw2 = st.text_input('Nhập lại mật khẩu', type='password')
-            if st.form_submit_button('👑 Khởi tạo Quản trị viên & Đăng nhập', type='primary'):
+            if st.form_submit_button('Khởi tạo Quản trị viên & Đăng nhập', type='primary'):
                 if b_pw1 != b_pw2:
                     st.error('Mật khẩu nhập lại không khớp.')
                 else:
@@ -145,7 +145,7 @@ def show():
     with col_info:
         st.markdown("""
         <div class="rw-glass-card" style="padding:24px;margin-bottom:16px;">
-          <h3 style="margin-top:0;font-size:1.15rem;color:#FFFFFF;">📋 Phân quyền Nghiệp vụ Cán bộ</h3>
+          <h3 style="margin-top:0;font-size:1.15rem;color:#FFFFFF;">Phân quyền Nghiệp vụ Cán bộ</h3>
           <ul style="font-size:0.9rem;color:#E2E8F0;line-height:1.9;padding-left:20px;margin-bottom:0;">
             <li><strong>Cán bộ thẩm định:</strong> Duyệt/từ chối ảnh D00/D10/D20/D40, gộp báo cáo trùng và xuất báo cáo PDF.</li>
             <li><strong>Quy hoạch & Xếp hạng AHP:</strong> Tinh chỉnh ma trận Saaty 4 tiêu chí, phát hiện hành lang xuống cấp và dự toán kinh phí.</li>
@@ -159,9 +159,9 @@ def show():
         if demo_hint:
             demo_user, demo_pw = demo_hint
             st.markdown('---')
-            st.markdown('**🧪 Chế độ Trình diễn Đồ án / Hội đồng Đánh giá**')
+            st.markdown('**Chế độ Trình diễn Đồ án / Hội đồng Đánh giá**')
             st.caption(f'Đang bật qua cấu hình demo · Tài khoản thử nghiệm: `{demo_user}`')
-            if st.button('⚡ Đăng nhập Nhanh (Dành cho Hội đồng Chấm thi)', type='secondary', use_container_width=True):
+            if st.button('Đăng nhập Nhanh (Dành cho Hội đồng Chấm thi)', type='secondary', use_container_width=True):
                 officer, err = login_with_status(demo_user, demo_pw)
                 if officer:
                     _do_login(officer)
@@ -172,14 +172,14 @@ def show():
     with col_form:
         st.markdown("""
         <div class="rw-glass-card" style="border-top:4px solid #38BDF8 !important;padding:24px;margin-bottom:14px;">
-          <h3 style="margin-top:0;font-size:1.2rem;color:#FFFFFF;">🔐 Đăng nhập Tài khoản Cán bộ</h3>
+          <h3 style="margin-top:0;font-size:1.2rem;color:#FFFFFF;">Đăng nhập Tài khoản Cán bộ</h3>
           <p style="font-size:0.85rem;color:#CBD5E1;margin-bottom:4px;">Sử dụng tài khoản cá nhân được Quản trị viên cấp trên hệ thống Supabase.</p>
         </div>
         """, unsafe_allow_html=True)
 
         with st.form('officer_login_form', clear_on_submit=False):
-            username = st.text_input('👤 Tên đăng nhập', placeholder='Ví dụ: admin hoặc cb_duytu01')
-            entered_pw = st.text_input('🔑 Mật khẩu', type='password', placeholder='Nhập mật khẩu')
+            username = st.text_input('Tên đăng nhập', placeholder='Ví dụ: admin hoặc cb_duytu01')
+            entered_pw = st.text_input('Mật khẩu', type='password', placeholder='Nhập mật khẩu')
             submitted = st.form_submit_button(
                 'Xác thực & Truy cập Cổng Cán bộ',
                 type='primary',
@@ -189,14 +189,14 @@ def show():
                 officer, err_msg = login_with_status(username, entered_pw)
                 if officer:
                     _do_login(officer)
-                    st.success('✅ Đăng nhập thành công!')
+                    st.success('Đăng nhập thành công!')
                     target = 'views/route.py' if officer.get('role') == 'field_team' else 'views/queue.py'
                     try:
                         st.switch_page(target)
                     except Exception:
                         st.rerun()
                 else:
-                    st.error(f'❌ {err_msg}')
+                    st.error(err_msg)
 
         st.caption('Chưa có tài khoản? Liên hệ **Quản trị viên RoadWatch AI** để được cấp quyền.')
 

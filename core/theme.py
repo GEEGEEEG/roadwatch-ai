@@ -370,10 +370,13 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 }
 
 [data-testid="stSidebarNav"] a[aria-current="page"] {
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(14, 165, 233, 0.16) 100%),
+    linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+  border: 1px solid rgba(186, 230, 253, 0.52) !important;
   color: #FFFFFF !important;
   font-weight: 700;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45), inset 0 1.5px 1px rgba(255, 255, 255, 0.48) !important;
 }
 
 [data-testid="stSidebarNav"] a > span:first-child {
@@ -412,18 +415,33 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 }
 
 .rw-sidebar-brand {
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(8px);
-  padding: 15px;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%),
+    rgba(10, 22, 44, 0.52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 16px 14px 14px;
   margin: 4px 6px 14px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  text-align: center;
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.rw-brand-logo-img {
+  width: 100%;
+  max-width: 176px;
+  height: auto;
+  display: block;
+  margin: 0 auto 8px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 12px rgba(251, 191, 36, 0.24));
 }
 
 .rw-logo {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   color: #FFFFFF !important;
   font-size: 1.05rem;
@@ -446,9 +464,10 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 }
 
 .rw-sidebar-sub {
-  color: #94A3B8 !important;
+  color: #CBD5E1 !important;
   font-size: 0.78rem;
-  margin: 6px 0 0 50px;
+  margin: 4px 0 0;
+  text-align: center;
 }
 
 .rw-sidebar-info {
@@ -574,13 +593,20 @@ section[data-testid="stSidebar"] .stButton > button:hover {
   text-shadow: none !important;
 }
 [data-testid="stFileUploader"] section button {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(14, 165, 233, 0.16) 100%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.88) 0%, rgba(14, 165, 233, 0.82) 100%) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
   color: #FFFFFF !important;
-  border: 1px solid rgba(147, 197, 253, 0.45) !important;
-  border-radius: 10px !important;
+  border: 1px solid rgba(186, 230, 253, 0.62) !important;
+  border-radius: 12px !important;
   padding: 8px 18px !important;
   font-weight: 700 !important;
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35) !important;
+  box-shadow:
+    0 10px 26px rgba(37, 99, 235, 0.42),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.60),
+    inset 0 -1px 2px rgba(6, 182, 212, 0.34) !important;
 }
 [data-testid="stFileUploader"] section button * {
   color: #FFFFFF !important;
@@ -609,11 +635,19 @@ section[data-testid="stSidebar"] .stButton > button:hover {
   box-shadow: 0 18px 42px rgba(2, 6, 23, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
 }
 [data-testid="stCameraInput"] button {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(14, 165, 233, 0.16) 100%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.88) 0%, rgba(14, 165, 233, 0.82) 100%) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
   color: #FFFFFF !important;
-  border: none !important;
-  border-radius: 10px !important;
+  border: 1px solid rgba(186, 230, 253, 0.62) !important;
+  border-radius: 12px !important;
   font-weight: 700 !important;
+  box-shadow:
+    0 10px 26px rgba(37, 99, 235, 0.42),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.60),
+    inset 0 -1px 2px rgba(6, 182, 212, 0.34) !important;
 }
 [data-testid="stCameraInput"] button * {
   color: #FFFFFF !important;
@@ -699,27 +733,71 @@ section[data-testid="stSidebar"] .stButton > button:hover {
   color: #FFFFFF !important;
 }
 
-/* Inputs, Textareas, Selectboxes (Smoked Dark Glass) */
-[data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="select"] > div {
+/* Inputs, Textareas, NumberInputs, Selectboxes, Code & Sliders (Dark Glass + Crisp Bright Ink) */
+[data-testid="stMainBlockContainer"] [data-baseweb="input"],
+[data-testid="stMainBlockContainer"] [data-baseweb="base-input"],
+[data-testid="stMainBlockContainer"] [data-baseweb="textarea"],
+[data-testid="stMainBlockContainer"] [data-testid="stTextInputRootElement"],
+[data-testid="stMainBlockContainer"] [data-testid="stTextAreaRootElement"],
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInputContainer"],
+[data-testid="stMainBlockContainer"] [data-testid="stSelectbox"] [data-baseweb="select"] > div,
+[data-testid="stMainBlockContainer"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
+[data-testid="stMainBlockContainer"] [data-baseweb="select"] > div {
   border-radius: 12px !important;
-  border-color: rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
   min-height: 46px;
-  background: rgba(6, 13, 28, 0.56) !important;
+  background: rgba(8, 17, 34, 0.78) !important;
+  background-color: rgba(8, 17, 34, 0.78) !important;
   color: #F8FAFC !important;
   transition: all 0.2s ease !important;
 }
 
+[data-testid="stMainBlockContainer"] [data-testid="stTextArea"] textarea,
+[data-testid="stMainBlockContainer"] [data-baseweb="textarea"] textarea {
+  background: rgba(8, 17, 34, 0.78) !important;
+  background-color: rgba(8, 17, 34, 0.78) !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  caret-color: #38BDF8 !important;
+}
+
+[data-testid="stMainBlockContainer"] [data-testid="stTextInput"] input,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] input,
 [data-testid="stMainBlockContainer"] [data-baseweb="input"] input,
-[data-testid="stMainBlockContainer"] [data-baseweb="textarea"] textarea,
+[data-testid="stMainBlockContainer"] [data-baseweb="base-input"] input {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  caret-color: #38BDF8 !important;
+}
+
+[data-testid="stMainBlockContainer"] [data-testid="stSelectbox"] [data-baseweb="select"] *,
+[data-testid="stMainBlockContainer"] [data-testid="stMultiSelect"] [data-baseweb="select"] *,
 [data-testid="stMainBlockContainer"] [data-baseweb="select"] span,
 [data-testid="stMainBlockContainer"] [data-baseweb="select"] div {
   color: #F8FAFC !important;
 }
 
+[data-testid="stMainBlockContainer"] [data-baseweb="tag"] {
+  background: rgba(56, 189, 248, 0.22) !important;
+  border: 1px solid rgba(125, 211, 252, 0.45) !important;
+  color: #F8FAFC !important;
+}
+
 [data-testid="stMainBlockContainer"] [data-baseweb="input"] input::placeholder,
-[data-testid="stMainBlockContainer"] [data-baseweb="textarea"] textarea::placeholder {
+[data-testid="stMainBlockContainer"] [data-baseweb="textarea"] textarea::placeholder,
+[data-testid="stMainBlockContainer"] textarea::placeholder,
+[data-testid="stMainBlockContainer"] input::placeholder {
   color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
   opacity: 1 !important;
+}
+
+[data-testid="stMainBlockContainer"] textarea::selection,
+[data-testid="stMainBlockContainer"] input::selection {
+  background: rgba(56, 189, 248, 0.42) !important;
+  color: #FFFFFF !important;
 }
 
 [data-testid="stMainBlockContainer"] [data-baseweb="select"] svg {
@@ -727,18 +805,64 @@ section[data-testid="stSidebar"] .stButton > button:hover {
   fill: #CBD5E1 !important;
 }
 
-[data-baseweb="input"]:focus-within, [data-baseweb="textarea"]:focus-within, [data-baseweb="select"] > div:focus-within {
-  border-color: #38BDF8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.24) !important;
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInputStepDown"],
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInputStepUp"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #F8FAFC !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-height: auto !important;
+}
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInputStepDown"] svg,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInputStepUp"] svg {
+  color: #E2E8F0 !important;
+  fill: #E2E8F0 !important;
 }
 
-/* Modern Buttons */
+[data-testid="stMainBlockContainer"] [data-testid="stTextInput"] button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-height: auto !important;
+  color: #CBD5E1 !important;
+}
+
+[data-testid="stMainBlockContainer"] [data-testid="stCode"],
+[data-testid="stMainBlockContainer"] pre {
+  background: rgba(6, 13, 28, 0.86) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 12px !important;
+  color: #E2E8F0 !important;
+}
+[data-testid="stMainBlockContainer"] pre code {
+  background: transparent !important;
+  color: #E2E8F0 !important;
+}
+
+[data-testid="stMainBlockContainer"] [data-testid="stSliderThumbValue"],
+[data-testid="stMainBlockContainer"] [data-testid="stSliderTickBarMin"],
+[data-testid="stMainBlockContainer"] [data-testid="stSliderTickBarMax"] {
+  color: #E2E8F0 !important;
+}
+
+[data-baseweb="input"]:focus-within,
+[data-baseweb="base-input"]:focus-within,
+[data-baseweb="textarea"]:focus-within,
+[data-testid="stTextInputRootElement"]:focus-within,
+[data-testid="stTextAreaRootElement"]:focus-within,
+[data-testid="stNumberInputContainer"]:focus-within,
+[data-baseweb="select"] > div:focus-within {
+  border-color: #38BDF8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.28) !important;
+}
+
+/* Modern Liquid Glass Buttons */
 .stButton > button, .stFormSubmitButton > button, .stDownloadButton > button, .stLinkButton > a {
   min-height: 48px;
-  border-radius: 12px !important;
+  border-radius: 14px !important;
   font-weight: 700 !important;
   letter-spacing: -0.01em;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 [data-testid="stMainBlockContainer"] .stButton > button:not([kind="primary"]),
@@ -747,12 +871,18 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 [data-testid="stMainBlockContainer"] [data-testid="stBaseButton-secondary"],
 [data-testid="stMainBlockContainer"] [data-testid="stBaseButton-secondaryFormSubmit"],
 [data-testid="stMainBlockContainer"] .stLinkButton > a {
-  background: rgba(14, 27, 50, 0.64) !important;
-  backdrop-filter: blur(18px) saturate(165%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(165%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.24) !important;
-  color: #F8FAFC !important;
-  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 48%, rgba(56, 189, 248, 0.14) 100%),
+    rgba(15, 28, 54, 0.44) !important;
+  backdrop-filter: blur(22px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.36) !important;
+  border-radius: 14px !important;
+  color: #FFFFFF !important;
+  box-shadow:
+    0 10px 28px rgba(2, 8, 23, 0.42),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.50),
+    inset 0 -1px 2px rgba(56, 189, 248, 0.24) !important;
 }
 
 [data-testid="stMainBlockContainer"] .stButton > button:not([kind="primary"]) *,
@@ -761,7 +891,7 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 [data-testid="stMainBlockContainer"] [data-testid="stBaseButton-secondary"] *,
 [data-testid="stMainBlockContainer"] [data-testid="stBaseButton-secondaryFormSubmit"] *,
 [data-testid="stMainBlockContainer"] .stLinkButton > a * {
-  color: #F8FAFC !important;
+  color: #FFFFFF !important;
 }
 
 [data-testid="stMainBlockContainer"] .stButton > button:not([kind="primary"]):hover,
@@ -770,13 +900,18 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 [data-testid="stMainBlockContainer"] [data-testid="stBaseButton-secondary"]:hover,
 [data-testid="stMainBlockContainer"] [data-testid="stBaseButton-secondaryFormSubmit"]:hover,
 [data-testid="stMainBlockContainer"] .stLinkButton > a:hover {
-  background: rgba(37, 99, 235, 0.36) !important;
-  border-color: rgba(125, 211, 252, 0.65) !important;
+  transform: translateY(-2px) scale(1.008) !important;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.84) 0%, rgba(14, 165, 233, 0.78) 100%) !important;
+  border-color: rgba(186, 230, 253, 0.78) !important;
+  box-shadow:
+    0 14px 34px rgba(37, 99, 235, 0.48),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.65),
+    inset 0 -1px 2px rgba(56, 189, 248, 0.35) !important;
 }
 
 .stButton > button:hover, .stLinkButton > a:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(2, 8, 23, 0.28) !important;
+  box-shadow: 0 14px 32px rgba(2, 8, 23, 0.36) !important;
 }
 
 .stButton > button[kind="primary"],
@@ -785,10 +920,18 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 [data-testid="stBaseButton-primaryFormSubmit"],
 button[kind="primary"],
 button[kind="primaryFormSubmit"] {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
-  border: 1px solid rgba(147, 197, 253, 0.4) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(14, 165, 233, 0.16) 100%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.88) 0%, rgba(14, 165, 233, 0.82) 100%) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+  border: 1px solid rgba(186, 230, 253, 0.62) !important;
+  border-radius: 14px !important;
   color: #FFFFFF !important;
-  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.38) !important;
+  box-shadow:
+    0 12px 32px rgba(37, 99, 235, 0.48),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.62),
+    inset 0 -1px 2px rgba(6, 182, 212, 0.36) !important;
 }
 
 .stButton > button[kind="primary"] *,
@@ -806,8 +949,15 @@ button[kind="primaryFormSubmit"] * {
 [data-testid="stBaseButton-primaryFormSubmit"]:hover,
 button[kind="primary"]:hover,
 button[kind="primaryFormSubmit"]:hover {
-  background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
-  box-shadow: 0 10px 28px rgba(37, 99, 235, 0.48) !important;
+  transform: translateY(-2px) scale(1.008) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0.06) 48%, rgba(56, 189, 248, 0.22) 100%),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.94) 0%, rgba(6, 182, 212, 0.90) 100%) !important;
+  border-color: rgba(224, 242, 254, 0.84) !important;
+  box-shadow:
+    0 16px 38px rgba(37, 99, 235, 0.56),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.72),
+    inset 0 -1px 2px rgba(6, 182, 212, 0.45) !important;
 }
 
 /* Modern Tabs (Dark Glass Pill Bar) */
@@ -1118,16 +1268,17 @@ button[data-baseweb="tab"][aria-selected="true"] {
 [data-testid="stMainBlockContainer"] .rw-empty *{color:#E2E8F0 !important;text-shadow:none !important}
 .rw-preview-banner{background:linear-gradient(135deg, rgba(15,23,42,.88) 0%, rgba(30,58,138,.88) 100%);backdrop-filter:blur(16px);border:1px solid rgba(96,165,250,.65);color:#FFFFFF;padding:12px 20px;border-radius:14px;font-size:.93rem;font-weight:600;letter-spacing:.02em;margin:16px 0 12px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 28px rgba(2,8,23,.30)}
 
-/* CTA Page Links & Two-Column Panels (Smoked Frosted Glass) */
+/* CTA Page Links & Two-Column Panels (Liquid Glass) */
 [data-testid="stPageLink-NavLink"]{
   display:flex !important;align-items:center;justify-content:flex-start !important;width:100% !important;min-height:50px;padding:12px 18px !important;
-  border-radius:14px !important;border:1px solid rgba(255,255,255,.22) !important;
-  background:linear-gradient(135deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.04) 100%), rgba(12,23,44,.56) !important;
-  backdrop-filter:blur(18px) saturate(175%) !important;-webkit-backdrop-filter:blur(18px) saturate(175%) !important;
-  color:#F8FAFC !important;font-weight:700 !important;box-shadow:0 12px 30px rgba(2,6,23,.30), inset 0 1px 0 rgba(255,255,255,.20);
-  transition:all .2s cubic-bezier(0.16,1,0.3,1) !important;text-decoration:none !important;
+  border-radius:14px !important;border:1px solid rgba(255,255,255,.34) !important;
+  background:linear-gradient(180deg, rgba(255,255,255,.24) 0%, rgba(255,255,255,.08) 48%, rgba(56,189,248,.14) 100%), rgba(15,28,54,.44) !important;
+  backdrop-filter:blur(22px) saturate(200%) !important;-webkit-backdrop-filter:blur(22px) saturate(200%) !important;
+  color:#FFFFFF !important;font-weight:700 !important;
+  box-shadow:0 10px 28px rgba(2,8,23,.40), inset 0 1.5px 1px rgba(255,255,255,.48), inset 0 -1px 2px rgba(56,189,248,.22);
+  transition:all .24s cubic-bezier(0.16,1,0.3,1) !important;text-decoration:none !important;
 }
-[data-testid="stPageLink-NavLink"] *{color:#F8FAFC !important;}
+[data-testid="stPageLink-NavLink"] *{color:#FFFFFF !important;}
 [data-testid="stPageLink-NavLink"]:hover{
   transform:translateY(-2px);background:linear-gradient(135deg,#2563EB 0%,#0EA5E9 100%) !important;
   color:#FFFFFF !important;border-color:rgba(125,211,252,.75) !important;box-shadow:0 14px 34px rgba(37,99,235,.42) !important;

@@ -57,13 +57,13 @@ saved_pairs = db.get_setting('ahp_pairs') or {
 custom_prices = db.get_setting('unit_prices')
 
 tab1, tab2, tab3 = st.tabs([
-    '📊 Xếp hạng ưu tiên & Ma trận AHP',
-    '🚨 Quy hoạch Hành lang Xuống cấp (Corridors)',
-    '💰 Dự toán Vật tư & Chi phí Duy tu',
+    'Xếp hạng ưu tiên & Ma trận AHP',
+    'Quy hoạch Hành lang Xuống cấp (Corridors)',
+    'Dự toán Vật tư & Chi phí Duy tu',
 ])
 
 with tab1:
-    with st.expander('📐 Hiệu chỉnh Ma trận So sánh cặp AHP (Thang Saaty 1/9 – 9 & Kiểm định CR < 0.10)', expanded=False):
+    with st.expander('Hiệu chỉnh Ma trận So sánh cặp AHP (Thang Saaty 1/9 – 9 & Kiểm định CR < 0.10)', expanded=False):
         st.caption('Điều chỉnh tỷ lệ ưu tiên tương đối giữa 4 tiêu chí ($C_1$: Mức độ hư hại, $C_2$: Cấp đường, $C_3$: Tần suất phản ánh, $C_4$: Thời tiết/ngập):')
         p_cols1 = st.columns(3)
         c12 = p_cols1[0].slider('C1 so với C2 (Nghiêm trọng / Cấp đường)', 0.2, 9.0, float(saved_pairs.get('c12', 2.0)), 0.5)
@@ -80,24 +80,24 @@ with tab1:
 
         if ahp_meta['is_consistent']:
             st.success(
-                f"✅ **Ma trận nhất quán logic ($CR = {ahp_meta['CR']} < 0.10$, $\\lambda_{{max}} = {ahp_meta['lambda_max']}$, $CI = {ahp_meta['CI']}$)** — "
+                f"**Ma trận nhất quán logic ($CR = {ahp_meta['CR']} < 0.10$, $\\lambda_{{max}} = {ahp_meta['lambda_max']}$, $CI = {ahp_meta['CI']}$)** — "
                 f"Trọng số: **C1={w[0]*100:.1f}% · C2={w[1]*100:.1f}% · C3={w[2]*100:.1f}% · C4={w[3]*100:.1f}%**"
             )
         else:
             st.error(
-                f"⚠️ **Ma trận mâu thuẫn bắc cầu ($CR = {ahp_meta['CR']} \\ge 0.10$)!** "
+                f"**Ma trận mâu thuẫn bắc cầu ($CR = {ahp_meta['CR']} \\ge 0.10$)!** "
                 "Theo chuẩn Saaty, vui lòng điều chỉnh lại các tỷ lệ so sánh cặp cho nhất quán trước khi lưu."
             )
 
         btn_save_ahp, btn_reset_ahp = st.columns([1, 1])
-        if btn_save_ahp.button('💾 Lưu bộ ma trận AHP này làm mặc định', disabled=not ahp_meta['is_consistent']):
+        if btn_save_ahp.button('Lưu bộ ma trận AHP này làm mặc định', disabled=not ahp_meta['is_consistent']):
             db.set_setting(
                 'ahp_pairs',
                 {'c12': c12, 'c13': c13, 'c14': c14, 'c23': c23, 'c24': c24, 'c34': c34},
                 actor=current_actor(),
             )
             st.success('Đã lưu cấu hình ma trận AHP lên cơ sở dữ liệu!')
-        if btn_reset_ahp.button('↩️ Khôi phục ma trận Saaty tiêu chuẩn'):
+        if btn_reset_ahp.button('Khôi phục ma trận Saaty tiêu chuẩn'):
             db.set_setting(
                 'ahp_pairs',
                 {'c12': 2.0, 'c13': 3.0, 'c14': 4.0, 'c23': 2.0, 'c24': 3.0, 'c34': 2.0},
@@ -210,7 +210,7 @@ with tab3:
     if not cost_table.empty:
         df_show(cost_table, hide_index=True)
         st.download_button(
-            '⬇️ Xuất bảng dự toán chi tiết (.csv)',
+            'Xuất bảng dự toán chi tiết (.csv)',
             safe_csv_export(cost_table),
             file_name='RoadWatch_du_toan_duy_tu.csv',
             mime='text/csv',
@@ -218,7 +218,7 @@ with tab3:
 
     st.markdown(
         """
-    #### 📋 Tổng hợp cơ cấu ngân sách dự kiến:
+    #### Tổng hợp cơ cấu ngân sách dự kiến:
     | Hạng mục chi phí | Thuyết minh tính toán | Thành tiền (VNĐ) |
     | :--- | :--- | ---: |
     | **Vật liệu mặt đường** | Nhựa nguội Carboncor (< 0.5 m²) hoặc thảm BTN nóng (≥ 0.5 m²) | {:,} đ |

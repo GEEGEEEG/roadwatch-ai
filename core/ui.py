@@ -1,4 +1,6 @@
 """Tiện ích dùng chung cho giao diện Streamlit (v5.0)."""
+import base64
+from functools import lru_cache
 import io
 from html import escape
 
@@ -7,6 +9,14 @@ import streamlit as st
 
 from .config import PROJECT_ROOT, data_dir, model_path
 from .constants import DISCLAIMER
+
+
+@lru_cache(maxsize=2)
+def _brand_logo_uri() -> str:
+    p = PROJECT_ROOT / 'assets' / 'logo_roadwatch.png'
+    if not p.is_file():
+        return ''
+    return f'data:image/png;base64,{base64.b64encode(p.read_bytes()).decode("ascii")}'
 
 _OFFICER_SESSION_KEYS = (
     'role',
@@ -63,11 +73,17 @@ def clear_officer_session() -> None:
 
 def officer_login_box():
     """Nhãn thương hiệu cố định + trạng thái đăng nhập cán bộ trên thanh bên."""
+    logo_uri = _brand_logo_uri()
+    brand_body = (
+        f'<img src="{logo_uri}" alt="RoadWatch AI" class="rw-brand-logo-img" />'
+        if logo_uri
+        else '<div class="rw-logo"><span class="rw-logo-mark">RW</span> RoadWatch AI</div>'
+    )
     with st.sidebar:
         st.markdown(
-            '''<div class="rw-sidebar-brand">
-              <div class="rw-logo"><span class="rw-logo-mark">RW</span> RoadWatch AI</div>
-              <p class="rw-sidebar-sub">Giám sát & quản lý mặt đường v5</p>
+            f'''<div class="rw-sidebar-brand">
+              {brand_body}
+              <p class="rw-sidebar-sub">Giám sát &amp; quản lý mặt đường v5</p>
             </div>''',
             unsafe_allow_html=True,
         )
@@ -75,7 +91,7 @@ def officer_login_box():
             officer = escape(str(st.session_state.get('officer_name', 'Cán bộ trực ca')))
             role_tag = {'admin': 'Quản trị', 'officer': 'Thẩm định', 'field_team': 'Duy tu'}.get(officer_role(), 'Cán bộ')
             st.markdown(
-                f'<div class="rw-sidebar-info">🟢 <b>{officer}</b> · <span>{escape(role_tag)}</span></div>',
+                f'<div class="rw-sidebar-info"><b>{officer}</b> · <span>{escape(role_tag)}</span></div>',
                 unsafe_allow_html=True,
             )
             if st.button('Đăng xuất', key='btn_officer_logout', use_container_width=True):
@@ -83,7 +99,7 @@ def officer_login_box():
                 st.rerun()
         else:
             st.markdown(
-                '<div class="rw-sidebar-info">🔒 Khu vực điều hành dành riêng cho cán bộ được cấp quyền.</div>',
+                '<div class="rw-sidebar-info">Khu vực điều hành dành riêng cho cán bộ được cấp quyền.</div>',
                 unsafe_allow_html=True,
             )
 
@@ -104,7 +120,7 @@ def safe_page_link(page: str, label: str, icon: str | None = None) -> None:
 def require_officer(allowed_roles: tuple[str, ...] | None = None):
     if not is_officer():
         st.warning('Trang này chỉ dành cho cán bộ. Đăng nhập ở thanh bên hoặc mở Cổng cán bộ.')
-        safe_page_link('views/login.py', label='Mở Cổng Đăng Nhập Cán Bộ', icon='🔐')
+        safe_page_link('views/login.py', label='Mở Cổng Đăng Nhập Cán Bộ', icon=None)
         st.stop()
     if allowed_roles and officer_role() not in allowed_roles:
         st.warning('Tài khoản hiện tại không thuộc nhóm quyền thực hiện chức năng này.')
@@ -230,11 +246,11 @@ def add_legal_map_layers(fmap: folium.Map) -> None:
 
 
 PRIORITY_PRESETS = {
-    '⚖️ Cân bằng tiêu chuẩn (Mặc định)': (50, 30, 20, 40, 'Cân bằng giữa độ nặng, phản ánh dân và cấp đường.'),
-    '🚨 An toàn khẩn cấp (Ổ gà sâu)': (70, 15, 15, 35, 'Ưu tiên tối đa các vị trí hư hại nặng, nguy cơ tai nạn.'),
-    '🛣️ Trục chính & Trường / Bệnh viện': (35, 15, 50, 45, 'Ưu tiên tuyến quốc lộ, huyết mạch lưu lượng xe lớn.'),
-    '📢 Theo phản ánh cộng đồng': (30, 55, 15, 50, 'Ưu tiên điểm nóng có nhiều người dân phản ánh lặp lại.'),
-    '⚙️ Tùy chỉnh thủ công (Chuyên gia)': (None, None, None, None, 'Tự điều chỉnh từng trọng số và bán kính bên dưới.'),
+    'Cân bằng tiêu chuẩn (Mặc định)': (50, 30, 20, 40, 'Cân bằng giữa độ nặng, phản ánh dân và cấp đường.'),
+    'An toàn khẩn cấp (Ổ gà sâu)': (70, 15, 15, 35, 'Ưu tiên tối đa các vị trí hư hại nặng, nguy cơ tai nạn.'),
+    'Trục chính & Trường / Bệnh viện': (35, 15, 50, 45, 'Ưu tiên tuyến quốc lộ, huyết mạch lưu lượng xe lớn.'),
+    'Theo phản ánh cộng đồng': (30, 55, 15, 50, 'Ưu tiên điểm nóng có nhiều người dân phản ánh lặp lại.'),
+    'Tùy chỉnh thủ công (Chuyên gia)': (None, None, None, None, 'Tự điều chỉnh từng trọng số và bán kính bên dưới.'),
 }
 
 
@@ -259,7 +275,7 @@ def weights_sidebar():
     else:
         a, b, c, r = ss.get('_wa', 50), ss.get('_wb', 30), ss.get('_wc', 20), ss.get('_wr', 40)
 
-    with st.sidebar.expander('🎛️ Tinh chỉnh chi tiết (Nâng cao)', expanded=is_custom):
+    with st.sidebar.expander('Tinh chỉnh chi tiết (Nâng cao)', expanded=is_custom):
         a = st.slider('Trọng số mức độ (%)', 0, 100, int(a), 5, disabled=not is_custom)
         b = st.slider('Trọng số số báo cáo (%)', 0, 100, int(b), 5, disabled=not is_custom)
         c = st.slider('Trọng số cấp tuyến (%)', 0, 100, int(c), 5, disabled=not is_custom)

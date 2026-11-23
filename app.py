@@ -46,7 +46,7 @@ public_pages = [p_home, p_submit, p_track, p_map]
 if not ui.is_officer():
     public_pages.append(st.Page(_page('views/login.py'), title='Cổng cán bộ', url_path='login'))
     pages = {'Công khai': public_pages}
-    p_dock_4, dock_4_lbl, dock_4_ico = p_map, 'Bản đồ', '🗺️'
+    p_dock_4, dock_4_lbl = p_map, 'Bản đồ'
 else:
     role_lv = ui.officer_role()
     if role_lv == 'field_team':
@@ -58,7 +58,7 @@ else:
             st.Page(_page('views/detail.py'), title='Chi tiết điểm', url_path='detail'),
             st.Page(_page('views/login.py'), title='Hồ sơ cán bộ', url_path='officer-profile'),
         ]
-        p_dock_4, dock_4_lbl, dock_4_ico = p_route, 'Lộ trình', '🚗'
+        p_dock_4, dock_4_lbl = p_route, 'Lộ trình'
     else:
         p_queue = st.Page(_page('views/queue.py'), title='Hàng chờ xác minh', url_path='queue')
         officer_pages = [
@@ -72,7 +72,7 @@ else:
             st.Page(_page('views/admin.py'), title='Quản trị & sao lưu', url_path='admin'),
             st.Page(_page('views/login.py'), title='Hồ sơ cán bộ', url_path='officer-profile'),
         ]
-        p_dock_4, dock_4_lbl, dock_4_ico = p_queue, 'Duyệt', '✅'
+        p_dock_4, dock_4_lbl = p_queue, 'Duyệt'
     pages = {
         'Công khai': public_pages,
         'Cán bộ': officer_pages,
@@ -85,12 +85,12 @@ theme.apply(getattr(pg, 'url_path', 'home') or 'home')
 with st.container(key='rw_mobile_dock'):
     d_cols = st.columns(4, gap='small')
     with d_cols[0]:
-        ui.safe_page_link(p_home, label='Trang chủ', icon='🏠')
+        ui.safe_page_link(p_home, label='Trang chủ', icon=None)
     with d_cols[1]:
-        ui.safe_page_link(p_submit, label='Gửi ảnh', icon='📷')
+        ui.safe_page_link(p_submit, label='Gửi ảnh', icon=None)
     with d_cols[2]:
-        ui.safe_page_link(p_track, label='Tra cứu', icon='🔍')
+        ui.safe_page_link(p_track, label='Tra cứu', icon=None)
     with d_cols[3]:
-        ui.safe_page_link(p_dock_4, label=dock_4_lbl, icon=dock_4_ico)
+        ui.safe_page_link(p_dock_4, label=dock_4_lbl, icon=None)
 
 pg.run()

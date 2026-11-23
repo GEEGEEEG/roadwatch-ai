@@ -22,7 +22,7 @@ with st.form('track_lookup_form'):
         placeholder='Ví dụ: RW-20261114213000-a1b2',
         label_visibility='collapsed',
     )
-    submitted = col_btn.form_submit_button('🔍 Tra cứu ngay', type='primary', use_container_width=True)
+    submitted = col_btn.form_submit_button('Tra cứu ngay', type='primary', use_container_width=True)
 
 target_id = code.strip() if (submitted or prefill_id) else ''
 if not target_id:
@@ -60,19 +60,19 @@ if status == 'rejected':
     )
 elif status == 'merged' and parent_id:
     st.info(
-        f"🔁 Hồ sơ **{rec['id']}** đã được gộp vào điểm phản ánh hiện hữu **{parent_id}** để tăng mức độ ưu tiên xử lý."
+        f"Hồ sơ **{rec['id']}** đã được gộp vào điểm phản ánh hiện hữu **{parent_id}** để tăng mức độ ưu tiên xử lý."
     )
 elif status == 'fixed':
-    st.success(f"🎉 Điểm hư hỏng thuộc hồ sơ **{rec['id']}** đã được sửa chữa và nghiệm thu hoàn tất vào `{rec.get('fixed_at')}`!")
+    st.success(f"Điểm hư hỏng thuộc hồ sơ **{rec['id']}** đã được sửa chữa và nghiệm thu hoàn tất vào `{rec.get('fixed_at')}`!")
 elif status == 'assigned':
     st.info(
-        f"🚗 Hồ sơ **{rec['id']}** đã được giao cho **{rec.get('assigned_to') or 'Đội duy tu chuyên trách'}** "
+        f"Hồ sơ **{rec['id']}** đã được giao cho **{rec.get('assigned_to') or 'Đội duy tu chuyên trách'}** "
         f"(Hạn kiểm tra dự kiến: `{rec.get('due_date') or 'Đang cập nhật'}`)."
     )
 elif status == 'verified':
-    st.success(f"✅ Hồ sơ **{rec['id']}** đã được cán bộ xác minh và đưa vào bảng xếp hạng ưu tiên kiểm tra.")
+    st.success(f"Hồ sơ **{rec['id']}** đã được cán bộ xác minh và đưa vào bảng xếp hạng ưu tiên kiểm tra.")
 else:
-    st.info(f"⏳ Hồ sơ **{rec['id']}** đang nằm trong hàng chờ để cán bộ chuyên môn rà soát hình ảnh và tọa độ.")
+    st.info(f"Hồ sơ **{rec['id']}** đang nằm trong hàng chờ để cán bộ chuyên môn rà soát hình ảnh và tọa độ.")
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric('Trạng thái hiện tại', STATUS_LABELS.get(status, status))
@@ -81,9 +81,9 @@ m3.metric('Số vùng phát hiện AI', int(rec.get('total_boxes') or 0))
 dmg = float(rec.get('damage_area_m2') or 0.0)
 m4.metric('Diện tích ước tính', f'{dmg:.2f} m²' if dmg > 0 else '—')
 
-st.markdown(f"**📍 Vị trí ghi nhận:** {rec.get('location_name')} (`{rec.get('latitude')}, {rec.get('longitude')}`) · Thời gian gửi: `{rec.get('created_at')}`")
+st.markdown(f"**Vị trí ghi nhận:** {rec.get('location_name')} (`{rec.get('latitude')}, {rec.get('longitude')}`) · Thời gian gửi: `{rec.get('created_at')}`")
 if rec.get('latitude') is not None and rec.get('longitude') is not None:
-    st.link_button('🧭 Xem vị trí trên Google Maps', maps_link(rec['latitude'], rec['longitude']))
+    st.link_button('Xem vị trí trên Google Maps', maps_link(rec['latitude'], rec['longitude']))
 
 # Chỉ hiển thị hình ảnh công khai sau khi hồ sơ đã được cán bộ xác minh (bảo vệ quyền riêng tư ảnh chưa duyệt)
 if status in ('verified', 'assigned', 'fixed'):

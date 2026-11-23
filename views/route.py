@@ -38,12 +38,12 @@ if not assigned_df.empty and 'due_date' in assigned_df.columns:
     due_dates = pd.to_datetime(assigned_df['due_date'], errors='coerce').dt.date
     overdue_df = assigned_df[due_dates < date.today()]
     if not overdue_df.empty:
-        st.error(f'⏰ **Cảnh báo quá hạn SLA:** Có **{len(overdue_df)}** hồ sơ đã giao kiểm tra vượt quá hạn cam kết (`due_date`)!')
+        st.error(f'**Cảnh báo quá hạn SLA:** Có **{len(overdue_df)}** hồ sơ đã giao kiểm tra vượt quá hạn cam kết (`due_date`)!')
         with st.expander('Xem danh sách hồ sơ quá hạn & nhắc việc'):
             df_show(overdue_df[['id', 'location_name', 'assigned_to', 'due_date', 'final_level']], hide_index=True)
-            if telegram_configured() and st.button('📲 Gửi nhắc việc SLA qua Telegram'):
+            if telegram_configured() and st.button('Gửi nhắc việc SLA qua Telegram'):
                 msg = (
-                    f'⏰ [RoadWatch SLA] Có {len(overdue_df)} hồ sơ duy tu quá hạn xử lý:\n'
+                    f'[RoadWatch SLA] Có {len(overdue_df)} hồ sơ duy tu quá hạn xử lý:\n'
                     + '\n'.join(f"- {r.id}: {r.location_name} (Phụ trách: {r.assigned_to}, Hạn: {r.due_date})" for r in overdue_df.head(8).itertuples())
                 )
                 st.success('Đã gửi nhắc việc Telegram!') if send_telegram(msg) else st.error('Gửi Telegram thất bại.')
@@ -79,10 +79,10 @@ df_show(
     hide_index=True,
     column_config={'Chỉ đường': st.column_config.LinkColumn('Chỉ đường', display_text='Mở Google Maps')},
 )
-st.link_button('🧭 Mở toàn bộ lộ trình trong Google Maps', maps_multi_link([(a, b) for _, a, b, _ in route], start))
+st.link_button('Mở toàn bộ lộ trình trong Google Maps', maps_multi_link([(a, b) for _, a, b, _ in route], start))
 st.caption('Thứ tự gợi ý theo thuật toán láng giềng gần nhất (Nearest Neighbor).')
 st.download_button(
-    '⬇️ Tải phiếu giao việc (.csv)',
+    'Tải phiếu giao việc (.csv)',
     safe_csv_export(table.drop(columns='hotspot_id')),
     file_name='RoadWatch_lo_trinh.csv',
     mime='text/csv',
@@ -113,5 +113,5 @@ if go:
         all_member_ids = [rid for h in pick for rid in by_id[h].member_ids]
         db.update_reports_bulk(all_member_ids, status='assigned', assigned_to=who.strip(), due_date=str(due))
         db.add_history_bulk([(rid, 'assigned', actor, f'Giao {who.strip()} hạn {due}') for rid in all_member_ids])
-        st.success(f'✅ Đã giao {len(pick)} điểm ({len(all_member_ids)} hồ sơ) cho **{who.strip()}**!')
+        st.success(f'Đã giao {len(pick)} điểm ({len(all_member_ids)} hồ sơ) cho **{who.strip()}**!')
 disclaimer()

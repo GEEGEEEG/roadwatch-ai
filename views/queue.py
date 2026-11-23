@@ -20,7 +20,7 @@ page_intro(
 )
 pending = db.fetch_df(['pending'])
 if pending.empty:
-    st.success('✅ Tuyệt vời! Hiện không có báo cáo nào đang chờ duyệt.')
+    st.success('Tuyệt vời! Hiện không có báo cáo nào đang chờ duyệt.')
     st.stop()
 
 # Cảnh báo SLA nếu có hồ sơ khẩn cấp tồn đọng quá 48 giờ
@@ -28,25 +28,25 @@ created_ts = pd.to_datetime(pending['created_at'], errors='coerce')
 age_hours = (pd.Timestamp.now() - created_ts).dt.total_seconds() / 3600.0
 overdue_urgent = int(((pending['ai_level'] == 'Cần kiểm tra sớm') & (age_hours > 48)).sum())
 if overdue_urgent > 0:
-    st.error(f'⏰ **Cảnh báo SLA:** Có **{overdue_urgent}** hồ sơ mức "Cần kiểm tra sớm" đã chờ quá 48 giờ cần ưu tiên thẩm định ngay!')
+    st.error(f'**Cảnh báo SLA:** Có **{overdue_urgent}** hồ sơ mức "Cần kiểm tra sớm" đã chờ quá 48 giờ cần ưu tiên thẩm định ngay!')
 
 col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
 n_urgent = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Cần kiểm tra sớm')
 n_med = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Trung bình')
 n_low = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') in ('Nhẹ', 'Không phát hiện'))
-col_kpi1.metric('📥 Tổng hồ sơ chờ', len(pending))
-col_kpi2.metric('🚨 Khẩn cấp', n_urgent)
-col_kpi3.metric('⚠️ Trung bình', n_med)
-col_kpi4.metric('🟢 Mức độ nhẹ', n_low)
+col_kpi1.metric('Tổng hồ sơ chờ', len(pending))
+col_kpi2.metric('Khẩn cấp', n_urgent)
+col_kpi3.metric('Trung bình', n_med)
+col_kpi4.metric('Mức độ nhẹ', n_low)
 
 active = db.fetch_df(list(ACTIVE_STATUSES))
 labels = {
     r.id: f"{r.id} — {r.location_name} ({r.ai_level})"
-    + (' ⚠️' if r.screen_flags or r.quality_flags else '')
-    + (' 🔁' if nearby_points(active, r.latitude, r.longitude, DUP_FLAG_M) else '')
+    + (' · Có cờ kiểm tra' if r.screen_flags or r.quality_flags else '')
+    + (' · Nghi trùng điểm' if nearby_points(active, r.latitude, r.longitude, DUP_FLAG_M) else '')
     for r in pending.itertuples()
 }
-rid = st.selectbox('🔍 Chọn hồ sơ cần thẩm định', list(labels), format_func=labels.get)
+rid = st.selectbox('Chọn hồ sơ cần thẩm định', list(labels), format_func=labels.get)
 r = pending[pending.id == rid].iloc[0]
 
 _ai_lvl = str(getattr(r, 'ai_level', '') or 'Chưa phân mức')
@@ -55,7 +55,7 @@ _border_hex = '#EF4444' if _ai_lvl == 'Cần kiểm tra sớm' else ('#F59E0B' i
 st.markdown(
     f'<div class="rw-case-banner" style="border-left-color: {_border_hex};">'
     f'<div><div class="rw-case-title">{escape(str(r.id))} · {escape(str(r.location_name))}</div>'
-    f'<div class="rw-case-meta">📍 {r.latitude}, {r.longitude} ({escape(str(r.gps_source))}) · 🕒 {escape(str(r.created_at))}</div></div>'
+    f'<div class="rw-case-meta">{r.latitude}, {r.longitude} ({escape(str(r.gps_source))}) · {escape(str(r.created_at))}</div></div>'
     f'<span class="rw-badge-pill {_pill_cls}">AI đề xuất: {escape(_ai_lvl)} · {r.ai_score}/100</span>'
     f'</div>',
     unsafe_allow_html=True,
@@ -82,7 +82,7 @@ c[1].metric('Mức sơ bộ', r.ai_level)
 c[2].metric('Điểm quy tắc', r.ai_score)
 c[3].metric('Diện tích AI (m²)', f'{dmg_m2:.2f} m²' if dmg_m2 else '—')
 c[4].metric('Dự toán sửa chữa', cost_est['formatted_total'])
-st.caption(f"💡 **Vật tư dự trù:** {cost_est['material_detail']}")
+st.caption(f"**Vật tư dự trù:** {cost_est['material_detail']}")
 
 for text in filter(None, (r.quality_flags or '').split('; ')):
     st.warning('Chất lượng ảnh: ' + text)
@@ -98,7 +98,7 @@ cands = nearby_points(active, r.latitude, r.longitude, MERGE_MAX_M)
 if cands:
     near_id, near_m, _ = cands[0]
     if near_m <= DUP_FLAG_M:
-        st.warning(f'🔁 Có thể trùng điểm với hồ sơ {near_id} (cách {near_m:.0f} m).')
+        st.warning(f'Có thể trùng điểm với hồ sơ {near_id} (cách {near_m:.0f} m).')
     with st.container(border=True, key='rw_glass_queue_merge'):
         st.markdown('**Gộp vào điểm hiện hữu** — không tạo ghim mới, cộng lượt phản ánh vào điểm gốc.')
         pick = st.selectbox(
@@ -107,7 +107,7 @@ if cands:
             key=f'merge_{rid}',
             format_func=lambda i: next(f'{x[0]} — {x[2]} (cách {x[1]:.0f} m)' for x in cands if x[0] == i),
         )
-        if st.button('🔗 Gộp vào điểm hiện hữu', key=f'mergebtn_{rid}'):
+        if st.button('Gộp vào điểm hiện hữu', key=f'mergebtn_{rid}'):
             dist = next(x[1] for x in cands if x[0] == pick)
             parent_status = active.loc[active.id == pick, 'status'].iloc[0]
             now_s = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -125,8 +125,8 @@ with st.form('review'):
     reason = st.text_input('Lý do (nếu từ chối)')
     ok = st.checkbox('Tôi đã xem lại ảnh và xác nhận đây chỉ là đánh giá sơ bộ')
     a, b = st.columns(2)
-    approve = a.form_submit_button('✅ Duyệt', type='primary')
-    reject = b.form_submit_button('❌ Từ chối')
+    approve = a.form_submit_button('Duyệt', type='primary')
+    reject = b.form_submit_button('Từ chối')
 
 if approve:
     if not ok or not loc.strip():

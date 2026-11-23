@@ -21,12 +21,12 @@ page_intro(
 )
 
 v_tab1, v_tab2 = st.tabs([
-    '🚗 Chế độ Tuần đường Trực tiếp (Smart Patrol)',
-    '🎥 Phân tích Video & GPX có sẵn',
+    'Chế độ Tuần đường Trực tiếp (Smart Patrol)',
+    'Phân tích Video & GPX có sẵn',
 ])
 
 with v_tab1:
-    st.subheader('🚗 Chế độ Tuần đường Thông minh (Smart Patrol / Dashcam Mode)')
+    st.subheader('Chế độ Tuần đường Thông minh (Smart Patrol / Dashcam Mode)')
     st.caption('Gắn điện thoại/máy tính bảng lên xe tuần tra, bật tự động lấy GPS trình duyệt và chụp quét nhanh các đoạn mặt đường.')
 
     col_p1, col_p2 = st.columns([1, 1])
@@ -41,12 +41,12 @@ with v_tab1:
     with col_p2:
         patrol_thr = st.slider('Độ nhạy AI (Confidence)', 0.15, 0.85, 0.25, 0.05, key='patrol_thr')
 
-    st.markdown('#### 📍 Định vị GPS Tuần tra')
+    st.markdown('#### Định vị GPS Tuần tra')
     st.session_state.setdefault('patrol_lat', '16.0544')
     st.session_state.setdefault('patrol_lon', '108.2022')
     patrol_gps_source = 'GPS Tuần tra (nhập tay)'
 
-    if st.checkbox('🛰️ Tự động lấy tọa độ GPS thực tế từ thiết bị đang di chuyển', value=False, key='patrol_live_gps'):
+    if st.checkbox('Tự động lấy tọa độ GPS thực tế từ thiết bị đang di chuyển', value=False, key='patrol_live_gps'):
         try:
             from streamlit_js_eval import get_geolocation
             g = get_geolocation(component_key='patrol_geo_eval')
@@ -68,22 +68,22 @@ with v_tab1:
             st.warning('Chưa cài streamlit-js-eval; vui lòng nhập tọa độ bên dưới.')
 
     col_gps1, col_gps2 = st.columns(2)
-    p_lat = col_gps1.text_input('🌐 Vĩ độ (Latitude)', key='patrol_lat')
-    p_lon = col_gps2.text_input('🌐 Kinh độ (Longitude)', key='patrol_lon')
+    p_lat = col_gps1.text_input('Vĩ độ (Latitude)', key='patrol_lat')
+    p_lon = col_gps2.text_input('Kinh độ (Longitude)', key='patrol_lon')
 
     _gps_ok = False
     try:
         _lat_f, _lon_f = float(str(p_lat).replace(',', '.')), float(str(p_lon).replace(',', '.'))
         if 8.0 <= _lat_f <= 24.0 and 102.0 <= _lon_f <= 110.0:
             _gps_ok = True
-            st.success(f'✅ Tọa độ tuần tra hợp lệ: {_lat_f:.6f}, {_lon_f:.6f}')
+            st.success(f'Tọa độ tuần tra hợp lệ: {_lat_f:.6f}, {_lon_f:.6f}')
         else:
-            st.error('⚠️ Tọa độ nằm ngoài phạm vi Việt Nam (Vĩ độ 8–24, Kinh độ 102–110).')
+            st.error('Tọa độ nằm ngoài phạm vi Việt Nam (Vĩ độ 8–24, Kinh độ 102–110).')
     except ValueError:
-        st.error('⚠️ Vui lòng nhập số thực hợp lệ cho Vĩ độ / Kinh độ.')
+        st.error('Vui lòng nhập số thực hợp lệ cho Vĩ độ / Kinh độ.')
 
     patrol_cam = st.camera_input(
-        '📷 Chạm để quét khung hình hiện trường tiếp theo',
+        'Chạm để quét khung hình hiện trường tiếp theo',
         key='patrol_camera',
         disabled=not _gps_ok,
     )
@@ -96,8 +96,8 @@ with v_tab1:
 
         img_show(out_p['annotated_image'], caption='Kết quả quét AI trên xe tuần tra')
         if dets_p:
-            st.warning(f"🚨 Phát hiện **{len(dets_p)}** vùng hư hỏng ({out_p['severity']['level']})!")
-            if st.button('📥 Lưu ngay vào Hàng chờ Duyệt', type='primary', key='btn_save_patrol'):
+            st.warning(f"Phát hiện **{len(dets_p)}** vùng hư hỏng ({out_p['severity']['level']})!")
+            if st.button('Lưu ngay vào Hàng chờ Duyệt', type='primary', key='btn_save_patrol'):
                 try:
                     rid, _, _, _ = submit_report(
                         det,
@@ -117,11 +117,11 @@ with v_tab1:
                         capture_method='camera_patrol',
                         precomputed_out=out_p,
                     )
-                    st.success(f'✅ Đã lưu hồ sơ **{rid}** vào hệ thống!')
+                    st.success(f'Đã lưu hồ sơ **{rid}** vào hệ thống!')
                 except Exception as err:
                     st.error(f'Lỗi lưu hồ sơ: {err}')
         else:
-            st.success('✅ Mặt đường thông thoáng, không phát hiện hư hỏng vượt ngưỡng.')
+            st.success('Mặt đường thông thoáng, không phát hiện hư hỏng vượt ngưỡng.')
 
 with v_tab2:
     st.caption('Tải video hành trình kèm tệp quỹ đạo GPX ghi cùng thời điểm. File video tạm sẽ tự động xóa ngay sau khi trích xuất để giải phóng bộ nhớ máy chủ.')
@@ -132,7 +132,7 @@ with v_tab2:
     offset = c[1].number_input('Độ lệch thời gian Video so với GPX (giây)', -600.0, 600.0, 0.0, 1.0)
     thr = c[2].slider('Ngưỡng tin cậy', 0.10, 0.90, 0.25, 0.05, key='video_thr')
 
-    if st.button('🔍 Bắt đầu phân tích Video + GPX', type='primary', disabled=not (vid and gpx)):
+    if st.button('Bắt đầu phân tích Video + GPX', type='primary', disabled=not (vid and gpx)):
         det = detector_or_stop()
         track = parse_gpx(gpx.getvalue())
         if len(track) < 2:
@@ -179,7 +179,7 @@ with v_tab2:
         with st.form('video_send'):
             name = st.text_input('Tên tuyến khảo sát', key='video_road_name')
             road = st.selectbox('Cấp tuyến', list(ROAD_TYPES), index=2, key='video_road_type')
-            send = st.form_submit_button('📥 Đưa toàn bộ các khung phát hiện vào Hàng chờ xác minh')
+            send = st.form_submit_button('Đưa toàn bộ các khung phát hiện vào Hàng chờ xác minh')
         if send:
             det = detector_or_stop()
             ok = dup = 0

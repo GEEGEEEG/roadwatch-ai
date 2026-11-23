@@ -283,18 +283,18 @@ with left_col:
     )
     st.markdown(f"""
     <div class="sol-kpi-grid">
-      <div class="sol-kpi sol-kpi-blue"><small>📍 Đã ghi nhận</small><strong>{total_recorded}</strong></div>
-      <div class="sol-kpi sol-kpi-green"><small>🆕 Mới hôm nay</small><strong>{new_today}</strong></div>
-      <div class="sol-kpi sol-kpi-red"><small>🚨 Nghiêm trọng</small><strong>{severe_count}</strong></div>
-      <div class="sol-kpi sol-kpi-amber"><small>⏳ Chờ xác minh</small><strong>{pending_count}</strong></div>
+      <div class="sol-kpi sol-kpi-blue"><small>Đã ghi nhận</small><strong>{total_recorded}</strong></div>
+      <div class="sol-kpi sol-kpi-green"><small>Mới hôm nay</small><strong>{new_today}</strong></div>
+      <div class="sol-kpi sol-kpi-red"><small>Nghiêm trọng</small><strong>{severe_count}</strong></div>
+      <div class="sol-kpi sol-kpi-amber"><small>Chờ xác minh</small><strong>{pending_count}</strong></div>
     </div>
     """, unsafe_allow_html=True)
 
-    safe_page_link('views/submit.py', label='📷 Gửi phản ánh mặt đường', icon=None)
-    safe_page_link('views/track.py', label='🔍 Tra cứu mã hồ sơ RW-...', icon=None)
-    safe_page_link('views/map.py', label='🗺️ Mở bản đồ GIS toàn trang', icon=None)
+    safe_page_link('views/submit.py', label='Gửi phản ánh mặt đường', icon=None)
+    safe_page_link('views/track.py', label='Tra cứu mã hồ sơ RW-...', icon=None)
+    safe_page_link('views/map.py', label='Mở bản đồ GIS toàn trang', icon=None)
     if is_officer():
-        safe_page_link('views/queue.py', label='✅ Vào hàng chờ thẩm định', icon=None)
+        safe_page_link('views/queue.py', label='Vào hàng chờ thẩm định', icon=None)
 
 with right_col:
     r1c1, r1c2 = st.columns(2, gap='medium')

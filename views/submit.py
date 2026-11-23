@@ -82,7 +82,7 @@ page_intro(
 )
 steps('1. Chọn ảnh hiện trường', '2. Xác nhận tọa độ GPS', '3. AI Thẩm định & Gửi', active=0)
 st.markdown(
-    '<div class="rw-hint">🛡️ <b>An toàn trước tiên:</b> hãy đứng ở vị trí an toàn và không sử dụng camera khi đang điều khiển phương tiện. '
+    '<div class="rw-hint"><b>An toàn trước tiên:</b> hãy đứng ở vị trí an toàn và không sử dụng camera khi đang điều khiển phương tiện. '
     'Báo cáo sẽ được cấp mã <code>RW-...</code> để bạn tra cứu tiến độ xử lý.</div>',
     unsafe_allow_html=True,
 )
@@ -105,13 +105,13 @@ st.caption('Chụp trực tiếp tại hiện trường hoặc tải ảnh có s
 
 mode = st.radio(
     'Phương thức gửi ảnh',
-    ['📷 Chụp trực tiếp bằng camera', '📁 Tải ảnh từ thiết bị / thư viện'],
+    ['Chụp trực tiếp bằng camera', 'Tải ảnh từ thiết bị / thư viện'],
     horizontal=True,
     help='Khuyến khích chụp trực tiếp tại hiện trường để có tọa độ GPS chính xác nhất.',
 )
 
 ups, cam = [], None
-if mode.startswith('📷'):
+if mode.startswith('Chụp'):
     cam = st.camera_input('Chạm để mở camera và chụp ảnh mặt đường')
 else:
     limit_note = '' if officer else f' (tối đa {MAX_CITIZEN_FILES_PER_BATCH} ảnh/lần)'
@@ -140,7 +140,7 @@ if not items:
 
 # ─── PREVIEW AI REAL-TIME CHO TẤT CẢ ẢNH (CÓ CACHE THEO SHA-256) ──────────
 all_previews = {}
-with st.spinner(f'🔍 AI đang quét & phân tích hình thái hư hỏng {len(items)} ảnh hiện trường...'):
+with st.spinner(f'AI đang quét & phân tích hình thái hư hỏng {len(items)} ảnh hiện trường...'):
     for idx, (p_name, p_raw) in enumerate(items):
         p_digest = hashlib.sha256(p_raw).hexdigest()
         try:
@@ -158,20 +158,19 @@ if len(items) == 1:
         _sev = _preview_out['severity']
         _dmg_prev = _preview_out.get('damage_analysis') or {}
         _qual_prev = _preview_out.get('quality') or {'flags': []}
-        _badge = '🔴' if _sev['level'] == 'Cần kiểm tra sớm' else ('🟡' if _sev['level'] == 'Trung bình' else '🟢')
         _tot_ms = _preview_out.get('total_pipeline_ms', _preview_out['elapsed_ms'])
 
         st.markdown(
-            f'<div class="rw-preview-banner">⚡ Phân tích AI hoàn tất trong {_tot_ms} ms '
+            f'<div class="rw-preview-banner">Phân tích AI hoàn tất trong {_tot_ms} ms '
             f'(Suy luận mô hình: {_preview_out["elapsed_ms"]} ms · Đã lưu đệm 0 ms)</div>',
             unsafe_allow_html=True,
         )
         col_orig, col_ann = st.columns(2)
         with col_orig:
-            st.caption('**📷 Ảnh gốc**')
+            st.caption('**Ảnh gốc**')
             img_show(_preview_out.get('orig_jpeg_bytes') or items[0][1], caption=items[0][0])
         with col_ann:
-            st.caption(f'**{_badge} AI: {_sev["level"]} · {len(_dets)} vùng phát hiện**')
+            st.caption(f'**AI: {_sev["level"]} · {len(_dets)} vùng phát hiện**')
             img_show(_preview_out.get('annotated_jpeg_bytes') or _preview_out['annotated_image'], caption=f'Điểm quy tắc: {_sev["score"]}/100')
 
         if _dmg_prev.get('total_damage_m2', 0) > 0:
@@ -186,7 +185,7 @@ if len(items) == 1:
             _mb.metric('Mức độ sơ bộ', _sev['level'])
 
         for qf in _qual_prev.get('flags', []):
-            st.warning(f'⚠️ Chất lượng ảnh đầu vào: **{qf}** — bạn có thể chụp lại ảnh rõ/sáng hơn để tăng độ chính xác.')
+            st.warning(f'Chất lượng ảnh đầu vào: **{qf}** — bạn có thể chụp lại ảnh rõ/sáng hơn để tăng độ chính xác.')
         if not _dets:
             st.info('AI chưa phát hiện vùng hư hỏng vượt ngưỡng trong ảnh này. Bạn vẫn có thể gửi để cán bộ kiểm tra thủ công.')
     else:
@@ -199,12 +198,12 @@ else:
     tot_boxes = sum(len(p['detections']) for p in all_previews.values() if p)
     tot_m2 = sum((p.get('damage_analysis') or {}).get('total_damage_m2', 0.0) for p in all_previews.values() if p)
     st.markdown(
-        f'<div class="rw-preview-banner">⚡ AI đã quét & dán nhãn xong <b>{len(items)} ảnh</b> hiện trường '
+        f'<div class="rw-preview-banner">AI đã quét &amp; dán nhãn xong <b>{len(items)} ảnh</b> hiện trường '
         f'· Phát hiện tổng cộng: <b>{tot_boxes} khuyết tật</b> (Tổng diện tích: ~<b>{tot_m2:.2f} m²</b>)</div>',
         unsafe_allow_html=True,
     )
-    st.write('👇 **Xem trước kết quả AI đã dán nhãn từng ảnh (chọn tab để xem):**')
-    tabs = st.tabs([f"🖼️ Ảnh {i+1} ({items[i][0][:18]})" for i in range(len(items))])
+    st.write('**Xem trước kết quả AI đã dán nhãn từng ảnh (chọn tab để xem):**')
+    tabs = st.tabs([f"Ảnh {i+1} ({items[i][0][:18]})" for i in range(len(items))])
     for i, tab in enumerate(tabs):
         with tab:
             p_out = all_previews.get(i)
@@ -214,14 +213,13 @@ else:
                 p_sev = p_out['severity']
                 p_dmg = p_out.get('damage_analysis') or {}
                 p_qual = p_out.get('quality') or {'flags': []}
-                p_badge = '🔴' if p_sev['level'] == 'Cần kiểm tra sớm' else ('🟡' if p_sev['level'] == 'Trung bình' else '🟢')
 
                 c_orig, c_ann = st.columns(2)
                 with c_orig:
-                    st.caption(f'**📷 Ảnh gốc: {p_name}**')
+                    st.caption(f'**Ảnh gốc: {p_name}**')
                     img_show(p_out.get('orig_jpeg_bytes') or p_raw, caption=p_name)
                 with c_ann:
-                    st.caption(f'**{p_badge} AI đã dán nhãn ({len(p_dets)} vùng khuyết tật)**')
+                    st.caption(f'**AI đã dán nhãn ({len(p_dets)} vùng khuyết tật)**')
                     img_show(p_out.get('annotated_jpeg_bytes') or p_out['annotated_image'], caption=f'Mức độ: {p_sev["level"]} ({p_sev["score"]}/100)')
 
                 if p_dmg.get('total_damage_m2', 0) > 0:
@@ -236,7 +234,7 @@ else:
                     mb.metric('Mức độ sơ bộ', p_sev['level'])
 
                 for qf in p_qual.get('flags', []):
-                    st.warning(f'⚠️ Chất lượng ảnh **{p_name}**: {qf}')
+                    st.warning(f'Chất lượng ảnh **{p_name}**: {qf}')
                 if not p_dets:
                     st.info(f'Ảnh {p_name} không phát hiện hư hỏng rõ rệt vượt ngưỡng.')
             else:
@@ -272,7 +270,7 @@ if n_exif > 0 and not st.session_state.get('sub_lat'):
 
 browser_loc = None
 browser_accuracy = None
-if st.checkbox('📍 Lấy vị trí GPS trực tiếp từ thiết bị / trình duyệt'):
+if st.checkbox('Lấy vị trí GPS trực tiếp từ thiết bị / trình duyệt'):
     try:
         from streamlit_js_eval import get_geolocation
         g = get_geolocation()
@@ -334,7 +332,7 @@ if lat_txt.strip() or lon_txt.strip():
     except ValueError:
         st.warning('Tọa độ chưa hợp lệ: vĩ độ từ -90 đến 90, kinh độ từ -180 đến 180.')
 
-if st.toggle('🗺️ Mở bản đồ GIS để chọn / kéo thả ghim tọa độ', value=False, key='show_location_picker'):
+if st.toggle('Mở bản đồ GIS để chọn / kéo thả ghim tọa độ', value=False, key='show_location_picker'):
     st.caption('**Kéo ghim đỏ** hoặc **chạm vào mặt đường trên bản đồ** → tọa độ và tên đường tự động cập nhật tức thì.')
     center_pos = [cur_lat, cur_lon] if cur_lat is not None else [16.0544, 108.2022]
     zoom_lvl = 18 if cur_lat is not None else 13
@@ -368,13 +366,13 @@ if st.toggle('🗺️ Mở bản đồ GIS để chọn / kéo thả ghim tọa 
                 st.session_state['_pending_coords'] = (str(pt[0]), str(pt[1]), 'Chọn trên bản đồ', reverse_geocode(*pt))
                 st.rerun()
     if cur_lat is not None:
-        st.link_button('🧭 Kiểm tra vị trí này trên Google Maps', f'https://www.google.com/maps?q={cur_lat},{cur_lon}')
+        st.link_button('Kiểm tra vị trí này trên Google Maps', f'https://www.google.com/maps?q={cur_lat},{cur_lon}')
 
 st.subheader('03 · Xác nhận và gửi báo cáo')
 if cur_lat is None:
-    st.caption('⚠️ Chưa có tọa độ GPS — hãy tích **📍 Lấy vị trí GPS** hoặc **Mở bản đồ GIS** ở Bước 02 trước khi bấm gửi.')
+    st.caption('Chưa có tọa độ GPS — hãy tích **Lấy vị trí GPS** hoặc **Mở bản đồ GIS** ở Bước 02 trước khi bấm gửi.')
 elif not str(st.session_state.get('sub_loc_name', '')).strip():
-    st.caption('✏️ Đã có tọa độ GPS, nhưng chưa tự tra được tên đường — vui lòng nhập **Tên tuyến / điểm chụp** ở ô đầu tiên bên dưới.')
+    st.caption('Đã có tọa độ GPS, nhưng chưa tự tra được tên đường — vui lòng nhập **Tên tuyến / điểm chụp** ở ô đầu tiên bên dưới.')
 
 with st.form('submit_form'):
     loc = st.text_input(
@@ -395,7 +393,7 @@ with st.form('submit_form'):
         auto_verify = st.checkbox('Duyệt ngay (cán bộ đã kiểm tra tại chỗ), bỏ qua hàng chờ')
         pick = st.selectbox('Mức độ cán bộ xác nhận', ['Theo quy tắc sơ bộ'] + LEVELS)
         final_level = None if pick.startswith('Theo') else pick
-    go = st.form_submit_button('✓ Gửi phản ánh đến hệ thống', type='primary', disabled=not items, use_container_width=True)
+    go = st.form_submit_button('Gửi phản ánh đến hệ thống', type='primary', disabled=not items, use_container_width=True)
 
 if go:
     st.session_state['sub_loc_name'] = loc
@@ -434,7 +432,7 @@ if go:
             attempt_map[raw_digest] = time.time()
 
         try:
-            with st.spinner('⏳ Đang tải ảnh lên Cloud & lưu hồ sơ phản ánh...'):
+            with st.spinner('Đang tải ảnh lên Cloud & lưu hồ sơ phản ánh...'):
                 rid, out, quality, flags = submit_report(
                     det,
                     raw,
@@ -473,12 +471,12 @@ if go:
                 submitted_map[raw_digest] = dup.existing_id
                 st.session_state['_last_submitted_id'] = dup.existing_id
                 st.success(
-                    f'✅ **Phản ánh của bạn đã được ghi nhận!** Mã hồ sơ: **`{dup.existing_id}`** '
+                    f'**Phản ánh của bạn đã được ghi nhận!** Mã hồ sơ: **`{dup.existing_id}`** '
                     '(hệ thống bỏ qua thao tác bấm trùng để không tạo bản ghi lặp).'
                 )
             else:
                 st.warning(f'Ảnh này đã tồn tại trên hệ thống (Mã hồ sơ: **{dup.existing_id}**); không lưu trùng.')
-            safe_page_link('views/track.py', label=f'🔍 Tra cứu tiến độ hồ sơ {dup.existing_id}')
+            safe_page_link('views/track.py', label=f'Tra cứu tiến độ hồ sơ {dup.existing_id}')
             continue
         except SubmitError as err:
             attempt_map.pop(raw_digest, None)
@@ -512,7 +510,7 @@ if go:
         st.session_state['_last_submitted_id'] = rid
         confetti_celebrate()
         st.success(
-            f'🎉 **Gửi phản ánh thành công!** Mã hồ sơ của bạn: **`{rid}`** — '
+            f'**Gửi phản ánh thành công!** Mã hồ sơ của bạn: **`{rid}`** — '
             f'Trạng thái: **{STATUS_LABELS["verified" if auto_verify else "pending"]}**.'
         )
 
@@ -522,8 +520,8 @@ if go:
             track_target = f'{base_url}/track?id={rid}' if base_url else rid
             st.image(qr_png(track_target), caption='QR Mã hồ sơ', width=130)
         with link_col:
-            st.info(f'💡 Hãy lưu lại mã **`{rid}`** để tra cứu tiến độ xác minh và ảnh nghiệm thu sau sửa chữa.')
-            safe_page_link('views/track.py', label=f'🔍 Mở trang Tra cứu tiến độ cho {rid}')
+            st.info(f'Hãy lưu lại mã **`{rid}`** để tra cứu tiến độ xác minh và ảnh nghiệm thu sau sửa chữa.')
+            safe_page_link('views/track.py', label=f'Mở trang Tra cứu tiến độ cho {rid}')
 
     if created_ids:
         steps('1. Chọn ảnh hiện trường', '2. Xác nhận tọa độ GPS', '3. AI Thẩm định & Gửi', active=2)

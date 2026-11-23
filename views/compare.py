@@ -74,7 +74,7 @@ if after_file:
     if still:
         st.warning('Ảnh sau sửa chữa vẫn còn vùng nghi ngờ hư hỏng — cán bộ cần kiểm tra kỹ trước khi nghiệm thu.')
     ok = st.checkbox('Xác nhận hiện trường đã khắc phục đạt yêu cầu' + (' (dù mô hình còn đánh dấu)' if still else ''))
-    if st.button('✅ Nghiệm thu & Đóng điểm này (Đã xử lý)', type='primary', disabled=not ok):
+    if st.button('Nghiệm thu & Đóng điểm này (Đã xử lý)', type='primary', disabled=not ok):
         name = f'after/{row.worst_report_id}.jpg'
         buf = io.BytesIO()
         ann_after = out['annotated_image'].copy()
@@ -103,5 +103,5 @@ if after_file:
             (rid, 'fixed', actor, f"Nghiệm thu hoàn thành (còn {len(out['detections'])} vùng AI)")
             for rid in row.member_ids
         ])
-        st.success('🎉 Đã nghiệm thu & lưu ảnh sau sửa chữa lên Cloud vĩnh viễn!')
+        st.success('Đã nghiệm thu & lưu ảnh sau sửa chữa lên Cloud vĩnh viễn!')
 disclaimer()
