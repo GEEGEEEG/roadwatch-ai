@@ -6,10 +6,10 @@ LEVELS = ['Không phát hiện', 'Nhẹ', 'Trung bình', 'Cần kiểm tra sớm
 LEVEL_POINTS = {'Không phát hiện': 0.0, 'Nhẹ': 30.0, 'Trung bình': 60.0, 'Cần kiểm tra sớm': 90.0}
 
 ROAD_TYPES = {
-    'Trục chính / Quốc lộ (minh họa)': 90,
-    'Đường gần trường học, bệnh viện (minh họa)': 75,
-    'Đường khu dân cư (minh họa)': 50,
-    'Đường nhánh ít lưu lượng (minh họa)': 30,
+    'Trục chính / Quốc lộ': 90,
+    'Đường gần trường học, bệnh viện': 75,
+    'Đường khu dân cư': 50,
+    'Đường nhánh ít lưu lượng': 30,
 }
 
 STATUS_LABELS = {

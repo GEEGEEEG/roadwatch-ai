@@ -69,7 +69,8 @@ def submit_report(
     if not (-90 <= lat <= 90 and -180 <= lon <= 180):
         raise SubmitError('Vĩ độ/kinh độ ngoài phạm vi hợp lệ.')
 
-    road_type = road_type if road_type in ROAD_TYPES else 'Đường khu dân cư (minh họa)'
+    road_clean = str(road_type or '').replace(' (minh họa)', '').strip()
+    road_type = road_clean if road_clean in ROAD_TYPES else 'Đường khu dân cư'
     digest = hashlib.sha256(raw).hexdigest()
     existing = db.find_by_hash(digest)
     if existing:
