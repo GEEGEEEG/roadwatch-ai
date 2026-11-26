@@ -8,6 +8,7 @@ from core import db, storage, supabase_rest
 from core.auth import create_officer, is_admin, list_officers, reset_password, toggle_active
 from core.backup import make_backup, restore_backup
 from core.config import PROJECT_ROOT, data_dir, model_path, now_vn
+from core.constants import STATUS_LABELS
 from core.cost_estimation import UNIT_PRICES
 from core.notify import send_telegram, telegram_configured
 from core.ui import current_actor, df_show, disclaimer, kpi_grid, page_intro, require_officer, safe_csv_export
@@ -35,10 +36,10 @@ with admin_tabs[0]:
     m_path = model_path()
 
     kpi_grid([
-        ('Tổng số phản ánh', len(df)),
-        ('Cơ sở dữ liệu', 'Supabase PostgreSQL' if pg_active else 'SQLite (Cục bộ)'),
-        ('Lưu trữ ảnh', 'Supabase Storage' if storage.get_backend_type() == 'supabase' else storage.get_backend_type().upper()),
-        ('Mô hình nhận diện', f"{'ONNX' if m_path.suffix == '.onnx' else 'PyTorch'}: {'Sẵn sàng' if m_path.is_file() else 'Thiếu'}"),
+        ('Tổng số phản ánh', len(df), 'blue', 'Lưu trữ đồng bộ'),
+        ('Cơ sở dữ liệu', 'Supabase PostgreSQL' if pg_active else 'SQLite (Cục bộ)', 'green' if pg_active else 'amber', 'Đã bật RLS' if pg_active else 'Chế độ cục bộ'),
+        ('Lưu trữ ảnh', 'Supabase Storage' if storage.get_backend_type() == 'supabase' else storage.get_backend_type().upper(), 'green' if storage.is_enabled() else 'slate', 'Phân phối CDN'),
+        ('Mô hình nhận diện', f"{'ONNX' if m_path.suffix == '.onnx' else 'PyTorch'}: {'Sẵn sàng' if m_path.is_file() else 'Thiếu'}", 'green' if m_path.is_file() else 'red', '4 lớp RDD2022'),
     ], cols=4)
 
     if telegram_configured() and st.button('Gửi tin nhắn kiểm tra Telegram'):
@@ -47,97 +48,118 @@ with admin_tabs[0]:
         else:
             st.error('Gửi Telegram thất bại.')
 
-    st.markdown('---')
-    st.subheader('Trạng thái Kết nối Supabase (PostgreSQL + Storage CDN)')
-
-    col_diag1, col_diag2 = st.columns(2)
-    with col_diag1:
-        if st.button('Chẩn đoán toàn diện Supabase (DB + Storage)', use_container_width=True, type='primary'):
-            with st.spinner('Đang kiểm tra bảng PostgreSQL và Bucket lưu trữ...'):
-                pg_diag = supabase_rest.diagnose_postgres()
-                st_diag = storage.test_connection()
-                if pg_diag['all_ready']:
-                    st.success(pg_diag['message'])
-                else:
-                    st.warning(pg_diag['message'])
-                if st_diag['ok']:
-                    st.success(st_diag['message'])
-                else:
-                    st.error(st_diag['message'])
-
-    with col_diag2:
-        if storage.is_enabled():
-            if st.button('Đồng bộ dữ liệu cục bộ & ảnh lên Supabase', use_container_width=True):
-                with st.spinner('Đang đồng bộ ảnh và chuyển tiếp dữ liệu lên Supabase...'):
-                    n_ok, n_total, errs = storage.sync_all_to_cloud()
-                    if errs:
-                        st.warning(f'Đã tải {n_ok}/{n_total} tệp. Chi tiết lưu ý:\n' + '\n'.join(errs[:5]))
+    with st.container(border=True, key='rw_glass_adm_conn'):
+        st.subheader('Kết nối Hạ tầng Đám mây (PostgreSQL & Storage CDN)')
+        col_diag1, col_diag2 = st.columns(2)
+        with col_diag1:
+            if st.button('Chẩn đoán toàn diện Supabase (DB + Storage)', use_container_width=True, type='primary'):
+                with st.spinner('Đang kiểm tra bảng PostgreSQL và Bucket lưu trữ...'):
+                    pg_diag = supabase_rest.diagnose_postgres()
+                    st_diag = storage.test_connection()
+                    if pg_diag['all_ready']:
+                        st.success(pg_diag['message'])
                     else:
-                        st.success(f'Đồng bộ thành công {n_ok}/{n_total} tệp & bản ghi lên Supabase vĩnh viễn!')
+                        st.warning(pg_diag['message'])
+                    if st_diag['ok']:
+                        st.success(st_diag['message'])
+                    else:
+                        st.error(st_diag['message'])
 
-    sql_file = PROJECT_ROOT / 'migrations' / '001_supabase_schema.sql'
-    with st.expander('Hướng dẫn cấu hình chuẩn Supabase PostgreSQL + Secrets (1 phút)'):
-        st.markdown("""
-        **Bước 1 — Tạo bảng PostgreSQL + PostGIS trên Supabase:**
-        1. Mở trang quản trị [Supabase Dashboard](https://supabase.com/dashboard) → chọn Project của bạn.
-        2. Mở **SQL Editor** ở thanh bên trái → nhấn **New query**.
-        3. Sao chép đoạn mã SQL dưới đây dán vào ô soạn thảo và nhấn **Run**:
-        """)
-        if sql_file.is_file():
-            st.code(sql_file.read_text(encoding='utf-8'), language='sql')
-        st.markdown("""
-        **Bước 2 — Cấu hình Streamlit Cloud Secrets (`App settings → Secrets`):**
-        ```toml
-        SUPABASE_URL = "https://xxxx.supabase.co"
-        SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOi..."   # Lấy tại Project Settings -> API -> service_role (secret)
-        SUPABASE_BUCKET = "roadwatch-data"
-        ROADWATCH_ADMIN_PASSWORD = "MatKhauAdminManhCuaBan"
-        ROADWATCH_DEMO_MODE = "true"                  # Đặt "false" nếu muốn ẩn nút đăng nhập Demo của Hội đồng
-        ```
-        """)
+        with col_diag2:
+            if storage.is_enabled():
+                if st.button('Đồng bộ dữ liệu cục bộ & ảnh lên Supabase', use_container_width=True):
+                    with st.spinner('Đang đồng bộ ảnh và chuyển tiếp dữ liệu lên Supabase...'):
+                        n_ok, n_total, errs = storage.sync_all_to_cloud()
+                        if errs:
+                            st.warning(f'Đã tải {n_ok}/{n_total} tệp. Chi tiết lưu ý:\n' + '\n'.join(errs[:5]))
+                        else:
+                            st.success(f'Đồng bộ thành công {n_ok}/{n_total} tệp & bản ghi lên Supabase vĩnh viễn!')
 
-    st.markdown('---')
-    if not df.empty:
+        sql_file = PROJECT_ROOT / 'migrations' / '001_supabase_schema.sql'
+        with st.expander('Hướng dẫn cấu hình chuẩn Supabase PostgreSQL + Secrets (1 phút)'):
+            st.markdown("""
+            **Bước 1 — Tạo bảng PostgreSQL + PostGIS trên Supabase:**
+            1. Mở trang quản trị [Supabase Dashboard](https://supabase.com/dashboard) → chọn Project của bạn.
+            2. Mở **SQL Editor** ở thanh bên trái → nhấn **New query**.
+            3. Sao chép đoạn mã SQL dưới đây dán vào ô soạn thảo và nhấn **Run**:
+            """)
+            if sql_file.is_file():
+                st.code(sql_file.read_text(encoding='utf-8'), language='sql')
+            st.markdown("""
+            **Bước 2 — Cấu hình Streamlit Cloud Secrets (`App settings → Secrets`):**
+            ```toml
+            SUPABASE_URL = "https://xxxx.supabase.co"
+            SUPABASE_SERVICE_ROLE_KEY = "sb_secret_..."   # Lấy tại Project Settings -> API Keys
+            SUPABASE_BUCKET = "roadwatch-data"
+            ROADWATCH_ADMIN_PASSWORD = "MatKhauAdminManhCuaBan"
+            ROADWATCH_DEMO_MODE = "true"                  # Đặt "false" nếu muốn ẩn nút đăng nhập Demo
+            ```
+            """)
+
+    with st.container(border=True, key='rw_glass_adm_data'):
         st.subheader('Danh sách phản ánh trong cơ sở dữ liệu')
-        adm_df = df.drop(columns=['detections_json', 'color_vec'], errors='ignore').rename(columns={
-            'id': 'Mã phản ánh',
-            'created_at': 'Thời điểm gửi',
-            'image_hash': 'Mã băm ảnh',
-            'location_name': 'Vị trí',
-            'status': 'Trạng thái',
-            'final_level': 'Mức độ',
-        })
-        df_show(adm_df, hide_index=True)
-        st.download_button(
-            'Xuất toàn bộ dữ liệu (.csv)',
-            safe_csv_export(df.drop(columns=['detections_json', 'color_vec'], errors='ignore')),
-            file_name='RoadWatch_all_reports.csv',
-            mime='text/csv',
-        )
+        if df.empty:
+            st.info('Chưa có dữ liệu phản ánh nào trong cơ sở dữ liệu.')
+        else:
+            show_raw_cols = st.toggle('Hiện toàn bộ cột kỹ thuật (mã băm, đường dẫn ảnh)', value=False, key='adm_raw_cols')
+            if show_raw_cols:
+                adm_df = df.drop(columns=['detections_json', 'color_vec'], errors='ignore').rename(columns={
+                    'id': 'Mã phản ánh',
+                    'created_at': 'Thời điểm gửi',
+                    'image_hash': 'Mã băm ảnh',
+                    'location_name': 'Vị trí',
+                    'status': 'Trạng thái',
+                    'final_level': 'Mức độ',
+                })
+            else:
+                cols_clean = [c for c in ('id', 'created_at', 'location_name', 'status', 'final_level', 'final_score', 'total_boxes', 'assigned_to') if c in df.columns]
+                adm_df = df[cols_clean].copy()
+                if 'status' in adm_df.columns:
+                    adm_df['status'] = adm_df['status'].map(lambda s: STATUS_LABELS.get(s, s))
+                adm_df = adm_df.rename(columns={
+                    'id': 'Mã phản ánh',
+                    'created_at': 'Thời điểm gửi',
+                    'location_name': 'Vị trí',
+                    'status': 'Trạng thái',
+                    'final_level': 'Mức độ',
+                    'final_score': 'Điểm',
+                    'total_boxes': 'Số vùng',
+                    'assigned_to': 'Phụ trách',
+                })
+            df_show(adm_df, hide_index=True)
+            st.download_button(
+                'Xuất toàn bộ dữ liệu (.csv)',
+                safe_csv_export(df.drop(columns=['detections_json', 'color_vec'], errors='ignore')),
+                file_name='RoadWatch_all_reports.csv',
+                mime='text/csv',
+            )
 
-    st.subheader('Sao lưu & Khôi phục (.zip)')
-    st.download_button(
-        'Tải gói sao lưu cục bộ (.zip)',
-        make_backup(),
-        file_name=f"roadwatch_backup_{now_vn():%Y%m%d_%H%M}.zip",
-        mime='application/zip',
-    )
-    if _is_admin:
-        up = st.file_uploader('Khôi phục từ gói sao lưu .zip (Chỉ dành cho Quản trị viên)', type=['zip'])
-        if up and st.button('Khôi phục dữ liệu từ file .zip'):
-            try:
-                restore_backup(up.getvalue())
-                st.success('Đã khôi phục dữ liệu cục bộ. Nhấn "Đồng bộ dữ liệu cục bộ & ảnh lên Supabase" nếu muốn đẩy lên Cloud.')
-            except Exception as exc:
-                st.error(f'Không khôi phục được: {exc}')
-    else:
-        st.caption('Chức năng ghi đè khôi phục file `.zip` chỉ mở cho vai trò Quản trị viên (`admin`).')
+    with st.container(border=True, key='rw_glass_adm_bak'):
+        st.subheader('Sao lưu & Khôi phục dữ liệu')
+        st.download_button(
+            'Tải gói sao lưu cục bộ (.zip)',
+            make_backup(),
+            file_name=f"roadwatch_backup_{now_vn():%Y%m%d_%H%M}.zip",
+            mime='application/zip',
+        )
+        if _is_admin:
+            up = st.file_uploader('Khôi phục từ gói sao lưu .zip (Chỉ dành cho Quản trị viên)', type=['zip'])
+            if up and st.button('Khôi phục dữ liệu từ file .zip'):
+                try:
+                    restore_backup(up.getvalue())
+                    st.success('Đã khôi phục dữ liệu cục bộ. Nhấn "Đồng bộ dữ liệu cục bộ & ảnh lên Supabase" nếu muốn đẩy lên Cloud.')
+                except Exception as exc:
+                    st.error(f'Không khôi phục được: {exc}')
+        else:
+            st.caption('Chức năng ghi đè dữ liệu từ gói sao lưu chỉ dành cho Quản trị viên hệ thống.')
 
 # ── Tab 2: Quản lý Tài khoản Cán bộ (RBAC) ────────────────────────────────
 with admin_tabs[1]:
     if not _is_admin:
-        st.warning('Chỉ **Quản trị viên (`admin`)** mới có quyền tạo hoặc thay đổi tài khoản cán bộ.')
-        st.info(f'Tài khoản hiện tại: `{current_user}`.')
+        with st.container(border=True, key='rw_glass_adm_rbac_note'):
+            st.subheader('Phân quyền Quản lý Tài khoản')
+            st.warning('Chỉ Quản trị viên hệ thống mới có quyền tạo mới, khóa hoặc đặt lại mật khẩu tài khoản cán bộ.')
+            st.caption(f'Tài khoản đang đăng nhập: {current_user} (nhóm quyền Thẩm định & Điều phối).')
     else:
         officers = list_officers()
         st.subheader(f'Danh sách tài khoản hệ thống ({len(officers)} tài khoản)')

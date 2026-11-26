@@ -36,11 +36,11 @@ n_med = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Tr
 n_low = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Nhẹ')
 n_none = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Không phát hiện')
 kpi_grid([
-    ('Tổng phản ánh chờ', len(pending)),
-    ('Khẩn cấp', n_urgent),
-    ('Trung bình', n_med),
-    ('Mức độ nhẹ', n_low),
-    ('Không phát hiện', n_none),
+    ('Tổng phản ánh chờ', len(pending), 'blue', 'Đang chờ thẩm định'),
+    ('Khẩn cấp', n_urgent, 'red', 'Cần kiểm tra sớm'),
+    ('Trung bình', n_med, 'amber'),
+    ('Mức độ nhẹ', n_low, 'green'),
+    ('Không phát hiện', n_none, 'slate'),
 ], cols=5)
 
 active = db.fetch_df(list(ACTIVE_STATUSES))
@@ -83,11 +83,11 @@ dmg_vol = raw_dmg_vol if raw_dmg_vol > 0 else (5.0 if int(getattr(r, 'count_D40'
 cost_est = estimate_maintenance_cost(dmg_m2, dmg_vol, custom_prices=custom_prices)
 
 kpi_grid([
-    ('Số vùng', int(r.total_boxes)),
-    ('Mức sơ bộ', r.ai_level),
-    ('Điểm quy tắc', r.ai_score),
-    ('Diện tích ước tính', f'{raw_dmg_m2:.2f} m²' if raw_dmg_m2 > 0 else 'Chưa ước tính'),
-    ('Dự toán sơ bộ', cost_est['formatted_total']),
+    ('Số vùng phát hiện', int(r.total_boxes), 'blue'),
+    ('Mức độ sơ bộ', r.ai_level, 'red' if r.ai_level == 'Cần kiểm tra sớm' else ('amber' if r.ai_level == 'Trung bình' else 'green')),
+    ('Điểm quy tắc', r.ai_score, 'amber'),
+    ('Diện tích ước tính', f'{raw_dmg_m2:.2f} m²' if raw_dmg_m2 > 0 else 'Chưa ước tính', 'slate'),
+    ('Dự toán sơ bộ', cost_est['formatted_total'], 'green'),
 ], cols=5)
 cls_parts = [
     f"{code}: {int(getattr(r, f'count_{code}', 0) or 0)}"

@@ -106,6 +106,7 @@ st.caption('Chụp trực tiếp tại hiện trường hoặc tải ảnh có s
 mode = st.radio(
     'Phương thức gửi ảnh',
     ['Chụp trực tiếp bằng camera', 'Tải ảnh từ thiết bị / thư viện'],
+    index=1,
     horizontal=True,
     help='Khuyến khích chụp trực tiếp tại hiện trường để có tọa độ GPS chính xác nhất.',
 )

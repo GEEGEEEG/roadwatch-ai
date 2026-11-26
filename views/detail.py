@@ -18,10 +18,10 @@ rid = st.selectbox('Mã bản ghi', ids, index=ids.index(qid) if qid in ids else
 r = df[df.id == rid].iloc[0]
 
 kpi_grid([
-    ('Trạng thái', STATUS_LABELS.get(r.status, r.status)),
-    ('Mức xác nhận', r.final_level or 'Chưa phân mức'),
-    ('Điểm mức độ', r.final_score),
-    ('Số vùng phát hiện', int(r.total_boxes)),
+    ('Trạng thái', STATUS_LABELS.get(r.status, r.status), 'green' if r.status == 'fixed' else ('amber' if r.status in ('pending', 'assigned') else 'blue')),
+    ('Mức xác nhận', r.final_level or 'Chưa phân mức', 'red' if r.final_level == 'Cần kiểm tra sớm' else ('amber' if r.final_level == 'Trung bình' else 'green')),
+    ('Điểm mức độ', r.final_score, 'amber'),
+    ('Số vùng phát hiện', int(r.total_boxes), 'blue'),
 ], cols=4)
 
 st.write(f"**{r.location_name}** — `{r.latitude}, {r.longitude}` (Nguồn: {r.gps_source})")

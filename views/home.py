@@ -437,7 +437,7 @@ with right_col:
                 })
                 max_val = max(int(status_df['Số hồ sơ'].max()), 1)
                 base = alt.Chart(status_df).encode(
-                    y=alt.Y('Trạng thái:N', sort=status_labels, title=None, axis=alt.Axis(labelLimit=140)),
+                    y=alt.Y('Trạng thái:N', sort=status_labels, title=None, axis=alt.Axis(labelLimit=180, labelPadding=6)),
                     x=alt.X('Số hồ sơ:Q', title=None, scale=alt.Scale(domain=[0, max_val + 1]), axis=alt.Axis(tickMinStep=1)),
                 )
                 hbar = base.mark_bar(cornerRadiusEnd=5, size=24).encode(
@@ -451,7 +451,7 @@ with right_col:
                 labels_txt = base.mark_text(align='left', dx=6, font=CHART_FONT, fontWeight='bold', color='#F8FAFC').encode(
                     text='Số hồ sơ:Q'
                 )
-                _show_chart((hbar + labels_txt).properties(height=CARD_VISUAL_HEIGHT))
+                _show_chart((hbar + labels_txt).properties(height=CARD_VISUAL_HEIGHT, padding={'left': 8, 'right': 18, 'top': 6, 'bottom': 4}))
             _card_footer(
                 'Tiến độ xử lý hồ sơ',
                 'Số lượng hồ sơ qua 4 bước từ chờ xác minh, đã duyệt, đang giao xử lý đến đã hoàn thành.',

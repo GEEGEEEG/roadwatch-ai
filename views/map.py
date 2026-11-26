@@ -43,10 +43,11 @@ if wide_degradations:
         f"(trải dài ~{top_c['span_length_m']} m). **{top_c['proposal']}** · Dự toán: ~{top_c['formatted_cost']}."
     )
 
-levels = st.multiselect('Lọc theo mức độ', LEVELS, default=LEVELS)
-col_f1, col_f2 = st.columns(2)
-heat = col_f1.checkbox('Hiện bản đồ nhiệt')
-show_corridors = col_f2.checkbox('Hiện hành lang xuống cấp', value=True)
+with st.container(border=True, key='rw_glass_map_filter'):
+    levels = st.multiselect('Lọc theo mức độ', LEVELS, default=LEVELS)
+    col_f1, col_f2 = st.columns(2)
+    heat = col_f1.checkbox('Hiện bản đồ nhiệt')
+    show_corridors = col_f2.checkbox('Hiện hành lang xuống cấp', value=True)
 
 hs = hs[hs.severity_label.isin(levels)]
 if hs.empty:

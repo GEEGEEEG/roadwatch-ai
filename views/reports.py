@@ -27,6 +27,7 @@ from core.ui import (
     image_file,
     image_url_or_file,
     img_show,
+    kpi_grid,
     page_intro,
     require_officer,
     safe_csv_export,
@@ -64,9 +65,9 @@ else:
     st.caption('Hỗ trợ soạn thảo tự động: chưa cấu hình — hệ thống dùng biểu mẫu chuẩn cố định.')
 
 tab_wo, tab_per, tab_acc = st.tabs([
-    '1. Phiếu giao việc (1 điểm)',
-    '2. Báo cáo tổng hợp định kỳ',
-    '3. Biên bản nghiệm thu (Trước/Sau)',
+    'Phiếu giao việc',
+    'Báo cáo định kỳ',
+    'Biên bản nghiệm thu',
 ])
 
 # ── TAB 1: PHIẾU GIAO VIỆC & KIỂM TRA HIỆN TRƯỜNG ─────────────────────────
@@ -84,11 +85,12 @@ with tab_wo:
         rec = hotspot_record(row, df)
         rec['cost_estimate'] = cost_for_hotspot(rec, df, custom_prices)
 
-        k = st.columns(4)
-        k[0].metric('Hạng ưu tiên', f"#{int(row.priority_rank)}")
-        k[1].metric('Điểm ưu tiên', f"{float(row.priority_score):.1f}/100")
-        k[2].metric('Số phản ánh', int(row.report_count))
-        k[3].metric('Dự toán sơ bộ', rec['cost_estimate']['formatted_total'])
+        kpi_grid([
+            ('Hạng ưu tiên', f'#{int(row.priority_rank)}', 'red'),
+            ('Điểm ưu tiên', f'{float(row.priority_score):.1f}/100', 'amber'),
+            ('Số phản ánh', int(row.report_count), 'blue'),
+            ('Dự toán sơ bộ', rec['cost_estimate']['formatted_total'], 'green'),
+        ], cols=4)
 
         c_meta1, c_meta2, c_meta3 = st.columns(3)
         wo_doc_no = c_meta1.text_input('Số phiếu', value=f"Số: {now_stamp:%Y%m%d}-{int(row.priority_rank):02d}/RW-GV", key=f'wo_no_{hid}')
@@ -190,12 +192,13 @@ with tab_per:
         st.error('Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.')
     else:
         summary = build_periodic_summary(df, hs, d_start, d_end, custom_prices=custom_prices)
-        pk = st.columns(5)
-        pk[0].metric('Tiếp nhận trong kỳ', summary['total_reports'])
-        pk[1].metric('Đã sửa chữa', f"{summary['fixed']} ({summary['completion_pct']}%)")
-        pk[2].metric('Điểm nóng đang mở', summary['active_hotspots'])
-        pk[3].metric('Quá hạn SLA', summary['overdue_count'])
-        pk[4].metric('Tổng dự toán sơ bộ', summary['formatted_total_cost'])
+        kpi_grid([
+            ('Tiếp nhận trong kỳ', summary['total_reports'], 'blue'),
+            ('Đã sửa chữa', f"{summary['fixed']} ({summary['completion_pct']}%)", 'green'),
+            ('Điểm đang mở', summary['active_hotspots'], 'amber'),
+            ('Quá hạn SLA', summary['overdue_count'], 'red' if summary['overdue_count'] > 0 else 'slate'),
+            ('Tổng dự toán', summary['formatted_total_cost'], 'green'),
+        ], cols=5)
 
         st.subheader('Bảng điểm nóng ưu tiên & dự toán kinh phí')
         if summary['table_df'].empty:
@@ -282,11 +285,12 @@ with tab_acc:
         )
         acc = acceptance_record(fixed_df[fixed_df['id'] == acc_id].iloc[0])
 
-        ak = st.columns(4)
-        ak[0].metric('Vùng AI trước sửa', acc['before_boxes'])
-        ak[1].metric('Vùng AI sau sửa', acc['after_boxes'])
-        ak[2].metric('Mức giảm khuyết tật', f"{acc['reduction_pct']}%")
-        ak[3].metric('Diện tích ban đầu', f"{acc['damage_area_m2']:.2f} m²")
+        kpi_grid([
+            ('Vùng AI trước sửa', acc['before_boxes'], 'amber'),
+            ('Vùng AI sau sửa', acc['after_boxes'], 'green' if acc['after_boxes'] == 0 else 'red'),
+            ('Mức giảm khuyết tật', f"{acc['reduction_pct']}%", 'green'),
+            ('Diện tích ban đầu', f"{acc['damage_area_m2']:.2f} m²", 'blue'),
+        ], cols=4)
 
         ic1, ic2 = st.columns(2)
         with ic1:

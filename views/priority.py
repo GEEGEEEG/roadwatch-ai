@@ -16,6 +16,7 @@ from core.ui import (
     current_actor,
     df_show,
     disclaimer,
+    kpi_grid,
     page_intro,
     require_officer,
     safe_csv_export,
@@ -147,10 +148,16 @@ with tab1:
             'AHP': st.column_config.NumberColumn('AHP', width='small'),
         },
     )
-    chart_df = hs.set_index('location_name')[['priority_score', 'diem_AHP']].rename(
+    chart_df = hs[['location_name', 'priority_score', 'diem_AHP']].copy()
+    chart_df['location_name'] = chart_df['location_name'].astype(str).map(
+        lambda s: s if len(s) <= 24 else s[:23] + '…'
+    )
+    chart_df = chart_df.set_index('location_name').rename(
         columns={'priority_score': 'Điểm ưu tiên', 'diem_AHP': 'Điểm AHP'}
     )
-    st.bar_chart(chart_df)
+    with st.container(border=True, key='rw_glass_pri_chart'):
+        st.caption('So sánh trực quan Điểm ưu tiên (50-30-20) và Điểm AHP theo vị trí')
+        st.bar_chart(chart_df, use_container_width=True)
 
     with st.expander('Kiểm tra độ ổn định xếp hạng (Spearman)'):
         c = st.columns(3)
@@ -213,10 +220,11 @@ with tab3:
             'Tổng cộng (VNĐ)': est['total_estimate_vnd'],
         })
 
-    m1, m2, m3 = st.columns(3)
-    m1.metric('Tổng số điểm nóng cần duy tu', f'{len(cost_rows)} điểm')
-    m2.metric('Tổng diện tích hư hại hoạt động', f'{tot_area_sum:.2f} m²')
-    m3.metric('Tổng kinh phí dự trù', f'{tot_all_vnd:,} VNĐ'.replace(',', '.'))
+    kpi_grid([
+        ('Điểm cần duy tu', f'{len(cost_rows)} điểm', 'blue', 'Đã xác minh & đang giao'),
+        ('Tổng diện tích hư hỏng', f'{tot_area_sum:.2f} m²', 'amber', 'Ước tính từ ảnh AI'),
+        ('Tổng kinh phí dự trù', f'{tot_all_vnd:,} VNĐ'.replace(',', '.'), 'green', 'Vật tư & nhân công'),
+    ], cols=3)
 
     cost_table = pd.DataFrame(cost_rows)
     if not cost_table.empty:
