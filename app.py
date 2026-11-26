@@ -37,40 +37,40 @@ if _logo_path.is_file():
     st.logo(str(_logo_path), size='large', icon_image=str(_logo_path))
 ui.officer_login_box()
 
-p_home = st.Page(_page('views/home.py'), title='Trang chủ', default=True)
-p_submit = st.Page(_page('views/submit.py'), title='Gửi phản ánh', url_path='submit')
-p_track = st.Page(_page('views/track.py'), title='Tra cứu phản ánh', url_path='track')
-p_map = st.Page(_page('views/map.py'), title='Bản đồ', url_path='map')
+p_home = st.Page(_page('views/home.py'), title='Trang chủ', icon=':material/dashboard:', default=True)
+p_submit = st.Page(_page('views/submit.py'), title='Gửi phản ánh', icon=':material/add_a_photo:', url_path='submit')
+p_track = st.Page(_page('views/track.py'), title='Tra cứu phản ánh', icon=':material/manage_search:', url_path='track')
+p_map = st.Page(_page('views/map.py'), title='Bản đồ', icon=':material/map:', url_path='map')
 public_pages = [p_home, p_submit, p_track, p_map]
 
 if not ui.is_officer():
-    public_pages.append(st.Page(_page('views/login.py'), title='Cổng cán bộ', url_path='login'))
+    public_pages.append(st.Page(_page('views/login.py'), title='Cổng cán bộ', icon=':material/lock:', url_path='login'))
     pages = {'Công khai': public_pages}
     p_dock_4, dock_4_lbl = p_map, 'Bản đồ'
 else:
     role_lv = ui.officer_role()
     if role_lv == 'field_team':
-        p_route = st.Page(_page('views/route.py'), title='Lộ trình & giao việc', url_path='route')
+        p_route = st.Page(_page('views/route.py'), title='Lộ trình & giao việc', icon=':material/route:', url_path='route')
         officer_pages = [
             p_route,
-            st.Page(_page('views/compare.py'), title='Trước/sau sửa chữa', url_path='compare'),
-            st.Page(_page('views/video.py'), title='Khảo sát video + GPX', url_path='video'),
-            st.Page(_page('views/detail.py'), title='Chi tiết điểm', url_path='detail'),
-            st.Page(_page('views/login.py'), title='Hồ sơ cán bộ', url_path='officer-profile'),
+            st.Page(_page('views/compare.py'), title='Trước/sau sửa chữa', icon=':material/compare:', url_path='compare'),
+            st.Page(_page('views/video.py'), title='Khảo sát video + GPX', icon=':material/videocam:', url_path='video'),
+            st.Page(_page('views/detail.py'), title='Chi tiết điểm', icon=':material/location_on:', url_path='detail'),
+            st.Page(_page('views/login.py'), title='Hồ sơ cán bộ', icon=':material/badge:', url_path='officer-profile'),
         ]
         p_dock_4, dock_4_lbl = p_route, 'Lộ trình'
     else:
-        p_queue = st.Page(_page('views/queue.py'), title='Hàng chờ xác minh', url_path='queue')
+        p_queue = st.Page(_page('views/queue.py'), title='Hàng chờ xác minh', icon=':material/fact_check:', url_path='queue')
         officer_pages = [
             p_queue,
-            st.Page(_page('views/priority.py'), title='Ưu tiên kiểm tra', url_path='priority'),
-            st.Page(_page('views/route.py'), title='Lộ trình & giao việc', url_path='route'),
-            st.Page(_page('views/detail.py'), title='Chi tiết điểm', url_path='detail'),
-            st.Page(_page('views/compare.py'), title='Trước/sau sửa chữa', url_path='compare'),
-            st.Page(_page('views/reports.py'), title='Báo cáo', url_path='reports'),
-            st.Page(_page('views/video.py'), title='Khảo sát video + GPX', url_path='video'),
-            st.Page(_page('views/admin.py'), title='Quản trị & sao lưu', url_path='admin'),
-            st.Page(_page('views/login.py'), title='Hồ sơ cán bộ', url_path='officer-profile'),
+            st.Page(_page('views/priority.py'), title='Ưu tiên kiểm tra', icon=':material/leaderboard:', url_path='priority'),
+            st.Page(_page('views/route.py'), title='Lộ trình & giao việc', icon=':material/route:', url_path='route'),
+            st.Page(_page('views/detail.py'), title='Chi tiết điểm', icon=':material/location_on:', url_path='detail'),
+            st.Page(_page('views/compare.py'), title='Trước/sau sửa chữa', icon=':material/compare:', url_path='compare'),
+            st.Page(_page('views/reports.py'), title='Báo cáo', icon=':material/description:', url_path='reports'),
+            st.Page(_page('views/video.py'), title='Khảo sát video + GPX', icon=':material/videocam:', url_path='video'),
+            st.Page(_page('views/admin.py'), title='Quản trị & sao lưu', icon=':material/admin_panel_settings:', url_path='admin'),
+            st.Page(_page('views/login.py'), title='Hồ sơ cán bộ', icon=':material/badge:', url_path='officer-profile'),
         ]
         p_dock_4, dock_4_lbl = p_queue, 'Duyệt'
     pages = {
