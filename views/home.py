@@ -262,10 +262,10 @@ st.markdown("""
       <h1 id="roadwatch-title">MỖI PHẢN ÁNH NHỎ.<br>MỘT TUYẾN ĐƯỜNG AN TOÀN HƠN.</h1>
       <p class="rw-lead">Chụp ảnh mặt đường, định vị GPS chuẩn xác. AI tự động khoanh vùng ổ gà, vết nứt &amp; ước lượng diện tích; cán bộ xác minh và xếp hạng ưu tiên duy tu theo mô hình AHP.</p>
     </div>
-    <div class="rw-hero-visual" role="img" aria-label="Minh họa quy trình phản ánh hư hỏng mặt đường đến bản đồ và xác minh">
+    <div class="rw-hero-visual" role="img" aria-label="Minh họa quy trình khép kín: AI quét phát hiện ổ gà, cán bộ duyệt và đội duy tu sửa xong">
       <div class="rw-visual-head"><span><span class="rw-visual-dot"></span>Quy trình khép kín</span><span>ROADWATCH v5</span></div>
-      <div class="rw-visual-road"><span class="rw-road-line"></span><span class="rw-road-pin"></span></div>
-      <div class="rw-visual-flow"><span>01 · Chụp ảnh</span><span>02 · AI phân tích</span><span>03 · Duy tu</span></div>
+      <div class="rw-visual-road"><span class="rw-road-line"></span><span class="rw-road-scan"></span><span class="rw-road-pin"><span class="rw-pin-tag rw-tag-red">D40 · 0.87</span><span class="rw-pin-tag rw-tag-amber">ĐÃ DUYỆT</span><span class="rw-pin-tag rw-tag-green">ĐÃ SỬA</span></span></div>
+      <div class="rw-visual-flow"><span>01 · Tiếp nhận</span><span>02 · AI quét</span><span>03 · Duyệt</span><span>04 · Đã sửa</span></div>
     </div>
   </div>
 </section>
