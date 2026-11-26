@@ -59,9 +59,9 @@ with st.expander('Thông tin cơ quan & chữ ký hành chính (dùng chung cho 
     approver = m5.text_input('Lãnh đạo phê duyệt', value='', placeholder='Nhập họ tên lãnh đạo (để trống nếu ký tay)', key='rep_approver')
 
 if key:
-    st.caption(f"Gemini AI: đã cấu hình · model ưu tiên `{gemini_models()[0]}` (chỉ viết phần nhận xét hỗ trợ, số liệu luôn lấy cố định từ cơ sở dữ liệu)")
+    st.caption('Hỗ trợ soạn thảo tự động: đã bật (chỉ gợi ý phần nhận xét, số liệu luôn lấy cố định từ cơ sở dữ liệu).')
 else:
-    st.caption('Gemini AI: chưa cấu hình `GEMINI_API_KEY` — hệ thống dùng biểu mẫu chuẩn cố định')
+    st.caption('Hỗ trợ soạn thảo tự động: chưa cấu hình — hệ thống dùng biểu mẫu chuẩn cố định.')
 
 tab_wo, tab_per, tab_acc = st.tabs([
     '1. Phiếu giao việc (1 điểm)',
@@ -106,11 +106,11 @@ with tab_wo:
             st.markdown(
                 f"**Vị trí:** {rec['location_name']}  \n"
                 f"**Mức độ cán bộ xác nhận:** {rec.get('final_level') or '-'}  \n"
-                f"**Cấp đường:** {rec.get('road_type') or '-'}  \n"
+                f"**Cấp đường:** {str(rec.get('road_type') or '-').replace(' (minh họa)', '')}  \n"
                 f"**Phương án vật tư:** {rec['cost_estimate']['material_detail']}"
             )
             if st.button('Tạo bản thảo phiếu giao việc', type='primary', key='btn_wo_gen'):
-                with st.spinner('Đang soạn bản thảo cùng Gemini AI...' if key else 'Đang soạn bản thảo...'):
+                with st.spinner('Đang soạn bản thảo...'):
                     text, method = generate_report(rec, key)
                 st.session_state.update(rep_method=method, rep_for=hid)
                 st.session_state[f'rep_edit_{hid}'] = text
@@ -119,7 +119,7 @@ with tab_wo:
         if st.session_state.get('rep_for') == hid and edit_key in st.session_state:
             method = st.session_state.get('rep_method', '')
             if method.startswith('Gemini'):
-                st.success('Phương pháp tạo: ' + method)
+                st.success('Phương pháp tạo: Biểu mẫu cố định kết hợp hỗ trợ soạn thảo tự động.')
             elif key:
                 st.warning('Phương pháp tạo: ' + method)
             else:
@@ -199,13 +199,22 @@ with tab_per:
 
         st.subheader('Bảng điểm nóng ưu tiên & dự toán kinh phí')
         if summary['table_df'].empty:
-            st.info('Chưa có điểm nóng đang hoạt động để tổng hợp.')
+            st.info('Chưa có điểm hư hỏng đang mở để tổng hợp.')
         else:
-            df_show(summary['table_df'], hide_index=True)
+            df_show(
+                summary['table_df'].rename(columns={
+                    'Vị trí / Tuyến đường': 'Vị trí',
+                    'Số phản ánh': 'SL',
+                    'Điểm ưu tiên': 'Điểm',
+                    'Diện tích (m²)': 'Diện tích',
+                    'Dự toán (VNĐ)': 'Dự toán',
+                }),
+                hide_index=True,
+            )
 
         per_key = f'per_note_{d_start}_{d_end}'
-        if st.button('Tạo Tóm tắt điều hành (Gemini AI)', type='primary', key='btn_per_gen'):
-            with st.spinner('Đang tổng hợp nhận định điều hành cùng Gemini AI...' if key else 'Đang tổng hợp nhận định...'):
+        if st.button('Tạo tóm tắt điều hành tự động', type='primary', key='btn_per_gen'):
+            with st.spinner('Đang tổng hợp nhận định điều hành...'):
                 note, method = generate_periodic_note(summary, key)
             st.session_state[per_key] = note
             st.session_state['per_method'] = method
@@ -213,15 +222,15 @@ with tab_per:
         if per_key not in st.session_state:
             note_def, _ = generate_periodic_note(summary, '')
             st.session_state[per_key] = note_def
-            st.session_state['per_method'] = 'Mẫu tóm tắt tự động từ số liệu (bấm nút trên để Gemini phân tích thêm)'
+            st.session_state['per_method'] = 'Mẫu tóm tắt từ số liệu'
 
         per_method = st.session_state.get('per_method', '')
         if per_method.startswith('Gemini'):
-            st.success('Phương pháp tạo nhận định: ' + per_method)
+            st.success('Phương pháp tạo: Hỗ trợ soạn thảo tự động từ số liệu kỳ báo cáo.')
         elif key and 'lỗi' in per_method:
-            st.warning('Phương pháp tạo nhận định: ' + per_method)
+            st.warning('Phương pháp tạo: ' + per_method)
         else:
-            st.caption('Phương pháp tạo nhận định: ' + per_method)
+            st.caption('Phương pháp tạo: ' + per_method)
 
         per_note = st.text_area('Chỉnh sửa phần Nhận định & Tóm tắt điều hành trước khi xuất file', key=per_key, height=220)
         per_meta = {

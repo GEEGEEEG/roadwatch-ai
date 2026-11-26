@@ -32,15 +32,12 @@ def _role_badge(role_lv: str) -> str:
 
 
 def show():
-    st.markdown("""
-    <div class="rw-page-intro">
-      <span class="rw-overline">Cổng nội bộ phân quyền RBAC</span>
-      <h1>Xác thực &amp; Điều hành Cán bộ RoadWatch AI</h1>
-      <p>Hệ thống tiếp nhận, thẩm định hư hỏng mặt đường, chấm điểm đa tiêu chí AHP và điều phối duy tu đô thị.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
     if is_officer():
+        st.markdown(
+            '<div class="rw-page-head"><h1>Hồ sơ cán bộ &amp; Phiên làm việc</h1>'
+            '<p>Thông tin tài khoản trực ca, điều hướng nhanh các phân hệ nghiệp vụ và đổi mật khẩu cá nhân.</p></div>',
+            unsafe_allow_html=True,
+        )
         name = escape(str(st.session_state.get('officer_name', 'Cán bộ')))
         uname = escape(str(st.session_state.get('officer_username', '')))
         unit = escape(str(st.session_state.get('officer_unit', '')))
@@ -48,7 +45,7 @@ def show():
         role_lv = st.session_state.get('officer_role_level', 'officer')
         badge = _role_badge(role_lv)
 
-        st.success(f'**Phiên đang mở** — Chào **{name}** (`{uname}` · {badge})')
+        st.success(f'**Phiên đang mở:** {name} (`{uname}` — {badge})')
 
         col1, col2 = st.columns([2, 1])
         with col1:
@@ -58,7 +55,7 @@ def show():
               <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
                   <td style="padding:8px 0;color:#CBD5E1;width:38%;">Họ tên & Tài khoản:</td>
-                  <td style="padding:8px 0;font-weight:600;color:#FFFFFF;">{name} (<code>{uname}</code>)</td>
+                  <td style="padding:8px 0;font-weight:600;color:#FFFFFF;">{name} <span style="white-space:nowrap;">(<code>{uname}</code>)</span></td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
                   <td style="padding:8px 0;color:#CBD5E1;">Đơn vị chuyên môn:</td>
@@ -122,6 +119,14 @@ def show():
 
         disclaimer()
         return
+
+    st.markdown("""
+    <div class="rw-page-intro">
+      <span class="rw-overline">Cổng nội bộ phân quyền</span>
+      <h1>Đăng nhập Cổng Cán bộ RoadWatch AI</h1>
+      <p>Dành cho cán bộ thẩm định, điều phối duy tu và quản trị viên hệ thống.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # ── Nếu hệ thống mới triển khai chưa có tài khoản Admin nào ───────────
     if not has_any_admin():

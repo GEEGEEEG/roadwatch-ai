@@ -26,8 +26,8 @@ v_tab1, v_tab2 = st.tabs([
 ])
 
 with v_tab1:
-    st.subheader('Chế độ Tuần đường Thông minh (Smart Patrol / Dashcam Mode)')
-    st.caption('Gắn điện thoại/máy tính bảng lên xe tuần tra, bật tự động lấy GPS trình duyệt và chụp quét nhanh các đoạn mặt đường.')
+    st.subheader('Chế độ tuần đường (camera hành trình)')
+    st.caption('Gắn điện thoại hoặc máy tính bảng lên xe tuần tra, bật lấy GPS tự động và chụp quét nhanh mặt đường.')
 
     col_p1, col_p2 = st.columns([1, 1])
     with col_p1:
@@ -39,7 +39,7 @@ with v_tab1:
         )
         patrol_road = st.selectbox('Cấp đường', list(ROAD_TYPES), index=1, key='patrol_road_type')
     with col_p2:
-        patrol_thr = st.slider('Độ nhạy AI (Confidence)', 0.15, 0.85, 0.25, 0.05, key='patrol_thr')
+        patrol_thr = st.slider('Ngưỡng tin cậy AI', 0.15, 0.85, 0.25, 0.05, key='patrol_thr')
 
     st.markdown('#### Định vị GPS Tuần tra')
     st.session_state.setdefault('patrol_lat', '16.0544')

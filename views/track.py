@@ -73,8 +73,8 @@ elif status == 'fixed':
     st.success(f"Điểm hư hỏng thuộc hồ sơ **{rec['id']}** đã được sửa chữa và nghiệm thu hoàn tất vào `{rec.get('fixed_at')}`!")
 elif status == 'assigned':
     st.info(
-        f"Hồ sơ **{rec['id']}** đã được giao cho **{rec.get('assigned_to') or 'Đội duy tu chuyên trách'}** "
-        f"(Hạn kiểm tra dự kiến: `{rec.get('due_date') or 'Đang cập nhật'}`)."
+        f"Phản ánh **{rec['id']}** đã được giao cho **{rec.get('assigned_to') or 'Đội duy tu chuyên trách'}** "
+        f"(Hạn kiểm tra dự kiến: {str(rec.get('due_date') or 'Đang cập nhật').strip()})."
     )
 elif status == 'verified':
     st.success(f"Hồ sơ **{rec['id']}** đã được cán bộ xác minh và đưa vào bảng xếp hạng ưu tiên kiểm tra.")

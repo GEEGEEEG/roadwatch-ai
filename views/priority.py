@@ -122,9 +122,11 @@ with tab1:
     priority_display = hs[[
         'priority_rank', 'location_name', 'severity_label', 'report_count', 'road_type',
         'priority_score', 'diem_AHP', 'trend_bonus', 'weather_bonus', 'ranking_reason',
-    ]].rename(columns={
+    ]].copy()
+    priority_display['road_type'] = priority_display['road_type'].astype(str).str.replace(' (minh họa)', '', regex=False)
+    priority_display = priority_display.rename(columns={
         'priority_rank': 'Hạng',
-        'location_name': 'Tuyến / Điểm',
+        'location_name': 'Điểm hư hỏng',
         'severity_label': 'Mức độ',
         'report_count': 'SL',
         'road_type': 'Cấp đường',
@@ -134,13 +136,23 @@ with tab1:
         'weather_bonus': 'Mưa',
         'ranking_reason': 'Lý do xếp hạng',
     })
-    df_show(priority_display, hide_index=True)
+    df_show(
+        priority_display,
+        hide_index=True,
+        column_config={
+            'Hạng': st.column_config.NumberColumn('Hạng', width='small'),
+            'SL': st.column_config.NumberColumn('SL', width='small'),
+            'Cấp đường': st.column_config.TextColumn('Cấp đường', width='medium'),
+            'Ưu tiên': st.column_config.NumberColumn('Ưu tiên', width='small'),
+            'AHP': st.column_config.NumberColumn('AHP', width='small'),
+        },
+    )
     chart_df = hs.set_index('location_name')[['priority_score', 'diem_AHP']].rename(
         columns={'priority_score': 'Điểm ưu tiên', 'diem_AHP': 'Điểm AHP'}
     )
     st.bar_chart(chart_df)
 
-    with st.expander('So sánh độ nhạy xếp hạng (Spearman Rank Correlation)'):
+    with st.expander('Kiểm tra độ ổn định xếp hạng (Spearman)'):
         c = st.columns(3)
         wa = (c[0].number_input('A: mức độ', 0, 100, 50), c[1].number_input('A: tần suất', 0, 100, 30), c[2].number_input('A: tuyến', 0, 100, 20))
         c = st.columns(3)
@@ -223,7 +235,7 @@ with tab3:
     | :--- | :--- | ---: |
     | **Vật liệu mặt đường** | Nhựa nguội Carboncor (< 0.5 m²) hoặc thảm BTN nóng (≥ 0.5 m²) | {:,} đ |
     | **Nhân công & Ca máy thi công** | Tính theo số vị trí thực tế (có chiết khấu theo cụm) | {:,} đ |
-    | **Tổng dự toán đề xuất** | Chỉ bao gồm các điểm `verified` và `assigned` | **{:,} đ** |
+    | **Tổng dự toán đề xuất** | Chỉ tính các điểm đã xác minh và đang giao duy tu | **{:,} đ** |
     """.format(tot_mat_vnd, tot_lab_vnd, tot_all_vnd).replace(',', '.')
     )
 

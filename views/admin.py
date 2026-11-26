@@ -10,7 +10,7 @@ from core.backup import make_backup, restore_backup
 from core.config import PROJECT_ROOT, data_dir, model_path, now_vn
 from core.cost_estimation import UNIT_PRICES
 from core.notify import send_telegram, telegram_configured
-from core.ui import current_actor, df_show, disclaimer, page_intro, require_officer, safe_csv_export
+from core.ui import current_actor, df_show, disclaimer, kpi_grid, page_intro, require_officer, safe_csv_export
 
 require_officer(('admin', 'officer'))
 page_intro(
@@ -34,11 +34,12 @@ with admin_tabs[0]:
     pg_active = db.using_postgres()
     m_path = model_path()
 
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric('Tổng bản ghi hồ sơ', len(df))
-    k2.metric('Engine CSDL hiện hành', 'Supabase PostgreSQL' if pg_active else 'SQLite (Cục bộ)')
-    k3.metric('Lưu trữ ảnh Cloud', storage.get_backend_type().upper())
-    k4.metric('Mô hình AI', f"{'ONNX' if m_path.suffix == '.onnx' else 'PyTorch'} ({'Có' if m_path.is_file() else 'Thiếu'})")
+    kpi_grid([
+        ('Tổng số phản ánh', len(df)),
+        ('Cơ sở dữ liệu', 'Supabase PostgreSQL' if pg_active else 'SQLite (Cục bộ)'),
+        ('Lưu trữ ảnh', 'Supabase Storage' if storage.get_backend_type() == 'supabase' else storage.get_backend_type().upper()),
+        ('Mô hình nhận diện', f"{'ONNX' if m_path.suffix == '.onnx' else 'PyTorch'}: {'Sẵn sàng' if m_path.is_file() else 'Thiếu'}"),
+    ], cols=4)
 
     if telegram_configured() and st.button('Gửi tin nhắn kiểm tra Telegram'):
         if send_telegram('RoadWatch AI v5.0: Kết nối Telegram hoạt động tốt.'):
@@ -97,8 +98,16 @@ with admin_tabs[0]:
 
     st.markdown('---')
     if not df.empty:
-        st.subheader('Danh sách bản ghi dữ liệu')
-        df_show(df.drop(columns=['detections_json', 'color_vec'], errors='ignore'), hide_index=True)
+        st.subheader('Danh sách phản ánh trong cơ sở dữ liệu')
+        adm_df = df.drop(columns=['detections_json', 'color_vec'], errors='ignore').rename(columns={
+            'id': 'Mã phản ánh',
+            'created_at': 'Thời điểm gửi',
+            'image_hash': 'Mã băm ảnh',
+            'location_name': 'Vị trí',
+            'status': 'Trạng thái',
+            'final_level': 'Mức độ',
+        })
+        df_show(adm_df, hide_index=True)
         st.download_button(
             'Xuất toàn bộ dữ liệu (.csv)',
             safe_csv_export(df.drop(columns=['detections_json', 'color_vec'], errors='ignore')),

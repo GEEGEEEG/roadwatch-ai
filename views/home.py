@@ -258,9 +258,9 @@ st.markdown("""
 <section class="rw-hero" aria-labelledby="roadwatch-title">
   <div class="rw-hero-grid">
     <div>
-      <span class="rw-kicker"><span class="rw-kicker-dot"></span>RoadWatch AI v5.0 · YOLOv12 + Supabase Cloud</span>
-      <h1 id="roadwatch-title">MỖI PHẢN ÁNH NHỎ.<br>MỘT TUYẾN ĐƯỜNG AN TOÀN HƠN.</h1>
-      <p class="rw-lead">Chụp ảnh mặt đường, định vị GPS chuẩn xác. AI tự động khoanh vùng ổ gà, vết nứt &amp; ước lượng diện tích; cán bộ xác minh và xếp hạng ưu tiên duy tu theo mô hình AHP.</p>
+      <span class="rw-kicker"><span class="rw-kicker-dot"></span>RoadWatch AI v5.0</span>
+      <h1 id="roadwatch-title">Hệ thống tiếp nhận và giám sát hư hỏng mặt đường đô thị</h1>
+      <p class="rw-lead">Người dân gửi ảnh kèm tọa độ GPS; hệ thống hỗ trợ khoanh vùng hư hỏng, gom điểm trùng và xếp hạng ưu tiên để cán bộ kiểm tra, lập kế hoạch duy tu.</p>
     </div>
     <div class="rw-hero-visual" role="img" aria-label="Minh họa quy trình khép kín: AI quét phát hiện ổ gà, cán bộ duyệt và đội duy tu sửa xong">
       <div class="rw-visual-head"><span><span class="rw-visual-dot"></span>Quy trình khép kín</span><span>ROADWATCH v5</span></div>

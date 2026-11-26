@@ -3,7 +3,7 @@ import streamlit as st
 from core import db
 from core.constants import STATUS_LABELS
 from core.geo import maps_link
-from core.ui import df_show, disclaimer, image_url_or_file, img_show, page_intro, require_officer
+from core.ui import df_show, disclaimer, image_url_or_file, img_show, kpi_grid, page_intro, require_officer
 
 require_officer()
 page_intro('HỒ SƠ VỊ TRÍ', 'Chi tiết phản ánh', 'Xem hình ảnh, tọa độ định vị và toàn bộ lịch sử luân chuyển của từng bản ghi.')
@@ -17,11 +17,12 @@ qid = st.query_params.get('id')
 rid = st.selectbox('Mã bản ghi', ids, index=ids.index(qid) if qid in ids else len(ids) - 1)
 r = df[df.id == rid].iloc[0]
 
-c = st.columns(4)
-c[0].metric('Trạng thái', STATUS_LABELS.get(r.status, r.status))
-c[1].metric('Mức xác nhận', r.final_level)
-c[2].metric('Điểm mức độ', r.final_score)
-c[3].metric('Số vùng AI', int(r.total_boxes))
+kpi_grid([
+    ('Trạng thái', STATUS_LABELS.get(r.status, r.status)),
+    ('Mức xác nhận', r.final_level or 'Chưa phân mức'),
+    ('Điểm mức độ', r.final_score),
+    ('Số vùng phát hiện', int(r.total_boxes)),
+], cols=4)
 
 st.write(f"**{r.location_name}** — `{r.latitude}, {r.longitude}` (Nguồn: {r.gps_source})")
 st.link_button('Chỉ đường Google Maps', maps_link(r.latitude, r.longitude))

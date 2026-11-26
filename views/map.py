@@ -45,7 +45,7 @@ if wide_degradations:
 
 levels = st.multiselect('Lọc theo mức độ', LEVELS, default=LEVELS)
 col_f1, col_f2 = st.columns(2)
-heat = col_f1.checkbox('Hiện bản đồ nhiệt (Heatmap)')
+heat = col_f1.checkbox('Hiện bản đồ nhiệt')
 show_corridors = col_f2.checkbox('Hiện hành lang xuống cấp', value=True)
 
 hs = hs[hs.severity_label.isin(levels)]
