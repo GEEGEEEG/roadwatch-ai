@@ -37,7 +37,7 @@ if _logo_path.is_file():
     st.logo(str(_logo_path), size='large', icon_image=str(_logo_path))
 ui.officer_login_box()
 
-p_home = st.Page(_page('views/home.py'), title='Trang chủ', url_path='home', default=True)
+p_home = st.Page(_page('views/home.py'), title='Trang chủ', default=True)
 p_submit = st.Page(_page('views/submit.py'), title='Gửi báo cáo', url_path='submit')
 p_track = st.Page(_page('views/track.py'), title='Tra cứu phản ánh', url_path='track')
 p_map = st.Page(_page('views/map.py'), title='Bản đồ', url_path='map')
@@ -79,6 +79,11 @@ else:
     }
 
 pg = st.navigation(pages)
+_post_target = st.session_state.pop('_post_login_target', None)
+if _post_target and ui.is_officer():
+    _target_page = p_route if ui.officer_role() == 'field_team' else p_queue
+    if getattr(pg, 'url_path', '') != getattr(_target_page, 'url_path', ''):
+        st.switch_page(_target_page)
 theme.apply(getattr(pg, 'url_path', 'home') or 'home')
 
 # Thanh điều hướng Mobile App Bottom Dock (chỉ hiện trên màn hình điện thoại <= 768px)
