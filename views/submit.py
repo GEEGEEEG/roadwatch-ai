@@ -52,7 +52,7 @@ def _cached_preview_analysis(image_digest: str, raw_bytes: bytes, threshold: flo
     if det is None:
         return None
     prep_img = fast_prepare_rgb(raw_bytes, max_side=1280)
-    out = det.predict_image(prep_img, threshold=threshold, imgsz=imgsz, tta=tta)
+    out = det.predict_image(prep_img, threshold=threshold, imgsz=imgsz, tta=tta, enhance_glare=True)
     out['damage_analysis'] = analyze_image_damage(prep_img, out['detections'])
     out['quality'] = assess_quality(prep_img)
     out['fingerprint'] = image_fingerprint(prep_img)

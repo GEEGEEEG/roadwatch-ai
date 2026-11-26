@@ -61,7 +61,7 @@ if not after_file:
 
 if after_file:
     raw = after_file.getvalue()
-    out = det.predict_image(Image.open(io.BytesIO(raw)), threshold=thr)
+    out = det.predict_image(Image.open(io.BytesIO(raw)), threshold=thr, enhance_glare=True)
     with b:
         img_show(out['annotated_image'], caption=f"SAU — {len(out['detections'])} vùng, mức sơ bộ {out['severity']['level']}")
     st.metric(
