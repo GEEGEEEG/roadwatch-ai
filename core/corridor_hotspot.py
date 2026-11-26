@@ -79,10 +79,10 @@ def analyze_corridor_clusters(df_reports, max_distance_m: float = 250.0, min_clu
 
         is_wide_degradation = c_size >= min_cluster_size
         if is_wide_degradation:
-            proposal = 'Xuống cấp diện rộng: Khuyến nghị thảm lại toàn bộ mặt đường (Overhaul)'
+            proposal = 'Xuống cấp diện rộng: Khuyến nghị thảm lại toàn bộ mặt đường'
             action_code = 'RESURFACE'
         else:
-            proposal = 'Hư hỏng điểm lẻ: Khuyến nghị dặm vá cục bộ (Patching)'
+            proposal = 'Hư hỏng cục bộ: Khuyến nghị dặm vá tại chỗ'
             action_code = 'PATCH'
 
         clusters.append({

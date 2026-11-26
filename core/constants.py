@@ -20,5 +20,5 @@ DUP_FLAG_M = 30.0    # trong bán kính này: gắn nhãn "có thể trùng đi�
 MERGE_MAX_M = 50.0   # cán bộ được phép gộp vào điểm hiện hữu trong bán kính này
 ACTIVE_STATUSES = ('verified', 'assigned')   # chỉ các trạng thái này được tính vào xếp hạng
 
-DISCLAIMER = ('Bản demo hỗ trợ học tập/kỹ thuật. Mức độ và điểm ưu tiên là **quy tắc do nhóm thiết kế**, '
+DISCLAIMER = ('Bản thử nghiệm hỗ trợ kỹ thuật. Mức độ và điểm ưu tiên là quy tắc do nhóm thiết kế, '
               'không đo độ sâu, diện tích thực, chi phí hay rủi ro tai nạn; luôn cần cán bộ kỹ thuật kiểm tra hiện trường.')

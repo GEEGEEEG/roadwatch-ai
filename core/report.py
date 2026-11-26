@@ -22,36 +22,38 @@ GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/{mode
 DEFAULT_GEMINI_MODELS = ('gemini-4-hydrogen', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite')
 GEMINI_SYSTEM = (
     'Bạn là trợ lý kỹ thuật hỗ trợ cán bộ quản lý duy tu đường bộ đô thị tại Việt Nam. '
-    'Viết tiếng Việt, văn phong hành chính - kỹ thuật, ngắn gọn, rõ ràng. '
-    'Chỉ được dùng các con số có sẵn trong hồ sơ; tuyệt đối không bịa thêm số liệu, kích thước, '
-    'nguyên nhân, chi phí hay mốc thời gian cụ thể ngoài hồ sơ. '
-    'Mọi nội dung chỉ là khuyến nghị hỗ trợ, không phải kết luận kỹ thuật.'
+    'Viết tiếng Việt, văn phong hành chính - kỹ thuật, ngắn gọn, tự nhiên, rõ ràng. '
+    'Quy tắc bắt buộc: '
+    '(1) Chỉ dùng các con số có sẵn trong hồ sơ; tuyệt đối không bịa thêm số liệu, kích thước, nguyên nhân hay chi phí; '
+    '(2) Luôn dùng từ "hư hỏng" cho mặt đường, tuyệt đối không dùng từ y khoa như "tổn thương"; '
+    '(3) Không đệm số 0 trước số đếm (viết "1 vùng", "3 ổ gà", không viết "01 vùng", "03 ổ gà"); '
+    '(4) Thống nhất dùng dấu chấm "." cho số thập phân như trong hồ sơ (ví dụ 0.78, 22.5%), không trộn dấu phẩy; '
+    '(5) Viết văn bản thuần dễ chỉnh sửa, không dùng ký tự Markdown như ** hoặc #; '
+    '(6) Nêu rõ nội dung chỉ là khuyến nghị hỗ trợ, không phải kết luận kỹ thuật.'
 )
 GEMINI_TASK = (
-    'Dựa trên hồ sơ dưới đây, viết đúng 4 mục, mỗi mục 1-3 gạch đầu dòng bắt đầu bằng "- ", '
-    'tiêu đề mỗi mục in đậm đúng như sau:\n'
-    '**Nhận định tình trạng**\n'
-    '**Mức độ rủi ro giao thông**\n'
-    '**Phương án xử lý đề xuất** (gợi ý theo phần dự toán vật tư sơ bộ nếu có)\n'
-    '**Mức khẩn cấp kiểm tra** (chọn một: Trong 24 giờ / Trong 3 ngày / Trong 7 ngày / Theo kế hoạch định kỳ; '
-    'căn cứ mức độ và điểm ưu tiên)\n'
-    'Không dùng tiêu đề markdown bắt đầu bằng #, không chép lại nguyên văn hồ sơ.'
+    'Dựa trên hồ sơ dưới đây, viết đúng 4 mục văn bản thuần (không dùng ** hay #), '
+    'mỗi mục có 1 dòng tiêu đề rồi 1-3 gạch đầu dòng bắt đầu bằng "- ":\n'
+    'Nhận định tình trạng:\n'
+    'Mức độ rủi ro giao thông:\n'
+    'Phương án xử lý đề xuất: (gợi ý theo phần dự toán vật tư sơ bộ nếu có)\n'
+    'Mức khẩn cấp kiểm tra: (chọn một: Trong 24 giờ / Trong 3 ngày / Trong 7 ngày / Theo kế hoạch định kỳ)\n'
+    'Không chép lại nguyên văn hồ sơ.'
 )
 GEMINI_PERIODIC_TASK = (
-    'Dựa trên số liệu tổng hợp kỳ báo cáo dưới đây, viết Tóm tắt điều hành gồm đúng 3 mục, '
-    'mỗi mục 2-3 gạch đầu dòng bắt đầu bằng "- ", tiêu đề in đậm đúng như sau:\n'
-    '**Đánh giá chung tiến độ kỳ báo cáo**\n'
-    '**Điểm nóng & cảnh báo cần lưu ý**\n'
-    '**Đề xuất phân bổ nguồn lực kỳ tới**\n'
-    'Chỉ sử dụng đúng con số trong bảng số liệu, không tự bịa số liệu mới, không dùng tiêu đề #.'
+    'Dựa trên số liệu tổng hợp kỳ báo cáo dưới đây, viết Tóm tắt điều hành văn bản thuần (không dùng ** hay #) '
+    'gồm đúng 3 mục, mỗi mục 2-3 gạch đầu dòng bắt đầu bằng "- ":\n'
+    'Đánh giá chung tiến độ kỳ báo cáo:\n'
+    'Điểm hư hỏng & cảnh báo cần lưu ý:\n'
+    'Đề xuất phân bổ nguồn lực kỳ tới:\n'
+    'Chỉ sử dụng đúng con số trong bảng số liệu, không bịa thêm số liệu.'
 )
 GEMINI_ACCEPTANCE_TASK = (
-    'Dựa trên biên bản đối chiếu trước/sau sửa chữa dưới đây, viết đúng 2 mục, mỗi mục 1-2 gạch đầu dòng '
-    'bắt đầu bằng "- ", tiêu đề in đậm đúng như sau:\n'
-    '**Nhận xét kết quả đối chiếu AI trước/sau**\n'
-    '**Lưu ý nghiệm thu tại hiện trường** (nhắc kiểm tra độ phẳng, độ bám dính mép vá và an toàn giao thông)\n'
-    'Nêu rõ nhận xét AI chỉ mang tính hỗ trợ, kết luận nghiệm thu do cán bộ thực địa chịu trách nhiệm. '
-    'Không dùng tiêu đề #.'
+    'Dựa trên biên bản đối chiếu trước/sau sửa chữa dưới đây, viết văn bản thuần (không dùng ** hay #) '
+    'gồm đúng 2 mục, mỗi mục 1-2 gạch đầu dòng bắt đầu bằng "- ":\n'
+    'Nhận xét kết quả đối chiếu trước/sau:\n'
+    'Lưu ý nghiệm thu tại hiện trường: (nhắc kiểm tra độ phẳng, bám dính mép vá và an toàn giao thông)\n'
+    'Nêu rõ nhận xét tự động chỉ mang tính hỗ trợ, kết luận nghiệm thu do cán bộ thực địa chịu trách nhiệm.'
 )
 
 
@@ -139,7 +141,7 @@ def _run_gemini(prompt: str, gemini_key: str = '') -> tuple[str | None, str]:
         except (urllib.error.URLError, TimeoutError, OSError):
             return None, 'Mẫu cố định (Gemini không kết nối được mạng hoặc quá thời gian chờ)'
         if note:
-            return note, f'Gemini ({model}) + mẫu số liệu cố định'
+            return note.replace('**', ''), f'Gemini ({model}) + mẫu số liệu cố định'
         last = f'{model} trả về nội dung trống'
     return None, f'Mẫu cố định (Gemini lỗi {last})'
 
@@ -196,24 +198,25 @@ def report_sections(r):
         f"D00 (nứt dọc): {n('count_D00')} vùng; D10 (nứt ngang): {n('count_D10')} vùng.",
         f"D20 (nứt mạng): {n('count_D20')} vùng; D40 (ổ gà): {n('count_D40')} vùng.",
         f"Độ tin cậy trung bình các vùng phát hiện: {r['avg_confidence']}.",
-        f"Diện tích hợp của các khung trên ảnh (proxy): {r['bbox_union_pct']}%.",
+        f"Tỷ lệ vùng hư hỏng trên ảnh: {r['bbox_union_pct']}%.",
     ]
     area = _num(r.get('damage_area_m2'))
     if area > 0:
         vol = _num(r.get('damage_volume_l'))
         obs_lines.append(
-            f"Diện tích hư hại ước tính từ ảnh: {area:.2f} m²; thể tích vá ước tính: {vol:.1f} lít ({r.get('damage_depth_desc') or 'chưa phân loại'})."
+            f"Diện tích hư hỏng ước tính từ ảnh: {area:.2f} m²; thể tích vá ước tính: {vol:.1f} lít ({str(r.get('damage_depth_desc') or 'chưa phân loại').replace('Tổn thương', 'Hư hỏng')})."
         )
 
+    road_clean = str(r.get('road_type') or '').replace(' (minh họa)', '')
     sections = [
-        ('Thông tin điểm', [
-            f"Mã bản ghi nặng nhất: {r['id']}", f"Thời điểm ghi nhận: {r['created_at']}",
+        ('Thông tin điểm hư hỏng', [
+            f"Mã phản ánh trọng tâm: {r['id']}", f"Thời điểm ghi nhận: {r['created_at']}",
             f"Vị trí: {r['location_name']}", f"Tọa độ: {r['latitude']}, {r['longitude']} (nguồn: {r['gps_source']})",
-            f"Số báo cáo đã xác minh tại điểm: {n('report_count')} ({r.get('first_seen')} → {r.get('last_seen')})"]),
+            f"Số phản ánh đã xác minh tại điểm: {n('report_count')} ({r.get('first_seen')} đến {r.get('last_seen')})"]),
         ('1. Quan sát từ mô hình nhận diện', obs_lines),
         ('2. Đánh giá sơ bộ và xếp hạng', [
             f"Gợi ý sơ bộ từ quy tắc: {r['ai_level']}. Mức do cán bộ xác nhận: {r['final_level']}.",
-            f"Điểm mức độ: {r['final_score']}/100. Cấp đường: {r['road_type']} (điểm {r['road_score']}).",
+            f"Điểm mức độ: {r['final_score']}/100. Cấp đường: {road_clean} (điểm {r['road_score']}).",
             f"Điểm ưu tiên: {r['priority_score']}/100; thứ hạng: {n('priority_rank')}.",
             f"Cách tính: {r['ranking_reason']}."]),
     ]
@@ -626,11 +629,11 @@ def generate_periodic_note(summary: dict, gemini_key: str = '') -> tuple[str, st
     if note:
         return note, method
     fallback = (
-        '**Đánh giá chung tiến độ kỳ báo cáo**\n'
-        f"- Trong kỳ ({summary['start_date']} đến {summary['end_date']}), hệ thống tiếp nhận {summary['total_reports']} phản ánh, hoàn thành sửa chữa {summary['fixed']} hồ sơ (tỷ lệ {summary['completion_pct']}%).\n"
-        '**Điểm nóng & cảnh báo cần lưu ý**\n'
-        f"- Hiện còn {summary['active_hotspots']} điểm nóng đang hoạt động và {summary['overdue_count']} nhiệm vụ quá hạn SLA cần đôn đốc.\n"
-        '**Đề xuất phân bổ nguồn lực kỳ tới**\n'
+        'Đánh giá chung tiến độ kỳ báo cáo:\n'
+        f"- Trong kỳ ({summary['start_date']} đến {summary['end_date']}), hệ thống tiếp nhận {summary['total_reports']} phản ánh, hoàn thành sửa chữa {summary['fixed']} điểm (tỷ lệ {summary['completion_pct']}%).\n"
+        'Điểm hư hỏng & cảnh báo cần lưu ý:\n'
+        f"- Hiện còn {summary['active_hotspots']} điểm hư hỏng đang mở và {summary['overdue_count']} nhiệm vụ quá hạn cần đôn đốc.\n"
+        'Đề xuất phân bổ nguồn lực kỳ tới:\n'
         f"- Dự trù kinh phí sơ bộ cho các điểm đang mở khoảng {summary['formatted_total_cost']} (cần rà soát khối lượng thực địa trước khi phê duyệt)."
     )
     return fallback, method
@@ -789,11 +792,11 @@ def generate_acceptance_note(acc: dict, gemini_key: str = '') -> tuple[str, str]
         else f"Ảnh sau sửa chữa vẫn còn {acc['after_boxes']} vùng AI đánh dấu; cán bộ cần kiểm tra trực tiếp trước khi ký nghiệm thu."
     )
     fallback = (
-        '**Nhận xét kết quả đối chiếu AI trước/sau**\n'
-        f"- Số vùng hư hại AI ghi nhận giảm từ {acc['before_boxes']} xuống {acc['after_boxes']} vùng (giảm {acc['reduction_pct']}%).\n"
+        'Nhận xét kết quả đối chiếu trước/sau:\n'
+        f"- Số vùng hư hỏng ghi nhận giảm từ {acc['before_boxes']} xuống {acc['after_boxes']} vùng (giảm {acc['reduction_pct']}%).\n"
         f"- {status_line}\n"
-        '**Lưu ý nghiệm thu tại hiện trường**\n'
-        '- Kiểm tra độ bằng phẳng bề mặt vá, độ bám dính mép tiếp giáp và vệ sinh hiện trường sau thi công (kết quả AI chỉ mang tính hỗ trợ).'
+        'Lưu ý nghiệm thu tại hiện trường:\n'
+        '- Kiểm tra độ bằng phẳng bề mặt vá, độ bám dính mép tiếp giáp và vệ sinh hiện trường sau thi công (kết quả tự động chỉ mang tính hỗ trợ).'
     )
     return fallback, method
 

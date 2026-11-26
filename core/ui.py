@@ -72,21 +72,8 @@ def clear_officer_session() -> None:
 
 
 def officer_login_box():
-    """Nhãn thương hiệu cố định + trạng thái đăng nhập cán bộ trên thanh bên."""
-    logo_uri = _brand_logo_uri()
-    brand_body = (
-        f'<img src="{logo_uri}" alt="RoadWatch AI" class="rw-brand-logo-img" />'
-        if logo_uri
-        else '<div class="rw-logo"><span class="rw-logo-mark">RW</span> RoadWatch AI</div>'
-    )
+    """Trạng thái đăng nhập cán bộ gọn trên thanh bên (không lặp lại logo chính)."""
     with st.sidebar:
-        st.markdown(
-            f'''<div class="rw-sidebar-brand">
-              {brand_body}
-              <p class="rw-sidebar-sub">Giám sát &amp; quản lý mặt đường v5</p>
-            </div>''',
-            unsafe_allow_html=True,
-        )
         if is_officer():
             officer = escape(str(st.session_state.get('officer_name', 'Cán bộ trực ca')))
             role_tag = {'admin': 'Quản trị', 'officer': 'Thẩm định', 'field_team': 'Duy tu'}.get(officer_role(), 'Cán bộ')
@@ -296,7 +283,17 @@ def qr_png(text: str) -> bytes:
     return buf.getvalue()
 
 
-def page_intro(kicker: str, title: str, description: str):
+def page_intro(kicker: str, title: str, description: str, compact: bool = True):
+    if compact:
+        st.markdown(
+            '<div class="rw-page-head"><h1>'
+            + escape(title)
+            + '</h1><p>'
+            + escape(description)
+            + '</p></div>',
+            unsafe_allow_html=True,
+        )
+        return
     st.markdown(
         '<div class="rw-page-intro"><span class="rw-overline">'
         + escape(kicker)
@@ -307,6 +304,16 @@ def page_intro(kicker: str, title: str, description: str):
         + '</p></div>',
         unsafe_allow_html=True,
     )
+
+
+def kpi_grid(items: list[tuple[str, object]], cols: int = 4) -> None:
+    """Responsive CSS Grid KPI cards (prevents 1-column vertical stacking at 1280px with open sidebar)."""
+    n = max(2, min(5, int(cols)))
+    cards = ''.join(
+        f'<div class="rw-kpi-card"><small>{escape(str(lbl))}</small><strong>{escape(str(val))}</strong></div>'
+        for lbl, val in items
+    )
+    st.markdown(f'<div class="rw-kpi-row rw-kpi-cols-{n}">{cards}</div>', unsafe_allow_html=True)
 
 
 def steps(*items, active: int = 0):
