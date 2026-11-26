@@ -13,17 +13,29 @@ import hmac
 import os
 import sqlite3
 import threading
+import time
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 
 from . import supabase_rest
-from .config import cfg, data_dir, demo_mode_enabled
+from .config import cfg, data_dir, demo_mode_enabled, now_vn
 
 _LOCK = threading.RLock()
 _ITER = 260_000
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_MINUTES = 10
 VALID_ROLES = ('admin', 'officer', 'field_team')
+_SEED_CACHE: dict[tuple, float] = {}
+_ADMIN_CACHE: dict[tuple, tuple[float, bool]] = {}
+_SEED_TTL_S = 300.0
+_ADMIN_TRUE_TTL_S = 300.0
+_ADMIN_FALSE_TTL_S = 30.0
+
+
+def invalidate_auth_cache() -> None:
+    """Clear in-memory Postgres auth seed/admin caches after account mutations."""
+    _SEED_CACHE.clear()
+    _ADMIN_CACHE.clear()
 
 
 def _using_postgres() -> bool:
@@ -105,12 +117,16 @@ def _ensure_local_table():
 
 
 def _seed_accounts_if_empty():
-    now_s = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    now_s = now_vn().strftime('%Y-%m-%d %H:%M:%S')
     boot_pw = _bootstrap_admin_password()
     demo_on = demo_mode_enabled()
     demo_user, demo_pw = _demo_credentials()
 
     if _using_postgres():
+        seed_key = (supabase_rest.get_url(), demo_on, demo_user, supabase_rest.table_version('officers')[0])
+        ts = _SEED_CACHE.get(seed_key)
+        if ts is not None and (time.monotonic() - ts < _SEED_TTL_S):
+            return
         existing = supabase_rest.select('officers', columns='username', limit=1)
         if existing:
             # Nếu bật chế độ Demo mà chưa có TK demo thì bổ sung TK demo quyền officer
@@ -127,6 +143,7 @@ def _seed_accounts_if_empty():
                         'failed_attempts': 0,
                         'created_at': now_s,
                     }, upsert=True)
+            _SEED_CACHE[seed_key] = time.monotonic()
             return
 
         seed_rows = []
@@ -154,6 +171,7 @@ def _seed_accounts_if_empty():
             })
         if seed_rows:
             supabase_rest.insert('officers', seed_rows, upsert=True)
+        _SEED_CACHE[seed_key] = time.monotonic()
         return
 
     # Fallback SQLite cục bộ
@@ -176,10 +194,20 @@ def _seed_accounts_if_empty():
 
 def has_any_admin() -> bool:
     """Kiểm tra hệ thống đã có tài khoản Quản trị viên nào chưa (phục vụ thiết lập lần đầu)."""
-    _seed_accounts_if_empty()
     if _using_postgres():
+        adm_key = (supabase_rest.get_url(), supabase_rest.table_version('officers')[0])
+        cached = _ADMIN_CACHE.get(adm_key)
+        if cached is not None:
+            ts, val = cached
+            ttl = _ADMIN_TRUE_TTL_S if val else _ADMIN_FALSE_TTL_S
+            if time.monotonic() - ts < ttl:
+                return val
+        _seed_accounts_if_empty()
         rows = supabase_rest.select('officers', filters={'role': 'eq.admin', 'active': 'eq.1'}, columns='username', limit=1)
-        return bool(rows)
+        found = bool(rows)
+        _ADMIN_CACHE[adm_key] = (time.monotonic(), found)
+        return found
+    _seed_accounts_if_empty()
     with _conn() as db:
         row = db.execute("SELECT 1 FROM officers WHERE role='admin' AND active=1 LIMIT 1").fetchone()
         return bool(row)
@@ -191,7 +219,10 @@ def bootstrap_first_admin(username: str, password: str, full_name: str = 'Quản
         return 'Hệ thống đã có Quản trị viên. Vui lòng đăng nhập bằng tài khoản hiện có.'
     if len(password or '') < 8:
         return 'Mật khẩu Quản trị viên cần tối thiểu 8 ký tự.'
-    return create_officer(username, password, full_name, 'Ban Quản trị RoadWatch AI', role='admin')
+    err = create_officer(username, password, full_name, 'Ban Quản trị RoadWatch AI', role='admin')
+    if err is None:
+        invalidate_auth_cache()
+    return err
 
 
 def _get_officer_row(username: str) -> dict | None:
@@ -229,7 +260,7 @@ def login_with_status(username: str, password: str) -> tuple[dict | None, str | 
         if not row or not int(row.get('active', 1)):
             return None, 'Tên đăng nhập/mật khẩu không đúng hoặc tài khoản đã bị vô hiệu hóa.'
 
-        now = datetime.now()
+        now = now_vn()
         locked_until_str = row.get('locked_until')
         if locked_until_str:
             try:
@@ -250,7 +281,16 @@ def login_with_status(username: str, password: str) -> tuple[dict | None, str | 
             return None, 'Tên đăng nhập hoặc mật khẩu không đúng.'
 
         now_s = now.strftime('%Y-%m-%d %H:%M:%S')
-        _update_officer_fields(u, failed_attempts=0, locked_until=None, last_login=now_s)
+        needs_sync_reset = bool(int(row.get('failed_attempts') or 0) or row.get('locked_until'))
+        if _using_postgres() and not needs_sync_reset:
+            def _bg_touch(uname: str = u, ts: str = now_s) -> None:
+                try:
+                    _update_officer_fields(uname, last_login=ts)
+                except Exception:
+                    pass
+            threading.Thread(target=_bg_touch, daemon=True).start()
+        else:
+            _update_officer_fields(u, failed_attempts=0, locked_until=None, last_login=now_s)
         row['last_login'] = now_s
         row.pop('password_hash', None)
         return row, None
@@ -288,11 +328,12 @@ def create_officer(username: str, password: str, full_name: str, unit: str, role
         'active': 1,
         'failed_attempts': 0,
         'locked_until': None,
-        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'created_at': now_vn().strftime('%Y-%m-%d %H:%M:%S'),
     }
     if _using_postgres():
         try:
             supabase_rest.insert('officers', payload)
+            invalidate_auth_cache()
             return None
         except supabase_rest.SupabaseConflictError:
             return f'Tên đăng nhập "{u}" đã tồn tại.'
@@ -333,6 +374,7 @@ def toggle_active(username: str) -> bool:
         return False
     new_state = 0 if int(row.get('active', 1)) else 1
     _update_officer_fields(username, active=new_state)
+    invalidate_auth_cache()
     return bool(new_state)
 
 

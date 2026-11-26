@@ -13,7 +13,7 @@ from datetime import datetime
 from PIL import Image
 
 from . import db
-from .config import data_dir
+from .config import data_dir, now_vn
 from .constants import ACTIVE_STATUSES, DUP_FLAG_M, ROAD_TYPES
 from .damage_analysis import analyze_image_damage
 from .detector import encode_jpeg_bytes, fast_prepare_rgb
@@ -99,7 +99,7 @@ def submit_report(
     out['quality'] = quality
     out['fingerprint'] = fp
 
-    now = datetime.now()
+    now = now_vn()
     df_screen = db.fetch_screening_df()
     flags = list(screening_flags(df_screen, lat, lon, now, len(dets), quality['flags']))
 

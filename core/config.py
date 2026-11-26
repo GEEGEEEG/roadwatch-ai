@@ -1,8 +1,20 @@
 """Cấu hình hệ thống: ưu tiên biến môi trường, sau đó st.secrets, cuối cùng là mặc định."""
+from datetime import date, datetime, timedelta, timezone
 import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+VN_TZ = timezone(timedelta(hours=7))
+
+
+def now_vn() -> datetime:
+    """Return current Vietnam time (UTC+7) as naive datetime matching stored DB timestamps."""
+    return datetime.now(VN_TZ).replace(tzinfo=None)
+
+
+def today_vn() -> date:
+    """Return current Vietnam calendar date (UTC+7)."""
+    return now_vn().date()
 
 
 def cfg(name: str, default: str = '') -> str:

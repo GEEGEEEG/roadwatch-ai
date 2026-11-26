@@ -6,6 +6,7 @@ import json
 import logging
 import sqlite3
 import threading
+import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
@@ -14,11 +15,22 @@ from typing import Any
 import pandas as pd
 
 from . import supabase_rest
-from .config import data_dir
+from .config import data_dir, now_vn
 
 log = logging.getLogger(__name__)
 _INIT_LOCK = threading.RLock()
 _INITIALIZED_PATHS: set[str] = set()
+_DF_CACHE: dict[tuple, tuple[float, pd.DataFrame]] = {}
+_SETTING_CACHE: dict[tuple, tuple[float, Any]] = {}
+_DF_TTL_S = 20.0
+_SETTING_TTL_S = 60.0
+_MISSING = object()
+
+
+def invalidate_cache() -> None:
+    """Clear short-TTL Postgres report/setting caches."""
+    _DF_CACHE.clear()
+    _SETTING_CACHE.clear()
 
 COLUMNS = [
     'id', 'created_at', 'image_hash', 'dhash_64', 'color_vec', 'image_file', 'annotated_file', 'location_name',
@@ -105,7 +117,7 @@ def _initialize_schema():
 
 
 def new_id(image_hash: str = '') -> str:
-    return 'RW-' + datetime.now().strftime('%Y%m%d%H%M%S') + '-' + (image_hash[:4] or uuid.uuid4().hex[:4])
+    return 'RW-' + now_vn().strftime('%Y%m%d%H%M%S') + '-' + (image_hash[:4] or uuid.uuid4().hex[:4])
 
 
 def _clean_row(row: dict) -> dict:
@@ -139,7 +151,7 @@ def find_by_hash(image_hash: str) -> str | None:
 def insert_report(row: dict) -> str:
     clean = _clean_row(row)
     clean.setdefault('id', new_id(clean.get('image_hash', '') or ''))
-    clean.setdefault('created_at', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    clean.setdefault('created_at', now_vn().strftime('%Y-%m-%d %H:%M:%S'))
     img_hash = clean.get('image_hash')
     existing = find_by_hash(img_hash) if img_hash else None
     if existing:
@@ -211,7 +223,7 @@ def update_reports_bulk(report_ids: list[str], **fields) -> int:
 
 
 def add_history(report_id: str, status: str, actor: str = '', note: str = '') -> None:
-    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ts = now_vn().strftime('%Y-%m-%d %H:%M:%S')
     if using_postgres() and supabase_rest.table_ready('report_history'):
         supabase_rest.insert('report_history', {
             'report_id': str(report_id),
@@ -236,7 +248,7 @@ def add_history_bulk(entries_or_ids, status: str = '', actor: str = '', note: st
         entries = entries_or_ids
     else:
         entries = [(str(rid), str(status), str(actor or ''), str(note or '')) for rid in entries_or_ids]
-    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ts = now_vn().strftime('%Y-%m-%d %H:%M:%S')
     if using_postgres() and supabase_rest.table_ready('report_history'):
         payload = [
             {'report_id': str(rid), 'ts': ts, 'status': str(st), 'actor': str(ac or ''), 'note': str(nt or '')}
@@ -311,6 +323,14 @@ def fetch_screening_df(limit: int = 400) -> pd.DataFrame:
 
 def fetch_df(statuses=None) -> pd.DataFrame:
     if using_postgres():
+        ck = (
+            supabase_rest.get_url(),
+            supabase_rest.table_version('reports'),
+            tuple(sorted(str(s) for s in statuses)) if statuses else None,
+        )
+        cached = _DF_CACHE.get(ck)
+        if cached is not None and (time.monotonic() - cached[0] < _DF_TTL_S):
+            return cached[1].copy()
         filters = {}
         if statuses:
             joined = ','.join(str(s) for s in statuses)
@@ -321,7 +341,11 @@ def fetch_df(statuses=None) -> pd.DataFrame:
             columns=','.join(COLUMNS),
             order='created_at.asc',
         )
-        return _normalize_df(pd.DataFrame(rows))
+        df = _normalize_df(pd.DataFrame(rows))
+        if len(_DF_CACHE) > 24:
+            _DF_CACHE.clear()
+        _DF_CACHE[ck] = (time.monotonic(), df)
+        return df.copy()
 
     init()
     query, params = 'SELECT * FROM reports', []
@@ -357,10 +381,21 @@ def get_report(report_id: str) -> dict | None:
 def get_setting(key: str, default: Any = None) -> Any:
     try:
         if using_postgres() and supabase_rest.table_ready('app_settings'):
+            sk = (supabase_rest.get_url(), supabase_rest.table_version('app_settings'), str(key))
+            cached = _SETTING_CACHE.get(sk)
+            if cached is not None and (time.monotonic() - cached[0] < _SETTING_TTL_S):
+                val = cached[1]
+                if val is _MISSING:
+                    return default
+                return json.loads(json.dumps(val)) if isinstance(val, (dict, list)) else val
             rows = supabase_rest.select('app_settings', filters={'key': f'eq.{key}'}, limit=1)
-            if rows:
-                return json.loads(rows[0]['value_json'])
-            return default
+            val = json.loads(rows[0]['value_json']) if rows else _MISSING
+            if len(_SETTING_CACHE) > 64:
+                _SETTING_CACHE.clear()
+            _SETTING_CACHE[sk] = (time.monotonic(), val)
+            if val is _MISSING:
+                return default
+            return json.loads(json.dumps(val)) if isinstance(val, (dict, list)) else val
         init()
         with connect() as conn:
             row = conn.execute('SELECT value_json FROM app_settings WHERE key=?', (key,)).fetchone()
@@ -373,7 +408,7 @@ def set_setting(key: str, value: Any, actor: str = '') -> None:
     payload = {
         'key': str(key),
         'value_json': json.dumps(value, ensure_ascii=False),
-        'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'updated_at': now_vn().strftime('%Y-%m-%d %H:%M:%S'),
         'updated_by': str(actor or ''),
     }
     if using_postgres() and supabase_rest.table_ready('app_settings'):
