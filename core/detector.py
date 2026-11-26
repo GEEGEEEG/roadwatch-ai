@@ -280,35 +280,84 @@ class RoadDamageDetector:
                 results.append(([int(v) for v in xyxy[gi]], float(confs[gi]), int(cids[gi])))
         return results
 
-    def predict_image(self, original_image, threshold=0.25, imgsz=640, tta=False, class_thresholds=None):
+    def _run_single_pass(self, image: Image.Image, run_conf: float, imgsz: int, augment: bool = False) -> list[tuple[list[int], float, int]]:
+        if self.backend == 'onnxruntime':
+            return self._predict_ort(image, run_conf, imgsz)
+        try:
+            import torch
+            ctx = torch.inference_mode()
+        except Exception:
+            from contextlib import nullcontext
+            ctx = nullcontext()
+        raw_preds = []
+        with ctx:
+            pred = self.model.predict(image, conf=run_conf, imgsz=imgsz, augment=augment, device='cpu', half=False, verbose=False)[0]
+        if pred.boxes is not None:
+            for xyxy, conf, cid in zip(
+                pred.boxes.xyxy.cpu().tolist(),
+                pred.boxes.conf.cpu().tolist(),
+                pred.boxes.cls.cpu().tolist(),
+            ):
+                raw_preds.append(([int(v) for v in xyxy], float(conf), int(cid)))
+        return raw_preds
+
+    @staticmethod
+    def _merge_preds_nms(raw_preds: list[tuple[list[int], float, int]], iou_thr: float = 0.45) -> list[tuple[list[int], float, int]]:
+        if len(raw_preds) <= 1:
+            return raw_preds
+        boxes = np.asarray([p[0] for p in raw_preds], dtype=np.float32)
+        confs = np.asarray([p[1] for p in raw_preds], dtype=np.float32)
+        cids = np.asarray([p[2] for p in raw_preds], dtype=np.int32)
+        merged = []
+        for cls_id in np.unique(cids):
+            idx = np.where(cids == cls_id)[0]
+            keep = _nms_numpy(boxes[idx], confs[idx], iou_thr=iou_thr)
+            for k in keep:
+                gi = int(idx[k])
+                merged.append((raw_preds[gi][0], raw_preds[gi][1], raw_preds[gi][2]))
+        return merged
+
+    @staticmethod
+    def _glare_enhanced_copy(image: Image.Image) -> Image.Image:
+        """Tăng tương phản cục bộ và giảm lóa nhẹ để lộ viền ổ gà đọng nước (D40)."""
+        stretched = ImageOps.autocontrast(image, cutoff=2)
+        arr = np.asarray(stretched, dtype=np.float32) / 255.0
+        arr = np.power(np.clip(arr, 0.0, 1.0), 1.18) * 255.0
+        return Image.fromarray(arr.astype(np.uint8), mode='RGB')
+
+    def predict_image(
+        self,
+        original_image,
+        threshold=0.25,
+        imgsz=640,
+        tta=False,
+        class_thresholds=None,
+        enhance_glare=False,
+    ):
         class_thresholds = class_thresholds or DEFAULT_CLASS_THRESHOLDS
         image = fast_prepare_rgb(original_image, max_side=self.MAX_INPUT_SIDE)
+        width, height = image.size
 
         run_conf = min([threshold, *class_thresholds.values()])
         start = time.perf_counter()
 
-        raw_preds = []
-        if self.backend == 'onnxruntime' and not tta:
-            raw_preds = self._predict_ort(image, run_conf, imgsz)
-        else:
-            try:
-                import torch
-                ctx = torch.inference_mode()
-            except Exception:
-                from contextlib import nullcontext
-                ctx = nullcontext()
-            with ctx:
-                pred = self.model.predict(image, conf=run_conf, imgsz=imgsz, augment=tta, device='cpu', half=False, verbose=False)[0]
-            if pred.boxes is not None:
-                for xyxy, conf, cid in zip(
-                    pred.boxes.xyxy.cpu().tolist(),
-                    pred.boxes.conf.cpu().tolist(),
-                    pred.boxes.cls.cpu().tolist(),
-                ):
-                    raw_preds.append(([int(v) for v in xyxy], float(conf), int(cid)))
+        raw_preds = self._run_single_pass(image, run_conf, imgsz, augment=(tta and self.backend != 'onnxruntime'))
+
+        if tta and self.backend == 'onnxruntime':
+            flipped = self._run_single_pass(ImageOps.mirror(image), run_conf, imgsz, augment=False)
+            for (x1, y1, x2, y2), conf, cid in flipped:
+                raw_preds.append(([max(0, width - x2), y1, min(width, width - x1), y2], conf, cid))
+
+        if enhance_glare or tta:
+            glare_preds = self._run_single_pass(self._glare_enhanced_copy(image), run_conf, imgsz, augment=False)
+            d40_min = max(0.18, float(class_thresholds.get('D40', threshold)))
+            for box, conf, cid in glare_preds:
+                if self.class_to_code.get(int(cid)) == 'D40' and conf >= d40_min:
+                    raw_preds.append((box, conf, cid))
+
+        raw_preds = self._merge_preds_nms(raw_preds, iou_thr=0.45)
 
         elapsed = round((time.perf_counter() - start) * 1000, 1)
-        width, height = image.size
         detections = []
         for (x1, y1, x2, y2), conf, cid in raw_preds:
             code = self.class_to_code[int(cid)]
