@@ -6,9 +6,12 @@
 - Tự động fallback sang SQLite cục bộ khi chạy unit test hoặc khi người dùng chưa chạy file SQL khởi tạo.
 """
 import base64
+import http.client
 import json
 import logging
 import os
+import ssl
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -20,7 +23,13 @@ from .config import PROJECT_ROOT, cfg
 log = logging.getLogger(__name__)
 
 _PROBE_CACHE: dict[str, tuple[float, bool]] = {}
-_PROBE_TTL_S = 60.0
+_PROBE_TTL_S = 300.0
+_PROBE_FAIL_TTL_S = 60.0
+_TLS = threading.local()
+_SSL_CTX = ssl.create_default_context()
+_VER_LOCK = threading.Lock()
+_TABLE_VERSION: dict[str, int] = {}
+_CACHE_EPOCH = 0
 
 
 class SupabaseConflictError(Exception):
@@ -63,8 +72,58 @@ def is_configured() -> bool:
     return bool(get_url() and get_api_key())
 
 
+def table_version(table: str) -> tuple[int, int]:
+    """Return cache version token (epoch, write_count) for invalidation on table writes."""
+    with _VER_LOCK:
+        return (_CACHE_EPOCH, _TABLE_VERSION.get(table, 0))
+
+
+def _bump_table(table: str) -> None:
+    with _VER_LOCK:
+        _TABLE_VERSION[table] = _TABLE_VERSION.get(table, 0) + 1
+
+
 def reset_probe_cache() -> None:
+    global _CACHE_EPOCH
     _PROBE_CACHE.clear()
+    with _VER_LOCK:
+        _CACHE_EPOCH += 1
+
+
+def _has_proxy() -> bool:
+    return any(os.environ.get(k) for k in ('HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy'))
+
+
+def _tls_conns() -> dict[tuple[str, str, int], http.client.HTTPConnection]:
+    conns = getattr(_TLS, 'conns', None)
+    if conns is None:
+        conns = {}
+        _TLS.conns = conns
+    return conns
+
+
+def _get_conn(scheme: str, host: str, port: int, timeout: int) -> tuple[http.client.HTTPConnection, bool]:
+    conns = _tls_conns()
+    key = (scheme, host, port)
+    conn = conns.get(key)
+    if conn is not None:
+        return conn, True
+    if scheme == 'https':
+        conn = http.client.HTTPSConnection(host, port, timeout=timeout, context=_SSL_CTX)
+    else:
+        conn = http.client.HTTPConnection(host, port, timeout=timeout)
+    conns[key] = conn
+    return conn, False
+
+
+def _drop_conn(key: tuple[str, str, int]) -> None:
+    conns = _tls_conns()
+    conn = conns.pop(key, None)
+    if conn is not None:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 
 def _headers(prefer: str = '') -> dict[str, str]:
@@ -74,6 +133,7 @@ def _headers(prefer: str = '') -> dict[str, str]:
         'Authorization': f'Bearer {key}',
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Connection': 'keep-alive',
     }
     if prefer:
         h['Prefer'] = prefer
@@ -86,28 +146,69 @@ def _request(method: str, table: str, *, params: dict[str, str] | None = None,
     if not base:
         raise RuntimeError('Chưa cấu hình SUPABASE_URL.')
     q = f"?{urllib.parse.urlencode(params, safe='(),.*:')}" if params else ''
-    url = f"{base}/rest/v1/{urllib.parse.quote(table)}{q}"
     data = json.dumps(body, ensure_ascii=False).encode('utf-8') if body is not None else None
-    req = urllib.request.Request(url, data=data, headers=_headers(prefer), method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read().decode('utf-8').strip()
-            return json.loads(raw) if raw else []
-    except urllib.error.HTTPError as exc:
-        err_text = exc.read().decode('utf-8', errors='ignore')
-        if exc.code == 409 or '23505' in err_text:
-            raise SupabaseConflictError(err_text) from exc
-        raise RuntimeError(f'Supabase REST {method} /{table} HTTP {exc.code}: {err_text}') from exc
+    headers = _headers(prefer)
+
+    if _has_proxy():
+        url = f"{base}/rest/v1/{urllib.parse.quote(table)}{q}"
+        req = urllib.request.Request(url, data=data, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read().decode('utf-8').strip()
+                return json.loads(raw) if raw else []
+        except urllib.error.HTTPError as exc:
+            err_text = exc.read().decode('utf-8', errors='ignore')
+            if exc.code == 409 or '23505' in err_text:
+                raise SupabaseConflictError(err_text) from exc
+            raise RuntimeError(f'Supabase REST {method} /{table} HTTP {exc.code}: {err_text}') from exc
+
+    parsed = urllib.parse.urlsplit(base)
+    scheme = parsed.scheme.lower()
+    host = parsed.hostname
+    if not host:
+        raise RuntimeError(f'SUPABASE_URL không hợp lệ: {base}')
+    port = parsed.port or (443 if scheme == 'https' else 80)
+    base_path = parsed.path.rstrip('/')
+    path = f"{base_path}/rest/v1/{urllib.parse.quote(table)}{q}"
+    key = (scheme, host, port)
+
+    for attempt in range(2):
+        conn, reused = _get_conn(scheme, host, port, timeout)
+        try:
+            conn.timeout = timeout
+            if conn.sock is not None:
+                conn.sock.settimeout(timeout)
+            conn.request(method, path, body=data, headers=headers)
+            resp = conn.getresponse()
+            raw_bytes = resp.read()
+            status = resp.status
+            if resp.will_close:
+                _drop_conn(key)
+            break
+        except (http.client.HTTPException, ConnectionResetError, BrokenPipeError, TimeoutError, OSError):
+            _drop_conn(key)
+            if reused and attempt == 0:
+                continue
+            raise
+
+    raw = raw_bytes.decode('utf-8').strip()
+    if 200 <= status < 300:
+        return json.loads(raw) if raw else []
+    if status == 409 or '23505' in raw:
+        raise SupabaseConflictError(raw)
+    raise RuntimeError(f'Supabase REST {method} /{table} HTTP {status}: {raw}')
 
 
 def table_ready(table: str = 'reports', force: bool = False) -> bool:
-    """Kiểm tra bảng PostgreSQL đã tồn tại và có quyền đọc/ghi hay chưa (có cache 60s)."""
+    """Kiểm tra bảng PostgreSQL đã tồn tại và có quyền đọc/ghi hay chưa (có cache 300s/60s)."""
     if not is_configured():
         return False
     now = time.monotonic()
     cached = _PROBE_CACHE.get(table)
-    if not force and cached and (now - cached[0] < _PROBE_TTL_S):
-        return cached[1]
+    if not force and cached:
+        ttl = _PROBE_TTL_S if cached[1] else _PROBE_FAIL_TTL_S
+        if now - cached[0] < ttl:
+            return cached[1]
     try:
         _request('GET', table, params={'select': '*', 'limit': '1'}, timeout=8)
         _PROBE_CACHE[table] = (now, True)
@@ -136,6 +237,7 @@ def insert(table: str, payload: dict | list[dict], *, upsert: bool = False) -> l
     if upsert:
         prefer = 'resolution=merge-duplicates,return=representation'
     res = _request('POST', table, body=payload, prefer=prefer)
+    _bump_table(table)
     return res if isinstance(res, list) else []
 
 
@@ -143,6 +245,7 @@ def update(table: str, filters: dict[str, str], payload: dict) -> list[dict]:
     if not filters:
         raise ValueError('Cần điều kiện filter khi UPDATE bảng Supabase.')
     res = _request('PATCH', table, params=filters, body=payload, prefer='return=representation')
+    _bump_table(table)
     return res if isinstance(res, list) else []
 
 
