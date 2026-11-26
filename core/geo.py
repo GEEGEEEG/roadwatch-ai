@@ -84,8 +84,10 @@ def nearest_neighbor_route(points, start=None):
     return route
 
 
-@lru_cache(maxsize=256)
-def _cached_reverse_geocode(lat_r: float, lon_r: float, timeout: float = 1.8) -> str | None:
+_GEO_CACHE: dict[tuple[float, float], str] = {}
+
+
+def _reverse_nominatim(lat_r: float, lon_r: float, timeout: float) -> str | None:
     import json
     import urllib.request
     try:
@@ -94,7 +96,7 @@ def _cached_reverse_geocode(lat_r: float, lon_r: float, timeout: float = 1.8) ->
             f'&format=jsonv2&accept-language=vi'
         )
         req = urllib.request.Request(
-            url, headers={'User-Agent': 'RoadWatchAI-Geocoding/5.0 (contact: roadwatch@example.com)'}
+            url, headers={'User-Agent': 'RoadWatchAI-Geocoding/5.0 (https://roadwatch-ai.streamlit.app)'}
         )
         with urllib.request.urlopen(req, timeout=timeout) as r:
             data = json.loads(r.read().decode('utf-8'))
@@ -106,19 +108,51 @@ def _cached_reverse_geocode(lat_r: float, lon_r: float, timeout: float = 1.8) ->
 
         parts = [p for p in (road, suburb, district, city) if p]
         if parts:
-            return ', '.join(parts)
+            return ', '.join(dict.fromkeys(parts))
         disp = data.get('display_name', '')
         return disp[:120] if disp else None
     except Exception:
         return None
 
 
-def reverse_geocode(lat, lon, timeout=1.8):
-    """Tra cứu địa chỉ / tên đường từ tọa độ qua OpenStreetMap Nominatim (có bộ nhớ đệm LRU ~11m)."""
+def _reverse_bigdatacloud(lat_r: float, lon_r: float, timeout: float) -> str | None:
+    import json
+    import urllib.request
+    try:
+        url = (
+            f'https://api.bigdatacloud.net/data/reverse-geocode-client'
+            f'?latitude={lat_r}&longitude={lon_r}&localityLanguage=vi'
+        )
+        req = urllib.request.Request(url, headers={'User-Agent': 'RoadWatchAI/5.0'})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            data = json.loads(r.read().decode('utf-8'))
+        parts = [
+            p for p in (
+                data.get('locality'),
+                data.get('city') or data.get('principalSubdivision'),
+            )
+            if p
+        ]
+        return ', '.join(dict.fromkeys(parts)) if parts else None
+    except Exception:
+        return None
+
+
+def reverse_geocode(lat, lon, timeout=4.0):
+    """Tra cứu địa chỉ từ tọa độ qua Nominatim (fallback BigDataCloud); chỉ cache kết quả thành công."""
     try:
         lat_f, lon_f = float(lat), float(lon)
         if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
             return None
-        return _cached_reverse_geocode(round(lat_f, 4), round(lon_f, 4), float(timeout))
+        key = (round(lat_f, 4), round(lon_f, 4))
+        if key in _GEO_CACHE:
+            return _GEO_CACHE[key]
+        t = float(timeout)
+        res = _reverse_nominatim(key[0], key[1], t) or _reverse_bigdatacloud(key[0], key[1], t)
+        if res:
+            if len(_GEO_CACHE) >= 256:
+                _GEO_CACHE.clear()
+            _GEO_CACHE[key] = res
+        return res
     except Exception:
         return None

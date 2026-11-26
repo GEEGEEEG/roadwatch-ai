@@ -19,7 +19,7 @@ from .constants import ACTIVE_STATUSES, DISCLAIMER
 from .docx_export import AdminDocxBuilder
 
 GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent'
-DEFAULT_GEMINI_MODELS = ('gemini-4-hydrogen', 'gemini-3.5-flash-lite')
+DEFAULT_GEMINI_MODELS = ('gemini-4-hydrogen', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite')
 GEMINI_SYSTEM = (
     'Bạn là trợ lý kỹ thuật hỗ trợ cán bộ quản lý duy tu đường bộ đô thị tại Việt Nam. '
     'Viết tiếng Việt, văn phong hành chính - kỹ thuật, ngắn gọn, rõ ràng. '
@@ -109,6 +109,8 @@ def _explain_gemini_error(e: GeminiError, key: str) -> str:
         return 'HTTP 404 - model không tồn tại hoặc đã ngừng hỗ trợ'
     if e.code == 429:
         return 'HTTP 429 - hết hạn mức (quota) miễn phí, thử lại sau'
+    if e.code == 503:
+        return 'HTTP 503 - máy chủ model đang quá tải tạm thời'
     return f'HTTP {e.code} - {msg[:160]}'
 
 
@@ -129,7 +131,9 @@ def _run_gemini(prompt: str, gemini_key: str = '') -> tuple[str | None, str]:
                     raise
         except GeminiError as e:
             last = f'{model}: {_explain_gemini_error(e, key)}'
-            if e.code == 404 or (e.code == 400 and 'model' in e.message.lower() and 'key' not in e.message.lower()):
+            if e.code in (404, 429, 500, 502, 503, 504) or (
+                e.code == 400 and 'model' in e.message.lower() and 'key' not in e.message.lower()
+            ):
                 continue
             return None, f'Mẫu cố định (Gemini lỗi {last})'
         except (urllib.error.URLError, TimeoutError, OSError):
@@ -388,7 +392,33 @@ def _pdf_data_table(ctx, headers: list[str], rows: list[list[str]], col_widths_c
     return tbl
 
 
-def build_pdf(r, image_path=None, extra_text='', meta: dict | None = None):
+def _parse_edited_markdown(md_text: str) -> list[tuple[str, list[str]]]:
+    """Parse edited Markdown into (heading, lines) sections for PDF/DOCX export."""
+    sections: list[tuple[str, list[str]]] = []
+    cur_title = ''
+    cur_lines: list[str] = []
+    for raw in str(md_text or '').splitlines():
+        s = raw.strip()
+        if not s:
+            continue
+        if s.startswith('# ') and not s.startswith('## '):
+            continue
+        if s.startswith('**Trạng thái:**'):
+            continue
+        if s.startswith('## '):
+            if cur_title or cur_lines:
+                sections.append((cur_title or 'Nội dung phiếu', cur_lines))
+            cur_title = s[3:].strip()
+            cur_lines = []
+        else:
+            clean = s[2:].strip() if s[:2] in ('- ', '* ') else s
+            cur_lines.append(clean.replace('**', ''))
+    if cur_title or cur_lines:
+        sections.append((cur_title or 'Nội dung phiếu', cur_lines))
+    return sections
+
+
+def build_pdf(r, image_path=None, extra_text='', meta: dict | None = None, edited_markdown: str | None = None):
     """PDF tiếng Việt cho Phiếu giao việc & kiểm tra hiện trường (1 điểm nóng)."""
     ctx = _pdf_ctx()
     P, s, cm, esc = ctx['Paragraph'], ctx['styles'], ctx['cm'], ctx['escape']
@@ -409,16 +439,25 @@ def build_pdf(r, image_path=None, extra_text='', meta: dict | None = None):
     else:
         story.append(P('ROADWATCH AI — PHIẾU ĐỀ XUẤT KIỂM TRA HIỆN TRƯỜNG', s['h1']))
 
-    for title, lines in report_sections(r):
+    use_edited = bool(edited_markdown and str(edited_markdown).strip())
+    sections = _parse_edited_markdown(edited_markdown) if use_edited else report_sections(r)
+    img_placed = False
+    for title, lines in sections:
         story.append(P(esc(title), s['h2']))
         for line in lines:
             story.append(P('• ' + esc(str(line)), s['body']))
-        if title.startswith('1.'):
+        if not img_placed and title.startswith('1.'):
             img = _pdf_fit_image(ctx, image_path, 13.5, 8.8)
             if img is not None:
                 story += [ctx['Spacer'](1, 5), img]
+                img_placed = True
+    if not img_placed:
+        img = _pdf_fit_image(ctx, image_path, 13.5, 8.8)
+        if img is not None:
+            story += [ctx['Spacer'](1, 5), img]
 
-    story += _pdf_extra_block(ctx, 'Gợi ý diễn giải từ Gemini (cần người duyệt)', extra_text)
+    if not use_edited:
+        story += _pdf_extra_block(ctx, 'Gợi ý diễn giải từ Gemini (cần người duyệt)', extra_text)
     story += [ctx['Spacer'](1, 8), P(esc(DISCLAIMER.replace('**', '')), s['small'])]
     if meta:
         story += _pdf_signature(
@@ -430,14 +469,14 @@ def build_pdf(r, image_path=None, extra_text='', meta: dict | None = None):
     return buf.getvalue()
 
 
-def build_work_order_docx(r, image_path=None, extra_text='', meta: dict | None = None) -> bytes:
+def build_work_order_docx(r, image_path=None, extra_text='', meta: dict | None = None, edited_markdown: str | None = None) -> bytes:
     """Word .docx chuẩn hành chính cho Phiếu giao việc & kiểm tra hiện trường (1 điểm nóng)."""
     m = meta or {}
     doc = AdminDocxBuilder()
     doc.add_admin_header(
         parent_org=m.get('parent_org') or 'SỞ XÂY DỰNG / BAN QUẢN LÝ HẠ TẦNG ĐÔ THỊ',
         unit_name=m.get('unit') or 'ĐỘI QUẢN LÝ & DUY TU ĐƯỜNG BỘ',
-        doc_no=m.get('doc_no') or f"Số: .../RW-GV",
+        doc_no=m.get('doc_no') or 'Số: .../RW-GV',
         city=m.get('city') or 'Đà Nẵng',
     )
     doc.add_title('PHIẾU GIAO VIỆC & KIỂM TRA HIỆN TRƯỜNG', f"Mã hồ sơ: {r.get('id', '')}")
@@ -447,12 +486,18 @@ def build_work_order_docx(r, image_path=None, extra_text='', meta: dict | None =
         ('Vị trí hiện trường', str(r.get('location_name') or '')),
         ('Tọa độ GPS', f"{r.get('latitude')}, {r.get('longitude')} ({r.get('gps_source')})"),
     ])
-    for title, lines in report_sections(r):
+    use_edited = bool(edited_markdown and str(edited_markdown).strip())
+    sections = _parse_edited_markdown(edited_markdown) if use_edited else report_sections(r)
+    img_placed = False
+    for title, lines in sections:
         doc.add_heading(title)
         doc.add_bullets([str(x) for x in lines])
-        if title.startswith('1.') and image_path:
+        if not img_placed and title.startswith('1.') and image_path:
             doc.add_image(image_path, caption=f"Ảnh AI đánh dấu vùng hư hỏng ({r.get('id', '')})")
-    if extra_text and str(extra_text).strip():
+            img_placed = True
+    if not img_placed and image_path:
+        doc.add_image(image_path, caption=f"Ảnh AI đánh dấu vùng hư hỏng ({r.get('id', '')})")
+    if not use_edited and extra_text and str(extra_text).strip():
         doc.add_heading('4. Gợi ý diễn giải từ Gemini (cần người duyệt)')
         for line in str(extra_text).splitlines():
             s = line.strip().replace('**', '')

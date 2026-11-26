@@ -358,12 +358,13 @@ def fetch_df(statuses=None) -> pd.DataFrame:
 
 
 def get_report(report_id: str) -> dict | None:
-    if not report_id:
+    rid = str(report_id or '').strip()
+    if not rid:
         return None
     if using_postgres():
         rows = supabase_rest.select(
             'reports',
-            filters={'id': f'eq.{report_id}'},
+            filters={'id': f'ilike.{rid}'},
             columns=','.join(COLUMNS),
             limit=1,
         )
@@ -372,7 +373,7 @@ def get_report(report_id: str) -> dict | None:
         df = _normalize_df(pd.DataFrame(rows))
         return df.iloc[0].to_dict()
     df = fetch_df()
-    hit = df[df.id == report_id]
+    hit = df[df.id.astype(str).str.lower() == rid.lower()]
     return None if hit.empty else hit.iloc[0].to_dict()
 
 

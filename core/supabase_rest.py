@@ -50,9 +50,15 @@ def get_api_key() -> str:
 
 
 def get_key_role() -> str:
-    """Giải mã payload JWT (không cần khóa bí mật) để biết key đang dùng là 'service_role' hay 'anon'."""
+    """Nhận diện role từ khóa Supabase (hỗ trợ cả chuẩn mới sb_secret_/sb_publishable_ và JWT cũ)."""
     key = get_api_key()
-    if not key or key.count('.') != 2:
+    if not key:
+        return 'unknown'
+    if key.startswith('sb_secret_'):
+        return 'service_role'
+    if key.startswith('sb_publishable_'):
+        return 'anon'
+    if key.count('.') != 2:
         return 'unknown'
     try:
         payload_b64 = key.split('.')[1]
