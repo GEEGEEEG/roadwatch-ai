@@ -113,13 +113,28 @@ def severity_rule(detections, width=None, height=None):
 
 
 def draw_detections(image, detections):
+    from PIL import ImageFont
     drawn = image.copy()
     drawer = ImageDraw.Draw(drawn)
+    w, h = drawn.size
+    font_size = max(14, min(26, int(round(min(w, h) * 0.032))))
+    try:
+        font = ImageFont.load_default(size=font_size)
+    except TypeError:
+        font = ImageFont.load_default()
+    line_w = max(3, min(6, int(round(min(w, h) * 0.005))))
     for d in detections:
         x1, y1, x2, y2 = d['bbox_xyxy']
         color = COLORS[d['class_code']]
-        drawer.rectangle((x1, y1, x2, y2), outline=color, width=4)
-        drawer.text((x1 + 3, max(0, y1 - 16)), f"{d['class_code']}: {d['confidence']:.2f}", fill=color)
+        drawer.rectangle((x1, y1, x2, y2), outline=color, width=line_w)
+        tag = f"{d['class_code']} {int(round(float(d['confidence']) * 100))}%"
+        tb = drawer.textbbox((0, 0), tag, font=font)
+        tw, th = tb[2] - tb[0], tb[3] - tb[1]
+        pad_x, pad_y = 6, 3
+        ty1 = max(0, y1 - th - pad_y * 2)
+        tx1 = max(0, min(x1, max(0, w - tw - pad_x * 2)))
+        drawer.rectangle((tx1, ty1, tx1 + tw + pad_x * 2, ty1 + th + pad_y * 2), fill=color)
+        drawer.text((tx1 + pad_x, ty1 + pad_y), tag, fill='#FFFFFF', font=font)
     return drawn
 
 
