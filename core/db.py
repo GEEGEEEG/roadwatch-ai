@@ -222,6 +222,23 @@ def update_reports_bulk(report_ids: list[str], **fields) -> int:
     return updated_count
 
 
+def delete_report(report_id: str) -> bool:
+    """Xóa cứng một bản ghi phản ánh cùng lịch sử thẩm định liên quan."""
+    rid = str(report_id or '').strip()
+    if not rid:
+        return False
+    if using_postgres():
+        rows = supabase_rest.delete('reports', {'id': f'eq.{rid}'})
+        return bool(rows)
+    init()
+    with connect() as conn:
+        conn.execute('DELETE FROM history WHERE report_id=?', (rid,))
+        cur = conn.execute('DELETE FROM reports WHERE id=?', (rid,))
+        deleted = cur.rowcount > 0
+    _push_legacy_db_if_needed()
+    return deleted
+
+
 def add_history(report_id: str, status: str, actor: str = '', note: str = '') -> None:
     ts = now_vn().strftime('%Y-%m-%d %H:%M:%S')
     if using_postgres() and supabase_rest.table_ready('report_history'):

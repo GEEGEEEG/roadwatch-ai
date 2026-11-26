@@ -212,10 +212,12 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, select, button, td, th, li, a
 .stMainBlockContainer,
 .main .block-container,
 .block-container {
-  max-width: 1320px !important;
+  max-width: 1380px !important;
   width: 100% !important;
-  padding-top: 2rem !important;
-  padding-bottom: 4rem !important;
+  padding-top: 1.75rem !important;
+  padding-bottom: 3.5rem !important;
+  padding-left: clamp(1rem, 2.2vw, 2rem) !important;
+  padding-right: clamp(1rem, 2.2vw, 2rem) !important;
 }
 
 /* Typography (adaptive bright inks on dark blurred backdrop outside glass cards) */
@@ -319,9 +321,9 @@ section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] * {
 
 section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] {
   height: auto !important;
-  min-height: 76px !important;
-  padding: 12px 14px 10px !important;
-  margin-bottom: 4px !important;
+  min-height: 62px !important;
+  padding: 8px 14px 8px !important;
+  margin-bottom: 2px !important;
   align-items: center !important;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
 }
@@ -329,9 +331,9 @@ section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] {
 section[data-testid="stSidebar"] [data-testid="stSidebarLogo"],
 section[data-testid="stSidebar"] [data-testid="stLogo"],
 section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] img {
-  height: 64px !important;
+  height: 52px !important;
   width: auto !important;
-  max-width: 186px !important;
+  max-width: 172px !important;
   object-fit: contain !important;
   filter: drop-shadow(0 3px 14px rgba(251, 191, 36, 0.22));
 }
@@ -383,8 +385,9 @@ section[data-testid="stSidebar"] .stButton > button {
   color: #E2E8F0 !important;
   border: 1px solid rgba(148, 163, 184, 0.22) !important;
   border-radius: 10px !important;
-  min-height: 38px !important;
-  font-size: 0.84rem !important;
+  min-height: 34px !important;
+  padding: 4px 10px !important;
+  font-size: 0.82rem !important;
   font-weight: 600 !important;
   transition: all 0.18s ease !important;
 }
@@ -402,16 +405,24 @@ section[data-testid="stSidebar"] .stButton > button:hover {
   }
 }
 
+[data-testid="stSidebarNavItems"] {
+  max-height: none !important;
+}
+
+[data-testid="stSidebarNavViewButton"] {
+  display: none !important;
+}
+
 [data-testid="stSidebarNav"] a {
   display: flex !important;
   align-items: center !important;
   border-radius: 10px !important;
-  min-height: 38px !important;
-  margin: 2px 8px !important;
-  padding: 6px 10px !important;
+  min-height: 33px !important;
+  margin: 1px 8px !important;
+  padding: 4px 10px !important;
   gap: 10px !important;
   color: #CBD5E1 !important;
-  font-size: 0.875rem !important;
+  font-size: 0.855rem !important;
   font-weight: 500;
   border: 1px solid transparent !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -1523,7 +1534,7 @@ button[data-baseweb="tab"][aria-selected="true"] * {
 .rw-hero .rw-lead{color:var(--rw-hero-lead, #F1F5F9) !important;font-size:clamp(.95rem,1.45vw,1.04rem);line-height:1.7;max-width:560px;margin:0;text-shadow:0 1px 10px rgba(4,10,24,.55)}
 .rw-hero-visual{position:relative;background:rgba(8, 18, 36, 0.54) !important;border:1px solid rgba(255,255,255,.26) !important;
  border-radius:20px;padding:20px;backdrop-filter:blur(18px) saturate(165%) !important;-webkit-backdrop-filter:blur(18px) saturate(165%) !important;box-shadow:0 18px 40px rgba(2,8,23,.42) !important}
-.rw-visual-head{display:flex;align-items:center;justify-content:space-between;font-size:.82rem;font-weight:700;color:white;margin-bottom:14px}
+.rw-visual-head{display:flex;align-items:center;justify-content:space-between;gap:8px;white-space:nowrap;font-size:.78rem;font-weight:700;color:white;margin-bottom:14px}
 .rw-visual-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#10B981;margin-right:6px;box-shadow:0 0 0 4px rgba(16,185,129,.22)}
 .rw-visual-road{height:108px;position:relative;border-radius:14px;background:linear-gradient(137deg,#1E293B,#334155);border:1px solid rgba(255,255,255,.12);overflow:hidden}
 .rw-visual-road:after{content:"";position:absolute;left:24%;top:-35px;width:52%;height:190px;transform:rotate(23deg);background:#1E293B;border-left:4px solid #E2E8F0;border-right:4px solid #E2E8F0}
@@ -1536,8 +1547,8 @@ button[data-baseweb="tab"][aria-selected="true"] * {
 .rw-tag-red{background:#DC2626;color:#FFFFFF;animation:rwTagRed 8s ease-in-out infinite}
 .rw-tag-amber{background:#F59E0B;color:#111827;animation:rwTagAmber 8s ease-in-out infinite}
 .rw-tag-green{background:#059669;color:#FFFFFF;animation:rwTagGreen 8s ease-in-out infinite}
-.rw-visual-flow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:14px}
-.rw-visual-flow span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.20);border-radius:9px;text-align:center;color:#F8FAFC;font-size:.72rem;padding:7px 6px;font-weight:700;white-space:nowrap}
+.rw-visual-flow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.rw-visual-flow span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.20);border-radius:9px;text-align:center;color:#F8FAFC;font-size:.70rem;padding:6px 5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rw-visual-flow span:nth-child(1){animation:rwStep1 8s ease-in-out infinite}
 .rw-visual-flow span:nth-child(2){animation:rwStep2 8s ease-in-out infinite}
 .rw-visual-flow span:nth-child(3){animation:rwStep3 8s ease-in-out infinite}

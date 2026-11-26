@@ -255,6 +255,14 @@ def update(table: str, filters: dict[str, str], payload: dict) -> list[dict]:
     return res if isinstance(res, list) else []
 
 
+def delete(table: str, filters: dict[str, str]) -> list[dict]:
+    if not filters:
+        raise ValueError('Cần điều kiện filter khi DELETE bảng Supabase.')
+    res = _request('DELETE', table, params=filters, prefer='return=representation')
+    _bump_table(table)
+    return res if isinstance(res, list) else []
+
+
 def diagnose_postgres() -> dict:
     """Chẩn đoán toàn diện kết nối Supabase PostgreSQL cho trang Quản trị."""
     reset_probe_cache()

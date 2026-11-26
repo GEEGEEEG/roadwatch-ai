@@ -76,7 +76,8 @@ def officer_login_box():
     with st.sidebar:
         if is_officer():
             raw_name = str(st.session_state.get('officer_name') or 'Cán bộ trực ca').strip()
-            parts = [p for p in raw_name.replace('_', ' ').replace('-', ' ').split() if p]
+            base_name = raw_name.split('(')[0].strip() or raw_name
+            parts = [p for p in base_name.replace('_', ' ').replace('-', ' ').split() if p]
             if len(parts) >= 2:
                 initials = f'{parts[0][0]}{parts[-1][0]}'.upper()
             elif len(parts) == 1:
