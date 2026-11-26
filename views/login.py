@@ -77,16 +77,16 @@ def show():
             q1, q2, q3 = st.columns(3)
             with q1:
                 target_p1 = 'views/route.py' if role_lv == 'field_team' else 'views/queue.py'
-                lbl_p1 = 'Lộ trình được giao' if role_lv == 'field_team' else 'Hàng chờ xác minh'
+                lbl_p1 = 'Lộ trình giao việc' if role_lv == 'field_team' else 'Hàng chờ duyệt'
                 if st.button(lbl_p1, **stretch(st.button)):
                     st.switch_page(target_p1)
             with q2:
                 target_p2 = 'views/compare.py' if role_lv == 'field_team' else 'views/priority.py'
-                lbl_p2 = 'Nghiệm thu sửa chữa' if role_lv == 'field_team' else 'Ưu tiên AHP & Dự toán'
+                lbl_p2 = 'Nghiệm thu ảnh' if role_lv == 'field_team' else 'Ưu tiên & Dự toán'
                 if st.button(lbl_p2, **stretch(st.button)):
                     st.switch_page(target_p2)
             with q3:
-                if st.button('Tuần đường & Video', **stretch(st.button)):
+                if st.button('Tuần đường GPS', **stretch(st.button)):
                     st.switch_page('views/video.py')
 
             with st.expander('Đổi mật khẩu cá nhân'):
@@ -149,41 +149,13 @@ def show():
                             _do_login(officer)
                             st.rerun()
 
-    col_info, col_form = st.columns([1.1, 1], gap='large')
-
-    with col_info:
-        st.markdown("""
-        <div class="rw-glass-card" style="padding:24px;margin-bottom:16px;">
-          <h3 style="margin-top:0;font-size:1.15rem;color:#FFFFFF;">Phân quyền Nghiệp vụ Cán bộ</h3>
-          <ul style="font-size:0.9rem;color:#E2E8F0;line-height:1.9;padding-left:20px;margin-bottom:0;">
-            <li><strong>Cán bộ thẩm định:</strong> Duyệt/từ chối ảnh D00/D10/D20/D40, gộp báo cáo trùng và xuất báo cáo PDF.</li>
-            <li><strong>Quy hoạch & Xếp hạng AHP:</strong> Tinh chỉnh ma trận Saaty 4 tiêu chí, phát hiện hành lang xuống cấp và dự toán kinh phí.</li>
-            <li><strong>Đội duy tu hiện trường:</strong> Nhận lộ trình giao việc, chạy chế độ Tuần đường GPS và cập nhật ảnh nghiệm thu Trước/Sau.</li>
-            <li><strong>Bảo mật tự động:</strong> Khóa tạm thời 10 phút nếu nhập sai mật khẩu quá 5 lần liên tiếp.</li>
-          </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-        demo_hint = get_demo_account_hint()
-        if demo_hint:
-            demo_user, demo_pw = demo_hint
-            st.markdown('---')
-            st.markdown('**Chế độ Trình diễn Đồ án / Hội đồng Đánh giá**')
-            st.caption(f'Đang bật qua cấu hình demo · Tài khoản thử nghiệm: `{demo_user}`')
-            if st.button('Đăng nhập Nhanh (Dành cho Hội đồng Chấm thi)', type='secondary', use_container_width=True):
-                officer, err = login_with_status(demo_user, demo_pw)
-                if officer:
-                    _do_login(officer)
-                    st.session_state['_post_login_target'] = 'route' if officer.get('role') == 'field_team' else 'queue'
-                    st.rerun()
-                else:
-                    st.error(err or 'Không thể đăng nhập tài khoản Demo.')
+    col_form, col_info = st.columns([1.05, 1], gap='large')
 
     with col_form:
         st.markdown("""
         <div class="rw-glass-card" style="border-top:4px solid #38BDF8 !important;padding:24px;margin-bottom:14px;">
           <h3 style="margin-top:0;font-size:1.2rem;color:#FFFFFF;">Đăng nhập Tài khoản Cán bộ</h3>
-          <p style="font-size:0.85rem;color:#CBD5E1;margin-bottom:4px;">Sử dụng tài khoản cá nhân được Quản trị viên cấp trên hệ thống Supabase.</p>
+          <p style="font-size:0.85rem;color:#CBD5E1;margin-bottom:4px;">Sử dụng tài khoản nội bộ được Quản trị viên cấp.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -205,6 +177,34 @@ def show():
                     st.error(err_msg)
 
         st.caption('Chưa có tài khoản? Liên hệ **Quản trị viên RoadWatch AI** để được cấp quyền.')
+
+    with col_info:
+        demo_hint = get_demo_account_hint()
+        if demo_hint:
+            demo_user, demo_pw = demo_hint
+            st.markdown('**Chế độ Trình diễn Đồ án / Hội đồng Đánh giá**')
+            st.caption(f'Đang bật qua cấu hình demo · Tài khoản thử nghiệm: `{demo_user}`')
+            if st.button('Đăng nhập Nhanh (Dành cho Hội đồng Chấm thi)', type='secondary', use_container_width=True):
+                officer, err = login_with_status(demo_user, demo_pw)
+                if officer:
+                    _do_login(officer)
+                    st.session_state['_post_login_target'] = 'route' if officer.get('role') == 'field_team' else 'queue'
+                    st.rerun()
+                else:
+                    st.error(err or 'Không thể đăng nhập tài khoản Demo.')
+            st.markdown('---')
+
+        st.markdown("""
+        <div class="rw-glass-card" style="padding:24px;margin-bottom:16px;">
+          <h3 style="margin-top:0;font-size:1.15rem;color:#FFFFFF;">Phân quyền Nghiệp vụ Cán bộ</h3>
+          <ul style="font-size:0.9rem;color:#E2E8F0;line-height:1.9;padding-left:20px;margin-bottom:0;">
+            <li><strong>Cán bộ thẩm định:</strong> Duyệt hoặc từ chối phản ánh, gộp điểm trùng và xuất văn bản PDF/Word.</li>
+            <li><strong>Ưu tiên &amp; Dự toán sửa chữa:</strong> Xếp hạng điểm hư hỏng tự động, phát hiện đoạn đường xuống cấp và lập dự toán kinh phí.</li>
+            <li><strong>Đội duy tu hiện trường:</strong> Nhận lộ trình kiểm tra, tuần đường GPS và cập nhật ảnh nghiệm thu Trước/Sau.</li>
+            <li><strong>Bảo mật tự động:</strong> Khóa tạm thời 10 phút nếu nhập sai mật khẩu quá 5 lần liên tiếp.</li>
+          </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     disclaimer()
 

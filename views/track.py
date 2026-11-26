@@ -8,8 +8,8 @@ from core.ui import df_show, disclaimer, image_url_or_file, img_show, page_intro
 
 page_intro(
     'TRA CỨU TIẾN ĐỘ',
-    'Theo dõi hồ sơ phản ánh mặt đường',
-    'Nhập mã hồ sơ (ví dụ: RW-20261114...) hoặc quét mã QR sau khi gửi phản ánh để xem trạng thái xử lý.',
+    'Tra cứu tiến độ phản ánh',
+    'Nhập mã phản ánh (ví dụ: RW-20261114...) hoặc quét mã QR sau khi gửi để xem trạng thái xử lý.',
 )
 
 prefill_id = str(
@@ -22,7 +22,7 @@ prefill_id = str(
 with st.form('track_lookup_form'):
     col_in, col_btn = st.columns([3, 1])
     code = col_in.text_input(
-        'Mã hồ sơ phản ánh',
+        'Mã phản ánh',
         value=prefill_id,
         placeholder='Ví dụ: RW-20261114213000-a1b2',
         label_visibility='collapsed',
@@ -34,10 +34,21 @@ if submitted:
 target_id = (code.strip() if submitted else prefill_id).strip()
 if not target_id:
     st.markdown(
-        '<div class="rw-empty"><b>Nhập mã hồ sơ để bắt đầu tra cứu.</b><br>'
-        'Mã hồ sơ có dạng <code>RW-YYYYMMDDHHMMSS-xxxx</code> được cấp ngay sau khi bạn gửi phản ánh thành công.</div>',
+        '<div class="rw-empty"><b>Nhập mã phản ánh để bắt đầu tra cứu.</b><br>'
+        'Mã phản ánh có dạng <code>RW-YYYYMMDDHHMMSS-xxxx</code> được cấp ngay sau khi bạn gửi thành công.</div>',
         unsafe_allow_html=True,
     )
+    _df_s = db.fetch_df()
+    if not _df_s.empty:
+        _samples = _df_s[_df_s.status.isin(('fixed', 'assigned', 'verified'))].sort_values('created_at', ascending=False).head(3)
+        if not _samples.empty:
+            st.caption('**Tra cứu nhanh phản ánh mẫu:**')
+            _scols = st.columns(len(_samples))
+            for _col, _s in zip(_scols, _samples.itertuples()):
+                _loc = str(getattr(_s, 'location_name', '') or '')[:24]
+                if _col.button(f"{_s.id}\n({_loc})", key=f'trk_sample_{_s.id}', use_container_width=True):
+                    st.session_state['_track_id'] = str(_s.id)
+                    st.rerun()
     disclaimer()
     st.stop()
 

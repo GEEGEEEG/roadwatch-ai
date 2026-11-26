@@ -136,7 +136,8 @@ if cands:
 ok = st.checkbox('Tôi đã xem lại ảnh và xác nhận đây chỉ là đánh giá sơ bộ', key=f'q_ok_{rid}')
 with st.form('review'):
     loc = st.text_input('Tên tuyến / điểm', value=r.location_name)
-    road = st.selectbox('Cấp tuyến', list(ROAD_TYPES), index=list(ROAD_TYPES).index(r.road_type) if r.road_type in ROAD_TYPES else 2)
+    _road_clean = str(r.road_type or '').replace(' (minh họa)', '').strip()
+    road = st.selectbox('Cấp tuyến', list(ROAD_TYPES), index=list(ROAD_TYPES).index(_road_clean) if _road_clean in ROAD_TYPES else 2)
     level = st.selectbox('Mức độ sau khi xem ảnh', LEVELS, index=LEVELS.index(r.ai_level) if r.ai_level in LEVELS else 0)
     note = st.text_area('Ghi chú', value=r.note or '')
     reason = st.text_input('Lý do (nếu từ chối)')

@@ -1,4 +1,5 @@
 import io
+import json
 from datetime import datetime
 
 import streamlit as st
@@ -6,11 +7,14 @@ from PIL import Image
 
 from core import db, storage
 from core.config import data_dir, now_vn
+from core.damage_analysis import analyze_image_damage
+from core.detector import fast_prepare_rgb
 from core.priority import build_hotspots
 from core.ui import (
     current_actor,
     detector_or_stop,
     disclaimer,
+    image_file,
     image_url_or_file,
     img_show,
     page_intro,
@@ -47,6 +51,51 @@ with a:
     p = image_url_or_file(before.annotated_file, public_only=False)
     if p:
         img_show(p, caption=f'TRƯỚC — {int(before.total_boxes)} vùng, mức {before.final_level}')
+    if st.button('Quét lại AI ảnh TRƯỚC (bản mới)', key=f'rescan_before_{before.id}', use_container_width=True):
+        orig_path = image_file(before.image_file) or image_file(before.annotated_file)
+        if not orig_path:
+            st.error('Không tìm thấy tệp ảnh gốc để quét lại.')
+        else:
+            with Image.open(orig_path) as raw_im:
+                prep_b = fast_prepare_rgb(raw_im, max_side=1280)
+            out_b = det.predict_image(prep_b, threshold=thr, tta=True, enhance_glare=True)
+            dmg_b = analyze_image_damage(prep_b, out_b['detections'])
+
+            ann_rel = before.annotated_file or f'annotated/{before.id}.jpg'
+            ann_buf = io.BytesIO()
+            ann_im = out_b['annotated_image'].copy()
+            ann_im.thumbnail((2000, 2000), Image.Resampling.LANCZOS)
+            ann_im.convert('RGB').save(ann_buf, 'JPEG', quality=85, optimize=True)
+            ann_bytes = ann_buf.getvalue()
+
+            ann_path = data_dir() / ann_rel
+            ann_path.parent.mkdir(parents=True, exist_ok=True)
+            ann_path.write_bytes(ann_bytes)
+            if storage.is_enabled():
+                storage.upload(ann_rel, ann_bytes, 'image/jpeg')
+
+            dets_b = out_b['detections']
+            sev_b = out_b['severity']
+            avg_c = round(sum(d['confidence'] for d in dets_b) / len(dets_b), 4) if dets_b else 0.0
+            db.update_report(
+                before.id,
+                annotated_file=ann_rel,
+                total_boxes=len(dets_b),
+                count_D00=sev_b['counts']['D00'],
+                count_D10=sev_b['counts']['D10'],
+                count_D20=sev_b['counts']['D20'],
+                count_D40=sev_b['counts']['D40'],
+                avg_confidence=avg_c,
+                bbox_union_pct=sev_b['bbox_proxy_pct'],
+                damage_area_m2=dmg_b['total_damage_m2'],
+                damage_volume_l=dmg_b['estimated_volume_liters'],
+                damage_depth_desc=dmg_b['depth_estimate_desc'],
+                ai_level=sev_b['level'],
+                ai_score=sev_b['score'],
+                detections_json=json.dumps(dets_b, ensure_ascii=False),
+            )
+            st.success('Đã quét lại ảnh TRƯỚC bằng mô hình mới!')
+            st.rerun()
 
 if not after_file:
     with b:
@@ -61,7 +110,7 @@ if not after_file:
 
 if after_file:
     raw = after_file.getvalue()
-    out = det.predict_image(Image.open(io.BytesIO(raw)), threshold=thr, enhance_glare=True)
+    out = det.predict_image(Image.open(io.BytesIO(raw)), threshold=thr, tta=True, enhance_glare=True)
     with b:
         img_show(out['annotated_image'], caption=f"SAU — {len(out['detections'])} vùng, mức sơ bộ {out['severity']['level']}")
     st.metric(

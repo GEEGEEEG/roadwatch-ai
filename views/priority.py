@@ -180,6 +180,8 @@ with tab3:
                 'Hạng': st.column_config.NumberColumn('Hạng', width='small'),
                 'Số phản ánh': st.column_config.NumberColumn('Số phản ánh', width='small'),
                 'Diện tích (m²)': st.column_config.NumberColumn('Diện tích (m²)', width='small'),
+                'Phương án vật tư': st.column_config.TextColumn('Phương án vật tư', width='medium'),
+                'Tổng dự toán (VNĐ)': st.column_config.NumberColumn('Tổng dự toán (VNĐ)', width='small'),
             },
         )
         st.download_button(

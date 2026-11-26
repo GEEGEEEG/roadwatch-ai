@@ -16,8 +16,8 @@ from core.ui import current_actor, df_show, disclaimer, kpi_grid, page_intro, re
 require_officer(('admin', 'officer'))
 page_intro(
     'QUẢN TRỊ HỆ THỐNG',
-    'Hạ tầng Supabase, Tài khoản RBAC & Định mức',
-    'Chẩn đoán cơ sở dữ liệu PostgreSQL + Storage CDN, quản lý phân quyền cán bộ và đơn giá duy tu.',
+    'Quản trị hệ thống & Dữ liệu',
+    'Kiểm tra kết nối lưu trữ, quản lý tài khoản cán bộ và đơn giá vật tư duy tu.',
 )
 
 current_user = st.session_state.get('officer_username', '')
@@ -52,7 +52,7 @@ with admin_tabs[0]:
         st.subheader('Kết nối Hạ tầng Đám mây (PostgreSQL & Storage CDN)')
         col_diag1, col_diag2 = st.columns(2)
         with col_diag1:
-            if st.button('Chẩn đoán toàn diện Supabase (DB + Storage)', use_container_width=True, type='primary'):
+            if st.button('Kiểm tra kết nối CSDL & Ảnh', use_container_width=True, type='primary'):
                 with st.spinner('Đang kiểm tra bảng PostgreSQL và Bucket lưu trữ...'):
                     pg_diag = supabase_rest.diagnose_postgres()
                     st_diag = storage.test_connection()
@@ -67,7 +67,7 @@ with admin_tabs[0]:
 
         with col_diag2:
             if storage.is_enabled():
-                if st.button('Đồng bộ dữ liệu cục bộ & ảnh lên Supabase', use_container_width=True):
+                if st.button('Đồng bộ dữ liệu lên Cloud', use_container_width=True):
                     with st.spinner('Đang đồng bộ ảnh và chuyển tiếp dữ liệu lên Supabase...'):
                         n_ok, n_total, errs = storage.sync_all_to_cloud()
                         if errs:

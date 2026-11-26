@@ -16,8 +16,8 @@ from core.video import interpolate, parse_gpx, sample_frames
 require_officer()
 page_intro(
     'KHẢO SÁT MỞ RỘNG',
-    'Tuần đường Thông minh & Phân tích Video GPX',
-    'Quét nhanh mặt đường kèm GPS tự động trên xe tuần tra (Dashcam Mode) hoặc đồng bộ tệp Video + GPX.',
+    'Tuần đường & Video GPX',
+    'Quét nhanh mặt đường kèm GPS trên xe tuần tra hoặc đồng bộ tệp Video + GPX.',
 )
 
 v_tab1, v_tab2 = st.tabs([
@@ -82,16 +82,20 @@ with v_tab1:
     except ValueError:
         st.error('Vui lòng nhập số thực hợp lệ cho Vĩ độ / Kinh độ.')
 
-    patrol_cam = st.camera_input(
-        'Chạm để quét khung hình hiện trường tiếp theo',
-        key='patrol_camera',
-        disabled=not _gps_ok,
-    )
+    if st.toggle('Bật camera tuần đường trực tiếp', value=False, key='patrol_cam_on'):
+        patrol_cam = st.camera_input(
+            'Chạm để quét khung hình hiện trường tiếp theo',
+            key='patrol_camera',
+            disabled=not _gps_ok,
+        )
+    else:
+        patrol_cam = None
+        st.caption('Bật công tắc phía trên khi sẵn sàng quét ảnh trực tiếp từ camera.')
     if patrol_cam and _gps_ok:
         det = detector_or_stop()
         raw_b = patrol_cam.getvalue()
         im = Image.open(io.BytesIO(raw_b))
-        out_p = det.predict_image(im, threshold=patrol_thr)
+        out_p = det.predict_image(im, threshold=patrol_thr, tta=True, enhance_glare=True)
         dets_p = out_p['detections']
 
         img_show(out_p['annotated_image'], caption='Kết quả quét AI trên xe tuần tra')
@@ -171,7 +175,16 @@ with v_tab2:
     if found:
         st.write(f'Phát hiện hư hỏng tại **{len(found)}** khung hình có tọa độ GPX hợp lệ:')
         st.dataframe(
-            pd.DataFrame([{k: v for k, v in f.items() if k not in ('jpeg', 'annotated')} for f in found]),
+            pd.DataFrame([
+                {
+                    'Giây': f['sec'],
+                    'Vĩ độ': f['lat'],
+                    'Kinh độ': f['lon'],
+                    'Mức độ': f['level'],
+                    'Số vùng': f['boxes'],
+                }
+                for f in found
+            ]),
             hide_index=True,
         )
         for f in found[:6]:

@@ -92,7 +92,12 @@ table = pd.DataFrame(rows)
 df_show(
     table.drop(columns='hotspot_id'),
     hide_index=True,
-    column_config={'Chỉ đường': st.column_config.LinkColumn('Chỉ đường', display_text='Mở Google Maps')},
+    column_config={
+        'STT': st.column_config.NumberColumn('STT', width='small'),
+        'Hạng': st.column_config.NumberColumn('Hạng', width='small'),
+        'Khoảng cách (m)': st.column_config.NumberColumn('Khoảng cách (m)', width='small'),
+        'Chỉ đường': st.column_config.LinkColumn('Chỉ đường', display_text='Mở Google Maps', width='small'),
+    },
 )
 st.link_button('Mở toàn bộ lộ trình trong Google Maps', maps_multi_link([(a, b) for _, a, b, _ in route], start))
 st.caption('Thứ tự gợi ý theo thuật toán láng giềng gần nhất (Nearest Neighbor).')
