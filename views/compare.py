@@ -89,7 +89,7 @@ with a:
                 bbox_union_pct=sev_b['bbox_proxy_pct'],
                 damage_area_m2=dmg_b['total_damage_m2'],
                 damage_volume_l=dmg_b['estimated_volume_liters'],
-                damage_depth_desc=dmg_b['depth_estimate_desc'],
+                damage_depth_desc=dmg_b.get('damage_severity_desc', ''),
                 ai_level=sev_b['level'],
                 ai_score=sev_b['score'],
                 detections_json=json.dumps(dets_b, ensure_ascii=False),
