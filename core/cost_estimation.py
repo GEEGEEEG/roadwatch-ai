@@ -45,11 +45,19 @@ def estimate_maintenance_cost(
     else:
         kg_needed = vol_m3 * DENSITY_ASPHALT_KG_M3
         bags_25kg = max(1, math.ceil(kg_needed / 25.0))
+        actual_mat_cost = int(round((kg_needed / 25.0) * prices['carboncor_bag_25kg']))
 
         if area < 0.5 and n_pts <= 2:
             mat_cost = bags_25kg * prices['carboncor_bag_25kg']
             labor_cost = prices['labor_per_point'] * effective_points
-            material_detail = f'{bags_25kg} bao (25kg/bao) Nhựa nguội Carboncor ({kg_needed:.1f} kg)'
+            if bags_25kg == 1 and kg_needed < 25.0:
+                actual_fmt = f'{actual_mat_cost:,}'.replace(',', '.')
+                material_detail = (
+                    f'1 bao nguyên 25kg Nhựa nguội Carboncor '
+                    f'(dùng {kg_needed:.1f} kg ≈ {actual_fmt} đ vật tư; mức sàn 1 bao + nhân công)'
+                )
+            else:
+                material_detail = f'{bags_25kg} bao (25kg/bao) Nhựa nguội Carboncor ({kg_needed:.1f} kg)'
         else:
             mat_cost = area * prices['btn_hot_mix_m2']
             labor_cost = prices['labor_per_point'] * max(1.5, effective_points)

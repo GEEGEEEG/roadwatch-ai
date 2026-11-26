@@ -17,6 +17,63 @@ DEFAULT_AHP_MATRIX = np.array([
     [1/4, 1/3, 1/2, 1.0],
 ], dtype=float)
 
+SAATY_SCALE = np.array([
+    1/9, 1/8, 1/7, 1/6, 1/5, 1/4, 1/3, 1/2,
+    1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0,
+], dtype=float)
+
+
+def _snap_saaty(ratio: float) -> float:
+    """Làm tròn tỷ số trọng số về mức gần nhất trên thang Saaty 1/9..9."""
+    val = max(1 / 9, min(9.0, float(ratio)))
+    idx = int(np.argmin(np.abs(np.log(SAATY_SCALE) - np.log(val))))
+    return float(SAATY_SCALE[idx])
+
+
+def build_auto_ahp_matrix(
+    weights: tuple[float, float, float] = (50.0, 30.0, 20.0),
+    rain_mm: float | None = None,
+    severe_ratio: float = 0.0,
+) -> tuple[np.ndarray, dict]:
+    """Tự động sinh ma trận so sánh cặp Saaty 4x4 tối ưu ở backend, luôn đảm bảo CR < 0.10.
+
+    - weights: (w_severity, w_frequency, w_road) từ kịch bản ưu tiên hiện hành.
+    - rain_mm: tổng lượng mưa dự báo 3 ngày (mm); mưa lớn tự nâng trọng số C4 (thời tiết/ngập).
+    - severe_ratio: tỷ lệ điểm nóng mức 'Cần kiểm tra sớm' (0..1); tăng nhẹ ưu tiên C1.
+    """
+    w_sev, w_freq, w_road = [max(5.0, float(x)) for x in weights]
+    sev_boost = 1.0 + 0.20 * float(np.clip(severe_ratio, 0.0, 1.0))
+    c1_raw = w_sev * sev_boost
+    c2_raw = w_road
+    c3_raw = w_freq
+    c123_sum = c1_raw + c2_raw + c3_raw
+
+    if rain_mm is not None and float(rain_mm) > 5.0:
+        rain_factor = min(1.0, (float(rain_mm) - 5.0) / 45.0)
+        p4 = 0.095 + 0.145 * rain_factor
+    else:
+        p4 = 0.095
+
+    rem = 1.0 - p4
+    p1 = rem * (c1_raw / c123_sum)
+    p2 = rem * (c2_raw / c123_sum)
+    p3 = rem * (c3_raw / c123_sum)
+
+    snapped = build_pairwise_matrix(
+        _snap_saaty(p1 / p2),
+        _snap_saaty(p1 / p3),
+        _snap_saaty(p1 / p4),
+        _snap_saaty(p2 / p3),
+        _snap_saaty(p2 / p4),
+        _snap_saaty(p3 / p4),
+    )
+    meta = compute_ahp_weights(snapped)
+    if meta['is_consistent']:
+        return snapped, meta
+
+    exact = build_pairwise_matrix(p1 / p2, p1 / p3, p1 / p4, p2 / p3, p2 / p4, p3 / p4)
+    return exact, compute_ahp_weights(exact)
+
 
 def build_pairwise_matrix(
     c12: float = 2.0,
