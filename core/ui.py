@@ -75,10 +75,23 @@ def officer_login_box():
     """Trạng thái đăng nhập cán bộ gọn trên thanh bên (không lặp lại logo chính)."""
     with st.sidebar:
         if is_officer():
-            officer = escape(str(st.session_state.get('officer_name', 'Cán bộ trực ca')))
+            raw_name = str(st.session_state.get('officer_name') or 'Cán bộ trực ca').strip()
+            parts = [p for p in raw_name.replace('_', ' ').replace('-', ' ').split() if p]
+            if len(parts) >= 2:
+                initials = f'{parts[0][0]}{parts[-1][0]}'.upper()
+            elif len(parts) == 1:
+                initials = parts[0][:2].upper()
+            else:
+                initials = 'CB'
+            officer = escape(raw_name)
             role_tag = {'admin': 'Quản trị', 'officer': 'Thẩm định', 'field_team': 'Duy tu'}.get(officer_role(), 'Cán bộ')
             st.markdown(
-                f'<div class="rw-sidebar-info"><b>{officer}</b> · <span>{escape(role_tag)}</span></div>',
+                f'<div class="rw-officer-card">'
+                f'<div class="rw-officer-avatar">{escape(initials)}</div>'
+                f'<div class="rw-officer-meta">'
+                f'<div class="rw-officer-name">{officer}</div>'
+                f'<span class="rw-officer-role">{escape(role_tag)}</span>'
+                f'</div></div>',
                 unsafe_allow_html=True,
             )
             if st.button('Đăng xuất', key='btn_officer_logout', use_container_width=True):
@@ -86,7 +99,7 @@ def officer_login_box():
                 st.rerun()
         else:
             st.markdown(
-                '<div class="rw-sidebar-info">Khu vực điều hành dành riêng cho cán bộ được cấp quyền.</div>',
+                '<div class="rw-sidebar-info">Cổng nội bộ dành cho cán bộ thẩm định & điều phối.</div>',
                 unsafe_allow_html=True,
             )
 

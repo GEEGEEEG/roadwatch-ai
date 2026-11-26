@@ -304,11 +304,12 @@ section[data-testid="stSidebar"] .stMarkdown a:hover {
 
 /* Deep Frosted Glass Command Sidebar */
 section[data-testid="stSidebar"] {
-  background: linear-gradient(180deg, rgba(6, 15, 32, 0.78) 0%, rgba(10, 24, 48, 0.84) 100%) !important;
-  backdrop-filter: blur(26px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(26px) saturate(160%) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.14) !important;
-  box-shadow: 4px 0 30px rgba(2, 8, 23, 0.36) !important;
+  background: radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.13) 0%, transparent 46%),
+    linear-gradient(180deg, rgba(5, 12, 27, 0.88) 0%, rgba(9, 21, 43, 0.93) 100%) !important;
+  backdrop-filter: blur(28px) saturate(165%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(165%) !important;
+  border-right: 1px solid rgba(148, 163, 184, 0.16) !important;
+  box-shadow: 6px 0 34px rgba(2, 6, 23, 0.45), inset -1px 0 0 rgba(255, 255, 255, 0.04) !important;
 }
 
 section[data-testid="stSidebar"] [data-testid="stSidebarHeader"],
@@ -318,19 +319,21 @@ section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] * {
 
 section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] {
   height: auto !important;
-  min-height: 84px !important;
-  padding: 14px 14px 8px !important;
+  min-height: 76px !important;
+  padding: 12px 14px 10px !important;
+  margin-bottom: 4px !important;
   align-items: center !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
 }
 
 section[data-testid="stSidebar"] [data-testid="stSidebarLogo"],
 section[data-testid="stSidebar"] [data-testid="stLogo"],
 section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] img {
-  height: 74px !important;
+  height: 64px !important;
   width: auto !important;
-  max-width: 196px !important;
+  max-width: 186px !important;
   object-fit: contain !important;
-  filter: drop-shadow(0 3px 14px rgba(251, 191, 36, 0.24));
+  filter: drop-shadow(0 3px 14px rgba(251, 191, 36, 0.22));
 }
 
 [data-testid="stHeader"] [data-testid="stLogo"] {
@@ -376,15 +379,19 @@ section[data-testid="stSidebar"] [data-testid="stExpanderToggleIcon"] {
 }
 
 section[data-testid="stSidebar"] .stButton > button {
-  background: rgba(255, 255, 255, 0.09) !important;
-  color: #F8FAFC !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  min-height: 42px;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #E2E8F0 !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 10px !important;
+  min-height: 38px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  transition: all 0.18s ease !important;
 }
 
 section[data-testid="stSidebar"] .stButton > button:hover {
-  background: rgba(239, 68, 68, 0.22) !important;
-  border-color: #F87171 !important;
+  background: rgba(239, 68, 68, 0.20) !important;
+  border-color: rgba(248, 113, 113, 0.65) !important;
   color: #FFFFFF !important;
 }
 
@@ -398,13 +405,15 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 [data-testid="stSidebarNav"] a {
   display: flex !important;
   align-items: center !important;
-  border-radius: 12px !important;
-  min-height: 42px;
-  margin: 2px 6px;
-  padding: 8px 10px;
-  gap: 10px;
+  border-radius: 10px !important;
+  min-height: 38px !important;
+  margin: 2px 8px !important;
+  padding: 6px 10px !important;
+  gap: 10px !important;
   color: #CBD5E1 !important;
-  font-weight: 600;
+  font-size: 0.875rem !important;
+  font-weight: 500;
+  border: 1px solid transparent !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -413,10 +422,30 @@ section[data-testid="stSidebar"] .stButton > button:hover {
   color: #CBD5E1 !important;
 }
 
+[data-testid="stSidebarNav"] a [data-testid="stIconMaterial"] {
+  color: #7C96B8 !important;
+  font-size: 1.12rem !important;
+  transition: color 0.18s ease, transform 0.18s ease !important;
+}
+
 [data-testid="stSidebarNav"] a:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(148, 163, 184, 0.11) !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
   color: #FFFFFF !important;
-  transform: translateX(3px);
+  transform: translateX(2px);
+}
+
+[data-testid="stSidebarNav"] a:hover span,
+[data-testid="stSidebarNav"] a:hover p {
+  color: #FFFFFF !important;
+}
+
+[data-testid="stSidebarNav"] a:hover [data-testid="stIconMaterial"] {
+  color: #7DD3FC !important;
+}
+
+[data-testid="stSidebarNav"] a[aria-current="page"] [data-testid="stIconMaterial"] {
+  color: #38BDF8 !important;
 }
 
 [data-testid="stSidebarNav"] a:hover span,
@@ -425,13 +454,30 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 }
 
 [data-testid="stSidebarNav"] a[aria-current="page"] {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(14, 165, 233, 0.16) 100%),
-    linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-  border: 1px solid rgba(186, 230, 253, 0.52) !important;
-  color: #FFFFFF !important;
-  font-weight: 700;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45), inset 0 1.5px 1px rgba(255, 255, 255, 0.48) !important;
+  position: relative !important;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.22) 0%, rgba(59, 130, 246, 0.11) 68%, rgba(15, 23, 42, 0.05) 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.34) !important;
+  color: #F0F9FF !important;
+  font-weight: 700 !important;
+  padding-left: 14px !important;
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+[data-testid="stSidebarNav"] a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  bottom: 7px;
+  width: 3.5px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #7DD3FC 0%, #38BDF8 50%, #3B82F6 100%);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.85);
+}
+
+[data-testid="stSidebarNav"] a[aria-current="page"]:hover {
+  transform: none !important;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.28) 0%, rgba(59, 130, 246, 0.14) 68%, rgba(15, 23, 42, 0.08) 100%) !important;
 }
 
 [data-testid="stSidebarNav"] a > span:first-child {
@@ -457,16 +503,22 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 
 [data-testid="stSidebarNav"] a[aria-current="page"] span,
 [data-testid="stSidebarNav"] a[aria-current="page"] p {
-  color: #FFFFFF !important;
+  color: #F0F9FF !important;
 }
 
 [data-testid="stNavSectionHeader"] {
-  color: #60A5FA !important;
-  font-size: 0.74rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.09em !important;
+  color: rgba(147, 197, 253, 0.82) !important;
+  font-size: 0.69rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.11em !important;
   text-transform: uppercase !important;
-  padding: 12px 14px 4px !important;
+  padding: 10px 14px 4px !important;
+}
+
+[data-testid="stSidebarNavSeparator"] {
+  margin: 6px 14px !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+  opacity: 0.85 !important;
 }
 
 .rw-sidebar-brand {
@@ -526,13 +578,87 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 }
 
 .rw-sidebar-info {
-  font-size: 0.8rem;
-  color: #E2E8F0 !important;
-  padding: 10px 14px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #CBD5E1 !important;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: rgba(15, 23, 42, 0.55);
+  margin: 6px 8px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.rw-officer-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  margin: 6px 8px 8px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.07);
-  margin: 4px 6px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.72) 0%, rgba(30, 58, 138, 0.24) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.rw-officer-avatar {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+  color: #F8FAFC !important;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+}
+
+.rw-officer-avatar::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22C55E;
+  border: 2px solid #09152B;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.75);
+}
+
+.rw-officer-meta {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rw-officer-name {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #F8FAFC !important;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rw-officer-role {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #7DD3FC !important;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 999px;
+  padding: 1px 7px;
+  line-height: 1.3;
 }
 
 /* Smoked Atmospheric Frosted Glass Cards, Forms & Interactive Widgets */
