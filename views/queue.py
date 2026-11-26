@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from core import db
+from core.config import now_vn
 from core.constants import ACTIVE_STATUSES, DUP_FLAG_M, LEVELS, MERGE_MAX_M, ROAD_TYPES
 from core.cost_estimation import estimate_maintenance_cost
 from core.geo import nearby_points
@@ -25,7 +26,7 @@ if pending.empty:
 
 # Cảnh báo SLA nếu có hồ sơ khẩn cấp tồn đọng quá 48 giờ
 created_ts = pd.to_datetime(pending['created_at'], errors='coerce')
-age_hours = (pd.Timestamp.now() - created_ts).dt.total_seconds() / 3600.0
+age_hours = (pd.Timestamp(now_vn()) - created_ts).dt.total_seconds() / 3600.0
 overdue_urgent = int(((pending['ai_level'] == 'Cần kiểm tra sớm') & (age_hours > 48)).sum())
 if overdue_urgent > 0:
     st.error(f'**Cảnh báo SLA:** Có **{overdue_urgent}** hồ sơ mức "Cần kiểm tra sớm" đã chờ quá 48 giờ cần ưu tiên thẩm định ngay!')
@@ -110,7 +111,7 @@ if cands:
         if st.button('Gộp vào điểm hiện hữu', key=f'mergebtn_{rid}'):
             dist = next(x[1] for x in cands if x[0] == pick)
             parent_status = active.loc[active.id == pick, 'status'].iloc[0]
-            now_s = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            now_s = now_vn().strftime('%Y-%m-%d %H:%M:%S')
             db.update_report(rid, status='merged', merged_into=pick, reviewed_by=actor, reviewed_at=now_s)
             db.add_history(rid, 'merged', actor, f'Gộp vào {pick} (cách {dist:.0f} m)')
             db.add_history(pick, parent_status, actor, f'Nhận gộp phản ánh {rid}')
@@ -143,7 +144,7 @@ if approve:
             note=note,
             status='verified',
             reviewed_by=actor,
-            reviewed_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            reviewed_at=now_vn().strftime('%Y-%m-%d %H:%M:%S'),
         )
         db.add_history(rid, 'verified', actor, f'Mức {level}')
         st.success('Đã duyệt.')
@@ -160,7 +161,7 @@ if reject:
             status='rejected',
             reject_reason=reason.strip(),
             reviewed_by=actor,
-            reviewed_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            reviewed_at=now_vn().strftime('%Y-%m-%d %H:%M:%S'),
         )
         db.add_history(rid, 'rejected', actor, reason.strip())
         st.success('Đã từ chối.')

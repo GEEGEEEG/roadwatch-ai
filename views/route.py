@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from core import db
-from core.config import cfg
+from core.config import cfg, today_vn
 from core.geo import maps_link, maps_multi_link, nearest_neighbor_route
 from core.notify import send_telegram, telegram_configured
 from core.priority import build_hotspots
@@ -36,7 +36,7 @@ if hs.empty:
 assigned_df = df[df.status == 'assigned'].copy()
 if not assigned_df.empty and 'due_date' in assigned_df.columns:
     due_dates = pd.to_datetime(assigned_df['due_date'], errors='coerce').dt.date
-    overdue_df = assigned_df[due_dates < date.today()]
+    overdue_df = assigned_df[due_dates < today_vn()]
     if not overdue_df.empty:
         st.error(f'**Cảnh báo quá hạn SLA:** Có **{len(overdue_df)}** hồ sơ đã giao kiểm tra vượt quá hạn cam kết (`due_date`)!')
         with st.expander('Xem danh sách hồ sơ quá hạn & nhắc việc'):
@@ -102,7 +102,7 @@ st.subheader('Giao nhiệm vụ kiểm tra / duy tu')
 with st.form('assign'):
     pick = st.multiselect('Chọn điểm', list(by_id), format_func=lambda h: by_id[h].location_name)
     who = st.text_input('Người / Đội phụ trách', placeholder='Ví dụ: Đội Duy tu Đường bộ 1')
-    due = st.date_input('Hạn hoàn thành kiểm tra', value=date.today() + timedelta(days=3))
+    due = st.date_input('Hạn hoàn thành kiểm tra', value=today_vn() + timedelta(days=3))
     go = st.form_submit_button('Giao việc', type='primary')
 
 if go:

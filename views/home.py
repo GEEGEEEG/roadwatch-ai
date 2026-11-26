@@ -8,6 +8,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from core import db
+from core.config import now_vn
 from core.constants import STATUS_LABELS
 from core.ui import add_legal_map_layers, disclaimer, is_officer, safe_page_link, stretch
 
@@ -250,7 +251,7 @@ if recorded.empty:
     new_today = 0
     severe_count = 0
 else:
-    new_today = int((recorded['day'] == pd.Timestamp.now().normalize()).sum())
+    new_today = int((recorded['day'] == pd.Timestamp(now_vn()).normalize()).sum())
     severe_count = int((recorded['level'] == SEVERE_LEVEL).sum())
 
 st.markdown("""
@@ -392,7 +393,7 @@ with right_col:
             if recorded.empty:
                 st.info('Chưa có dữ liệu theo ngày để vẽ xu hướng.')
             else:
-                today = pd.Timestamp.now().normalize()
+                today = pd.Timestamp(now_vn()).normalize()
                 days = pd.date_range(end=today, periods=TREND_DAYS)
                 daily = recorded.groupby('day').size().reindex(days, fill_value=0)
                 trend = pd.DataFrame({

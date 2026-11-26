@@ -5,7 +5,7 @@ import streamlit as st
 from PIL import Image
 
 from core import db, storage
-from core.config import data_dir
+from core.config import data_dir, now_vn
 from core.priority import build_hotspots
 from core.ui import (
     current_actor,
@@ -86,7 +86,7 @@ if after_file:
         if storage.is_enabled():
             storage.upload(name, after_bytes, 'image/jpeg')
 
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        now = now_vn().strftime('%Y-%m-%d %H:%M:%S')
         actor = current_actor()
         other_ids = [rid for rid in row.member_ids if rid != row.worst_report_id]
 

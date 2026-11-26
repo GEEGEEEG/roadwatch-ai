@@ -7,7 +7,7 @@ import streamlit as st
 from core import db, storage, supabase_rest
 from core.auth import create_officer, is_admin, list_officers, reset_password, toggle_active
 from core.backup import make_backup, restore_backup
-from core.config import PROJECT_ROOT, data_dir, model_path
+from core.config import PROJECT_ROOT, data_dir, model_path, now_vn
 from core.cost_estimation import UNIT_PRICES
 from core.notify import send_telegram, telegram_configured
 from core.ui import current_actor, df_show, disclaimer, page_intro, require_officer, safe_csv_export
@@ -107,7 +107,7 @@ with admin_tabs[0]:
     st.download_button(
         'Tải gói sao lưu cục bộ (.zip)',
         make_backup(),
-        file_name=f"roadwatch_backup_{datetime.now():%Y%m%d_%H%M}.zip",
+        file_name=f"roadwatch_backup_{now_vn():%Y%m%d_%H%M}.zip",
         mime='application/zip',
     )
     if _is_admin:

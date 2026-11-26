@@ -10,6 +10,7 @@ from core.auth import (
     has_any_admin,
     login_with_status,
 )
+from core.config import now_vn
 from core.ui import clear_officer_session, disclaimer, is_officer, stretch
 
 
@@ -19,7 +20,7 @@ def _do_login(officer: dict):
     st.session_state['officer_name'] = officer.get('full_name') or officer['username']
     st.session_state['officer_unit'] = officer.get('unit') or 'RoadWatch AI'
     st.session_state['officer_role_level'] = officer.get('role') or 'officer'
-    st.session_state['officer_login_time'] = datetime.now().strftime('%H:%M:%S %d/%m/%Y')
+    st.session_state['officer_login_time'] = now_vn().strftime('%H:%M:%S %d/%m/%Y')
 
 
 def _role_badge(role_lv: str) -> str:
@@ -165,7 +166,8 @@ def show():
                 officer, err = login_with_status(demo_user, demo_pw)
                 if officer:
                     _do_login(officer)
-                    st.switch_page('views/queue.py')
+                    st.session_state['_post_login_target'] = 'route' if officer.get('role') == 'field_team' else 'queue'
+                    st.rerun()
                 else:
                     st.error(err or 'Không thể đăng nhập tài khoản Demo.')
 
@@ -189,12 +191,8 @@ def show():
                 officer, err_msg = login_with_status(username, entered_pw)
                 if officer:
                     _do_login(officer)
-                    st.success('Đăng nhập thành công!')
-                    target = 'views/route.py' if officer.get('role') == 'field_team' else 'views/queue.py'
-                    try:
-                        st.switch_page(target)
-                    except Exception:
-                        st.rerun()
+                    st.session_state['_post_login_target'] = 'route' if officer.get('role') == 'field_team' else 'queue'
+                    st.rerun()
                 else:
                     st.error(err_msg)
 
