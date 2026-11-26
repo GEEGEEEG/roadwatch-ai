@@ -38,7 +38,7 @@ if _logo_path.is_file():
 ui.officer_login_box()
 
 p_home = st.Page(_page('views/home.py'), title='Trang chủ', default=True)
-p_submit = st.Page(_page('views/submit.py'), title='Gửi báo cáo', url_path='submit')
+p_submit = st.Page(_page('views/submit.py'), title='Gửi phản ánh', url_path='submit')
 p_track = st.Page(_page('views/track.py'), title='Tra cứu phản ánh', url_path='track')
 p_map = st.Page(_page('views/map.py'), title='Bản đồ', url_path='map')
 public_pages = [p_home, p_submit, p_track, p_map]
@@ -90,9 +90,9 @@ theme.apply(getattr(pg, 'url_path', 'home') or 'home')
 with st.container(key='rw_mobile_dock'):
     d_cols = st.columns(4, gap='small')
     with d_cols[0]:
-        ui.safe_page_link(p_home, label='Trang chủ', icon=None)
+        st.markdown('<a href="/" target="_self" data-testid="stPageLink-NavLink" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">Trang chủ</a>', unsafe_allow_html=True)
     with d_cols[1]:
-        ui.safe_page_link(p_submit, label='Gửi ảnh', icon=None)
+        ui.safe_page_link(p_submit, label='Gửi phản ánh', icon=None)
     with d_cols[2]:
         ui.safe_page_link(p_track, label='Tra cứu', icon=None)
     with d_cols[3]:
