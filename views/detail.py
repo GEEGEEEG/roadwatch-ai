@@ -49,6 +49,19 @@ if len(near) > 1:
     trend = near.sort_values('created_at').set_index('created_at')[['final_score']]
     st.line_chart(trend)
 
-st.subheader('Nhật ký thẩm định & xử lý (Audit Log)')
-df_show(db.get_history(rid), hide_index=True)
+st.subheader('Nhật ký thẩm định & xử lý')
+hist = db.get_history(rid)
+if hist.empty:
+    st.caption('Chưa có lịch sử xử lý.')
+else:
+    hist_disp = hist.copy()
+    hist_disp['status'] = hist_disp['status'].map(lambda s: STATUS_LABELS.get(s, s))
+    hist_disp['actor'] = hist_disp['actor'].map(lambda a: 'Người dân' if str(a).strip().lower() == 'citizen' else (a or 'Hệ thống'))
+    hist_disp = hist_disp.rename(columns={
+        'ts': 'Thời điểm',
+        'status': 'Trạng thái',
+        'actor': 'Thực hiện bởi',
+        'note': 'Ghi chú',
+    })
+    df_show(hist_disp, hide_index=True)
 disclaimer()

@@ -41,7 +41,10 @@ with admin_tabs[0]:
     k4.metric('Mô hình AI', f"{'ONNX' if m_path.suffix == '.onnx' else 'PyTorch'} ({'Có' if m_path.is_file() else 'Thiếu'})")
 
     if telegram_configured() and st.button('Gửi tin nhắn kiểm tra Telegram'):
-        st.success('Đã gửi Telegram thành công!') if send_telegram('RoadWatch AI v5.0: Kết nối Telegram hoạt động tốt.') else st.error('Gửi Telegram thất bại.')
+        if send_telegram('RoadWatch AI v5.0: Kết nối Telegram hoạt động tốt.'):
+            st.success('Đã gửi Telegram thành công!')
+        else:
+            st.error('Gửi Telegram thất bại.')
 
     st.markdown('---')
     st.subheader('Trạng thái Kết nối Supabase (PostgreSQL + Storage CDN)')
@@ -197,7 +200,10 @@ with admin_tabs[1]:
                             st.error('Mật khẩu xác nhận không khớp.')
                         else:
                             err = reset_password(sel_user, reset_pw)
-                            st.error(err) if err else st.success(f'Đã đặt lại mật khẩu cho **{sel_user}**.')
+                            if err:
+                                st.error(err)
+                            else:
+                                st.success(f'Đã đặt lại mật khẩu cho **{sel_user}**.')
 
 # ── Tab 3: Định mức Đơn giá Vật tư ─────────────────────────────────────────
 with admin_tabs[2]:

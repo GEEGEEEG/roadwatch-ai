@@ -12,7 +12,12 @@ page_intro(
     'Nhập mã hồ sơ (ví dụ: RW-20261114...) hoặc quét mã QR sau khi gửi phản ánh để xem trạng thái xử lý.',
 )
 
-prefill_id = str(st.query_params.get('id') or st.session_state.get('_last_submitted_id') or '').strip()
+prefill_id = str(
+    st.query_params.get('id')
+    or st.session_state.get('_track_id')
+    or st.session_state.get('_last_submitted_id')
+    or ''
+).strip()
 
 with st.form('track_lookup_form'):
     col_in, col_btn = st.columns([3, 1])
@@ -24,7 +29,9 @@ with st.form('track_lookup_form'):
     )
     submitted = col_btn.form_submit_button('Tra cứu ngay', type='primary', use_container_width=True)
 
-target_id = code.strip() if (submitted or prefill_id) else ''
+if submitted:
+    st.session_state['_track_id'] = code.strip()
+target_id = (code.strip() if submitted else prefill_id).strip()
 if not target_id:
     st.markdown(
         '<div class="rw-empty"><b>Nhập mã hồ sơ để bắt đầu tra cứu.</b><br>'

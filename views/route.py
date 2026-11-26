@@ -40,22 +40,37 @@ if not assigned_df.empty and 'due_date' in assigned_df.columns:
     if not overdue_df.empty:
         st.error(f'**Cảnh báo quá hạn SLA:** Có **{len(overdue_df)}** hồ sơ đã giao kiểm tra vượt quá hạn hoàn thành!')
         with st.expander('Xem danh sách hồ sơ quá hạn & nhắc việc'):
-            df_show(overdue_df[['id', 'location_name', 'assigned_to', 'due_date', 'final_level']], hide_index=True)
+            overdue_disp = overdue_df[['id', 'location_name', 'assigned_to', 'due_date', 'final_level']].rename(columns={
+                'id': 'Mã hồ sơ',
+                'location_name': 'Vị trí',
+                'assigned_to': 'Phụ trách',
+                'due_date': 'Hạn xử lý',
+                'final_level': 'Mức độ',
+            })
+            df_show(overdue_disp, hide_index=True)
             if telegram_configured() and st.button('Gửi nhắc việc SLA qua Telegram'):
                 msg = (
                     f'[RoadWatch SLA] Có {len(overdue_df)} hồ sơ duy tu quá hạn xử lý:\n'
                     + '\n'.join(f"- {r.id}: {r.location_name} (Phụ trách: {r.assigned_to}, Hạn: {r.due_date})" for r in overdue_df.head(8).itertuples())
                 )
-                st.success('Đã gửi nhắc việc Telegram!') if send_telegram(msg) else st.error('Gửi Telegram thất bại.')
+                if send_telegram(msg):
+                    st.success('Đã gửi nhắc việc Telegram!')
+                else:
+                    st.error('Gửi Telegram thất bại.')
 
 top_n = st.slider('Số điểm ưu tiên cao nhất đưa vào lộ trình', 1, min(15, len(hs)), min(5, len(hs)))
 c1, c2 = st.columns(2)
 s_lat, s_lon = c1.text_input('Vĩ độ xuất phát (tùy chọn)'), c2.text_input('Kinh độ xuất phát (tùy chọn)')
 start = None
-try:
-    start = (float(s_lat), float(s_lon)) if s_lat and s_lon else None
-except ValueError:
-    st.warning('Tọa độ xuất phát không hợp lệ; bỏ qua.')
+if s_lat.strip() or s_lon.strip():
+    try:
+        la, lo = float(s_lat.strip().replace(',', '.')), float(s_lon.strip().replace(',', '.'))
+        if 8.0 <= la <= 24.0 and 102.0 <= lo <= 110.0:
+            start = (la, lo)
+        else:
+            st.warning('Tọa độ xuất phát ngoài phạm vi Việt Nam (vĩ độ 8–24, kinh độ 102–110); bỏ qua.')
+    except ValueError:
+        st.warning('Tọa độ xuất phát không hợp lệ; bỏ qua.')
 
 sel = hs.head(top_n)
 route = nearest_neighbor_route([(int(r.hotspot_id), r.latitude, r.longitude) for r in sel.itertuples()], start)
@@ -64,11 +79,11 @@ rows = []
 for order, (hid, lat, lon, leg) in enumerate(route, 1):
     r = by_id[hid]
     rows.append({
-        'Thứ tự': order,
+        'STT': order,
         'Điểm hư hỏng': r.location_name,
-        'Hạng ưu tiên': r.priority_rank,
+        'Hạng': r.priority_rank,
         'Mức độ': r.severity_label,
-        'Cách điểm trước (m)': leg,
+        'Khoảng cách (m)': leg,
         'Chỉ đường': maps_link(lat, lon),
         'hotspot_id': hid,
     })

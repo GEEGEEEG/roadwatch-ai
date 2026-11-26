@@ -102,7 +102,10 @@ def show():
                             st.error('Mật khẩu xác nhận không khớp.')
                         else:
                             err = change_password(st.session_state.get('officer_username', ''), old_pw, new_pw)
-                            st.success('Đổi mật khẩu thành công!') if not err else st.error(err)
+                            if not err:
+                                st.success('Đổi mật khẩu thành công!')
+                            else:
+                                st.error(err)
 
         with col2:
             st.markdown("""

@@ -130,8 +130,9 @@ with tab_wo:
             with t_prev:
                 with st.container(border=True):
                     st.markdown(edited)
-            if st.checkbox('Tôi đã đối chiếu số liệu và phê duyệt nội dung phiếu giao việc', key=f'wo_ok_{hid}'):
-                extra = edited.split('## 4.', 1)[1].split('\n', 1)[-1].strip() if '## 4.' in edited else ''
+            if not (edited or '').strip():
+                st.warning('Nội dung phiếu đang trống — vui lòng nhập nội dung hoặc bấm **Tạo bản thảo phiếu giao việc** lại trước khi phê duyệt và xuất file.')
+            elif st.checkbox('Tôi đã đối chiếu số liệu và phê duyệt nội dung phiếu giao việc', key=f'wo_ok_{hid}'):
                 wo_meta = {
                     'parent_org': parent_org,
                     'unit': unit_name,
@@ -146,14 +147,14 @@ with tab_wo:
                 d1, d2, d3 = st.columns(3)
                 d1.download_button(
                     'Tải Phiếu PDF (.pdf)',
-                    build_pdf(rec, local_img, extra, meta=wo_meta),
+                    build_pdf(rec, local_img, '', meta=wo_meta, edited_markdown=edited),
                     file_name=f"PhieuGiaoViec_{rec['id']}.pdf",
                     mime='application/pdf',
                     use_container_width=True,
                 )
                 d2.download_button(
                     'Tải Word chỉnh sửa (.docx)',
-                    build_work_order_docx(rec, local_img, extra, meta=wo_meta),
+                    build_work_order_docx(rec, local_img, '', meta=wo_meta, edited_markdown=edited),
                     file_name=f"PhieuGiaoViec_{rec['id']}.docx",
                     mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     use_container_width=True,
@@ -258,7 +259,7 @@ with tab_per:
 with tab_acc:
     fixed_df = df[df['status'] == 'fixed'].copy() if not df.empty else df
     if fixed_df.empty:
-        st.info('Chưa có hồ sơ nào ở trạng thái "Đã xử lý" (`fixed`). Hãy nghiệm thu ảnh sau sửa ở trang **Trước/sau sửa chữa** trước khi xuất biên bản.')
+        st.info('Chưa có hồ sơ nào ở trạng thái "Đã xử lý". Hãy nghiệm thu ảnh sau sửa ở trang **Trước/sau sửa chữa** trước khi xuất biên bản.')
     else:
         fixed_df = fixed_df.sort_values('fixed_at', ascending=False, na_position='last')
         acc_id = st.selectbox(
