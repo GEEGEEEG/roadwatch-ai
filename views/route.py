@@ -38,7 +38,7 @@ if not assigned_df.empty and 'due_date' in assigned_df.columns:
     due_dates = pd.to_datetime(assigned_df['due_date'], errors='coerce').dt.date
     overdue_df = assigned_df[due_dates < today_vn()]
     if not overdue_df.empty:
-        st.error(f'**Cảnh báo quá hạn SLA:** Có **{len(overdue_df)}** hồ sơ đã giao kiểm tra vượt quá hạn cam kết (`due_date`)!')
+        st.error(f'**Cảnh báo quá hạn SLA:** Có **{len(overdue_df)}** hồ sơ đã giao kiểm tra vượt quá hạn hoàn thành!')
         with st.expander('Xem danh sách hồ sơ quá hạn & nhắc việc'):
             df_show(overdue_df[['id', 'location_name', 'assigned_to', 'due_date', 'final_level']], hide_index=True)
             if telegram_configured() and st.button('Gửi nhắc việc SLA qua Telegram'):

@@ -23,9 +23,9 @@ current_user = st.session_state.get('officer_username', '')
 _is_admin = is_admin(current_user)
 
 admin_tabs = st.tabs([
-    'Hạ tầng Supabase & Dữ liệu',
-    'Quản lý Tài khoản Cán bộ (RBAC)',
-    'Định mức Đơn giá Vật tư',
+    'Hạ tầng & Dữ liệu',
+    'Tài khoản (RBAC)',
+    'Đơn giá vật tư',
 ])
 
 # ── Tab 1: Hạ tầng Supabase & Sao lưu ─────────────────────────────────────

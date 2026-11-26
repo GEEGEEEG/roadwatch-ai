@@ -21,8 +21,8 @@ page_intro(
 )
 
 v_tab1, v_tab2 = st.tabs([
-    'Chế độ Tuần đường Trực tiếp (Smart Patrol)',
-    'Phân tích Video & GPX có sẵn',
+    'Tuần đường trực tiếp',
+    'Phân tích Video + GPX',
 ])
 
 with v_tab1:

@@ -178,11 +178,23 @@ if len(items) == 1:
             _ma.metric('Số vùng phát hiện', len(_dets))
             _mb.metric('Mức độ sơ bộ', _sev['level'])
             _mc.metric('Diện tích ước tính', f"{_dmg_prev['total_damage_m2']:.2f} m²")
-            _md.metric('Thể tích ổ gà', f"{_dmg_prev.get('estimated_volume_liters', 0.0):.1f} L")
+            _vol_l = float(_dmg_prev.get('estimated_volume_liters', 0.0) or 0.0)
+            if _vol_l > 0:
+                _md.metric('Thể tích ổ gà', f'{_vol_l:.1f} L')
+            else:
+                _avg_c = sum(d['confidence'] for d in _dets) / len(_dets) if _dets else 0.0
+                _md.metric('Độ tin cậy TB', f'{_avg_c * 100:.0f}%')
         else:
             _ma, _mb = st.columns(2)
             _ma.metric('Số vùng phát hiện', len(_dets))
             _mb.metric('Mức độ sơ bộ', _sev['level'])
+
+        if _dets:
+            _det_tags = ' · '.join(
+                f"`{d['class_code']}` {d['class_name']} ({int(round(d['confidence'] * 100))}%)"
+                for d in _dets[:8]
+            )
+            st.caption(f'**Chi tiết phát hiện AI:** {_det_tags}')
 
         for qf in _qual_prev.get('flags', []):
             st.warning(f'Chất lượng ảnh đầu vào: **{qf}** — bạn có thể chụp lại ảnh rõ/sáng hơn để tăng độ chính xác.')
@@ -227,11 +239,23 @@ else:
                     ma.metric('Số khuyết tật', len(p_dets))
                     mb.metric('Mức độ sơ bộ', p_sev['level'])
                     mc.metric('Diện tích ước tính', f"{p_dmg['total_damage_m2']:.2f} m²")
-                    md.metric('Thể tích bù phụ', f"{p_dmg.get('estimated_volume_liters', 0.0):.1f} L")
+                    p_vol = float(p_dmg.get('estimated_volume_liters', 0.0) or 0.0)
+                    if p_vol > 0:
+                        md.metric('Thể tích ổ gà', f'{p_vol:.1f} L')
+                    else:
+                        p_avg = sum(d['confidence'] for d in p_dets) / len(p_dets) if p_dets else 0.0
+                        md.metric('Độ tin cậy TB', f'{p_avg * 100:.0f}%')
                 else:
                     ma, mb = st.columns(2)
                     ma.metric('Số khuyết tật', len(p_dets))
                     mb.metric('Mức độ sơ bộ', p_sev['level'])
+
+                if p_dets:
+                    p_tags = ' · '.join(
+                        f"`{d['class_code']}` {d['class_name']} ({int(round(d['confidence'] * 100))}%)"
+                        for d in p_dets[:8]
+                    )
+                    st.caption(f'**Chi tiết phát hiện AI:** {p_tags}')
 
                 for qf in p_qual.get('flags', []):
                     st.warning(f'Chất lượng ảnh **{p_name}**: {qf}')
@@ -331,6 +355,15 @@ if lat_txt.strip() or lon_txt.strip():
         cur_lat, cur_lon = _la, _lo
     except ValueError:
         st.warning('Tọa độ chưa hợp lệ: vĩ độ từ -90 đến 90, kinh độ từ -180 đến 180.')
+
+if cur_lat is not None and cur_lon is not None and not str(st.session_state.get('sub_loc_name', '')).strip():
+    if st.button('Tự điền tên đường từ tọa độ GPS', key='btn_retry_geocode'):
+        addr_retry = reverse_geocode(cur_lat, cur_lon)
+        if addr_retry:
+            st.session_state['_pending_coords'] = (str(cur_lat), str(cur_lon), st.session_state.get('sub_gps_src', 'GPS trình duyệt'), addr_retry)
+            st.rerun()
+        else:
+            st.info('Dịch vụ bản đồ chưa trả về tên đường cho tọa độ này; bạn có thể nhập tay tên tuyến bên dưới.')
 
 if st.toggle('Mở bản đồ GIS để chọn / kéo thả ghim tọa độ', value=False, key='show_location_picker'):
     st.caption('**Kéo ghim đỏ** hoặc **chạm vào mặt đường trên bản đồ** → tọa độ và tên đường tự động cập nhật tức thì.')

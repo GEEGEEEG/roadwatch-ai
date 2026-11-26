@@ -292,7 +292,7 @@ with left_col:
     """, unsafe_allow_html=True)
 
     safe_page_link('views/submit.py', label='Gửi phản ánh mặt đường', icon=None)
-    safe_page_link('views/track.py', label='Tra cứu mã hồ sơ RW-...', icon=None)
+    safe_page_link('views/track.py', label='Tra cứu hồ sơ (RW-...)', icon=None)
     safe_page_link('views/map.py', label='Mở bản đồ GIS toàn trang', icon=None)
     if is_officer():
         safe_page_link('views/queue.py', label='Vào hàng chờ thẩm định', icon=None)

@@ -31,14 +31,16 @@ overdue_urgent = int(((pending['ai_level'] == 'Cần kiểm tra sớm') & (age_h
 if overdue_urgent > 0:
     st.error(f'**Cảnh báo SLA:** Có **{overdue_urgent}** hồ sơ mức "Cần kiểm tra sớm" đã chờ quá 48 giờ cần ưu tiên thẩm định ngay!')
 
-col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
+col_kpi1, col_kpi2, col_kpi3, col_kpi4, col_kpi5 = st.columns(5)
 n_urgent = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Cần kiểm tra sớm')
 n_med = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Trung bình')
-n_low = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') in ('Nhẹ', 'Không phát hiện'))
+n_low = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Nhẹ')
+n_none = sum(1 for x in pending.itertuples() if getattr(x, 'ai_level', '') == 'Không phát hiện')
 col_kpi1.metric('Tổng hồ sơ chờ', len(pending))
 col_kpi2.metric('Khẩn cấp', n_urgent)
 col_kpi3.metric('Trung bình', n_med)
 col_kpi4.metric('Mức độ nhẹ', n_low)
+col_kpi5.metric('Không phát hiện', n_none)
 
 active = db.fetch_df(list(ACTIVE_STATUSES))
 labels = {
@@ -73,17 +75,25 @@ with right:
         img_show(p, caption='Ảnh có đánh dấu AI')
 
 custom_prices = db.get_setting('unit_prices')
-dmg_m2 = float(getattr(r, 'damage_area_m2', 0.0) or 0.15)
-dmg_vol = float(getattr(r, 'damage_volume_l', 0.0) or 5.0)
+raw_dmg_m2 = float(getattr(r, 'damage_area_m2', 0.0) or 0.0)
+raw_dmg_vol = float(getattr(r, 'damage_volume_l', 0.0) or 0.0)
+dmg_m2 = raw_dmg_m2 if raw_dmg_m2 > 0 else 0.15
+dmg_vol = raw_dmg_vol if raw_dmg_vol > 0 else (5.0 if int(getattr(r, 'count_D40', 0) or 0) > 0 else 0.0)
 cost_est = estimate_maintenance_cost(dmg_m2, dmg_vol, custom_prices=custom_prices)
 
 c = st.columns(5)
 c[0].metric('Số vùng', int(r.total_boxes))
 c[1].metric('Mức sơ bộ', r.ai_level)
 c[2].metric('Điểm quy tắc', r.ai_score)
-c[3].metric('Diện tích AI (m²)', f'{dmg_m2:.2f} m²' if dmg_m2 else '—')
+c[3].metric('Diện tích AI', f'{raw_dmg_m2:.2f} m²' if raw_dmg_m2 > 0 else f'~{dmg_m2:.2f} m²')
 c[4].metric('Dự toán sửa chữa', cost_est['formatted_total'])
-st.caption(f"**Vật tư dự trù:** {cost_est['material_detail']}")
+cls_parts = [
+    f"{code}: {int(getattr(r, f'count_{code}', 0) or 0)}"
+    for code in ('D00', 'D10', 'D20', 'D40')
+    if int(getattr(r, f'count_{code}', 0) or 0) > 0
+]
+cls_line = f" · **Phân loại AI:** {', '.join(cls_parts)} (độ tin cậy TB {float(getattr(r, 'avg_confidence', 0) or 0) * 100:.0f}%)" if cls_parts else ''
+st.caption(f"**Vật tư dự trù:** {cost_est['material_detail']}{cls_line}")
 
 for text in filter(None, (r.quality_flags or '').split('; ')):
     st.warning('Chất lượng ảnh: ' + text)

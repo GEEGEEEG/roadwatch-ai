@@ -57,13 +57,13 @@ saved_pairs = db.get_setting('ahp_pairs') or {
 custom_prices = db.get_setting('unit_prices')
 
 tab1, tab2, tab3 = st.tabs([
-    'Xếp hạng ưu tiên & Ma trận AHP',
-    'Quy hoạch Hành lang Xuống cấp (Corridors)',
-    'Dự toán Vật tư & Chi phí Duy tu',
+    'Xếp hạng & AHP',
+    'Hành lang xuống cấp',
+    'Dự toán duy tu',
 ])
 
 with tab1:
-    with st.expander('Hiệu chỉnh Ma trận So sánh cặp AHP (Thang Saaty 1/9 – 9 & Kiểm định CR < 0.10)', expanded=False):
+    with st.expander('Hiệu chỉnh Ma trận AHP (Thang Saaty 1/9–9 · CR < 0.10)', expanded=False):
         st.caption('Điều chỉnh tỷ lệ ưu tiên tương đối giữa 4 tiêu chí ($C_1$: Mức độ hư hại, $C_2$: Cấp đường, $C_3$: Tần suất phản ánh, $C_4$: Thời tiết/ngập):')
         p_cols1 = st.columns(3)
         c12 = p_cols1[0].slider('C1 so với C2 (Nghiêm trọng / Cấp đường)', 0.2, 9.0, float(saved_pairs.get('c12', 2.0)), 0.5)
@@ -124,14 +124,14 @@ with tab1:
         'priority_score', 'diem_AHP', 'trend_bonus', 'weather_bonus', 'ranking_reason',
     ]].rename(columns={
         'priority_rank': 'Hạng',
-        'location_name': 'Tuyến / Điểm nóng',
+        'location_name': 'Tuyến / Điểm',
         'severity_label': 'Mức độ',
-        'report_count': 'Số phản ánh',
+        'report_count': 'SL',
         'road_type': 'Cấp đường',
-        'priority_score': 'Điểm ưu tiên',
-        'diem_AHP': 'Điểm AHP',
-        'trend_bonus': 'Cộng xu hướng',
-        'weather_bonus': 'Cộng thời tiết',
+        'priority_score': 'Ưu tiên',
+        'diem_AHP': 'AHP',
+        'trend_bonus': 'Xu hướng',
+        'weather_bonus': 'Mưa',
         'ranking_reason': 'Lý do xếp hạng',
     })
     df_show(priority_display, hide_index=True)
