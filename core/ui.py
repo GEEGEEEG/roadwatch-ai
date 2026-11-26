@@ -283,12 +283,19 @@ def qr_png(text: str) -> bytes:
     return buf.getvalue()
 
 
-def page_intro(kicker: str, title: str, description: str, compact: bool = True):
+def page_intro(kicker: str, title: str, description: str, compact: bool = True, badge: str = 'Trực tuyến'):
     if compact:
+        badge_html = (
+            f'<span class="rw-live-pill"><span class="rw-live-dot"></span>{escape(badge)}</span>'
+            if badge
+            else ''
+        )
         st.markdown(
-            '<div class="rw-page-head"><h1>'
+            '<div class="rw-page-head"><div class="rw-page-head-top"><h1>'
             + escape(title)
-            + '</h1><p>'
+            + '</h1>'
+            + badge_html
+            + '</div><p>'
             + escape(description)
             + '</p></div>',
             unsafe_allow_html=True,
@@ -306,14 +313,22 @@ def page_intro(kicker: str, title: str, description: str, compact: bool = True):
     )
 
 
-def kpi_grid(items: list[tuple[str, object]], cols: int = 4) -> None:
-    """Responsive CSS Grid KPI cards (prevents 1-column vertical stacking at 1280px with open sidebar)."""
+def kpi_grid(items: list[tuple], cols: int = 4) -> None:
+    """Responsive CSS Grid KPI cards with optional semantic tone and sub-caption."""
     n = max(2, min(5, int(cols)))
-    cards = ''.join(
-        f'<div class="rw-kpi-card"><small>{escape(str(lbl))}</small><strong>{escape(str(val))}</strong></div>'
-        for lbl, val in items
-    )
-    st.markdown(f'<div class="rw-kpi-row rw-kpi-cols-{n}">{cards}</div>', unsafe_allow_html=True)
+    valid_tones = {'blue', 'green', 'amber', 'red', 'slate'}
+    card_list = []
+    for item in items:
+        lbl = item[0]
+        val = item[1]
+        tone = item[2] if len(item) >= 3 and item[2] in valid_tones else 'blue'
+        sub = item[3] if len(item) >= 4 and item[3] else ''
+        sub_html = f'<span class="rw-kpi-sub">{escape(str(sub))}</span>' if sub else ''
+        card_list.append(
+            f'<div class="rw-kpi-card rw-kpi-{tone}"><small>{escape(str(lbl))}</small>'
+            f'<strong>{escape(str(val))}</strong>{sub_html}</div>'
+        )
+    st.markdown(f'<div class="rw-kpi-row rw-kpi-cols-{n}">{"".join(card_list)}</div>', unsafe_allow_html=True)
 
 
 def steps(*items, active: int = 0):
