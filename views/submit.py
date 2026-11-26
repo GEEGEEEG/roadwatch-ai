@@ -96,9 +96,9 @@ if officer:
             index=0,
             help='640px chuẩn gốc YOLOv8 cho tốc độ nhanh nhất trên Cloud CPU; chọn 800-960px khi khảo sát vết nứt mảnh từ xa.',
         )
-        tta = st.checkbox('Chế độ chính xác cao (TTA)', value=False)
+        tta = st.checkbox('Chế độ chính xác cao (TTA)', value=True)
 else:
-    threshold, imgsz, tta = 0.25, 640, False
+    threshold, imgsz, tta = 0.25, 640, True
 
 st.subheader('01 · Thu thập hình ảnh hư hỏng')
 st.caption('Chụp trực tiếp tại hiện trường hoặc tải ảnh có sẵn từ bộ nhớ thiết bị.')

@@ -3,17 +3,15 @@ import streamlit as st
 
 from core import db
 from core.ahp import (
-    build_pairwise_matrix,
+    build_auto_ahp_matrix,
     compute_ahp_priority,
-    compute_ahp_weights,
     normalize_weather_component,
 )
 from core.constants import ACTIVE_STATUSES
 from core.corridor_hotspot import analyze_corridor_clusters
 from core.cost_estimation import estimate_maintenance_cost
-from core.priority import build_hotspots, compare_rankings
+from core.priority import build_hotspots
 from core.ui import (
-    current_actor,
     df_show,
     disclaimer,
     kpi_grid,
@@ -27,12 +25,12 @@ from core.weather import fetch_rain_forecast, rain_bonus
 require_officer(('admin', 'officer'))
 page_intro(
     'HỖ TRỢ RA QUYẾT ĐỊNH',
-    'Ưu tiên kiểm tra & Dự toán duy tu',
-    'So sánh điểm nóng theo trọng số thực nghiệm, ma trận toán học AHP chuẩn Saaty và lập dự toán ngân sách.',
+    'Ưu tiên kiểm tra & Dự toán sửa chữa',
+    'Sắp xếp thứ tự ưu tiên xử lý, phát hiện đoạn đường xuống cấp liên hoàn và lập dự toán kinh phí sửa chữa.',
 )
 weights, radius = weights_sidebar()
-use_trend = st.sidebar.checkbox('Cộng điểm nếu điểm đang nặng thêm', value=True)
-use_weather = st.sidebar.checkbox('Cộng điểm ổ gà khi dự báo mưa nhiều (Open-Meteo)', value=False)
+use_trend = st.sidebar.checkbox('Ưu tiên điểm đang xuống cấp thêm', value=True)
+use_weather = st.sidebar.checkbox('Ưu tiên ổ gà khi dự báo có mưa', value=False)
 
 df = db.fetch_df()
 base = build_hotspots(df, weights, radius, use_trend)
@@ -46,65 +44,26 @@ if use_weather:
     rain = fetch_rain_forecast(base.latitude.mean(), base.longitude.mean())
     if rain:
         rain_mm_val = rain['total_mm']
-        st.info(f"Dự báo mưa 3 ngày (tại tâm khu vực): {rain_mm_val} mm — cộng tối đa +5 điểm cho vị trí có ổ gà.")
+        st.info(f"Dự báo mưa 3 ngày tới: {rain_mm_val} mm — tự động tăng mức ưu tiên cho vị trí có ổ gà.")
         wb = {int(r.hotspot_id): rain_bonus(rain_mm_val, r.has_pothole) for r in base.itertuples()}
     else:
         st.warning('Không lấy được dự báo mưa; bỏ qua.')
 hs = build_hotspots(df, weights, radius, use_trend, wb) if wb else base
-
-saved_pairs = db.get_setting('ahp_pairs') or {
-    'c12': 2.0, 'c13': 3.0, 'c14': 4.0, 'c23': 2.0, 'c24': 3.0, 'c34': 2.0
-}
 custom_prices = db.get_setting('unit_prices')
 
 tab1, tab2, tab3 = st.tabs([
-    'Xếp hạng & AHP',
-    'Hành lang xuống cấp',
-    'Dự toán duy tu',
+    'Xếp hạng ưu tiên',
+    'Đoạn đường xuống cấp',
+    'Dự toán sửa chữa',
 ])
 
 with tab1:
-    with st.expander('Hiệu chỉnh Ma trận AHP (Thang Saaty 1/9–9 · CR < 0.10)', expanded=False):
-        st.caption('Điều chỉnh tỷ lệ ưu tiên tương đối giữa 4 tiêu chí ($C_1$: Mức độ hư hại, $C_2$: Cấp đường, $C_3$: Tần suất phản ánh, $C_4$: Thời tiết/ngập):')
-        p_cols1 = st.columns(3)
-        c12 = p_cols1[0].slider('C1 so với C2 (Nghiêm trọng / Cấp đường)', 0.2, 9.0, float(saved_pairs.get('c12', 2.0)), 0.5)
-        c13 = p_cols1[1].slider('C1 so với C3 (Nghiêm trọng / Tần suất)', 0.2, 9.0, float(saved_pairs.get('c13', 3.0)), 0.5)
-        c14 = p_cols1[2].slider('C1 so với C4 (Nghiêm trọng / Thời tiết)', 0.2, 9.0, float(saved_pairs.get('c14', 4.0)), 0.5)
-        p_cols2 = st.columns(3)
-        c23 = p_cols2[0].slider('C2 so với C3 (Cấp đường / Tần suất)', 0.2, 9.0, float(saved_pairs.get('c23', 2.0)), 0.5)
-        c24 = p_cols2[1].slider('C2 so với C4 (Cấp đường / Thời tiết)', 0.2, 9.0, float(saved_pairs.get('c24', 3.0)), 0.5)
-        c34 = p_cols2[2].slider('C3 so với C4 (Tần suất / Thời tiết)', 0.2, 9.0, float(saved_pairs.get('c34', 2.0)), 0.5)
-
-        ahp_matrix = build_pairwise_matrix(c12, c13, c14, c23, c24, c34)
-        ahp_meta = compute_ahp_weights(ahp_matrix)
-        w = ahp_meta['weights']
-
-        if ahp_meta['is_consistent']:
-            st.success(
-                f"**Ma trận nhất quán logic ($CR = {ahp_meta['CR']} < 0.10$, $\\lambda_{{max}} = {ahp_meta['lambda_max']}$, $CI = {ahp_meta['CI']}$)** — "
-                f"Trọng số: **C1={w[0]*100:.1f}% · C2={w[1]*100:.1f}% · C3={w[2]*100:.1f}% · C4={w[3]*100:.1f}%**"
-            )
-        else:
-            st.error(
-                f"**Ma trận mâu thuẫn bắc cầu ($CR = {ahp_meta['CR']} \\ge 0.10$)!** "
-                "Theo chuẩn Saaty, vui lòng điều chỉnh lại các tỷ lệ so sánh cặp cho nhất quán trước khi lưu."
-            )
-
-        btn_save_ahp, btn_reset_ahp = st.columns([1, 1])
-        if btn_save_ahp.button('Lưu bộ ma trận AHP này làm mặc định', disabled=not ahp_meta['is_consistent']):
-            db.set_setting(
-                'ahp_pairs',
-                {'c12': c12, 'c13': c13, 'c14': c14, 'c23': c23, 'c24': c24, 'c34': c34},
-                actor=current_actor(),
-            )
-            st.success('Đã lưu cấu hình ma trận AHP lên cơ sở dữ liệu!')
-        if btn_reset_ahp.button('Khôi phục ma trận Saaty tiêu chuẩn'):
-            db.set_setting(
-                'ahp_pairs',
-                {'c12': 2.0, 'c13': 3.0, 'c14': 4.0, 'c23': 2.0, 'c24': 3.0, 'c34': 2.0},
-                actor=current_actor(),
-            )
-            st.rerun()
+    severe_ratio = float((hs['severity_label'] == 'Cần kiểm tra sớm').mean()) if not hs.empty else 0.0
+    ahp_matrix, _ahp_meta = build_auto_ahp_matrix(
+        weights=weights,
+        rain_mm=rain_mm_val,
+        severe_ratio=severe_ratio,
+    )
 
     ahp_scores = []
     for r in hs.itertuples():
@@ -121,58 +80,39 @@ with tab1:
 
     st.subheader('Bảng xếp hạng ưu tiên xử lý')
     priority_display = hs[[
-        'priority_rank', 'location_name', 'severity_label', 'report_count', 'road_type',
-        'priority_score', 'diem_AHP', 'trend_bonus', 'weather_bonus', 'ranking_reason',
+        'priority_rank', 'location_name', 'severity_label', 'report_count', 'road_type', 'priority_score',
     ]].copy()
     priority_display['road_type'] = priority_display['road_type'].astype(str).str.replace(' (minh họa)', '', regex=False)
     priority_display = priority_display.rename(columns={
         'priority_rank': 'Hạng',
         'location_name': 'Điểm hư hỏng',
         'severity_label': 'Mức độ',
-        'report_count': 'SL',
+        'report_count': 'Số phản ánh',
         'road_type': 'Cấp đường',
-        'priority_score': 'Ưu tiên',
-        'diem_AHP': 'AHP',
-        'trend_bonus': 'Xu hướng',
-        'weather_bonus': 'Mưa',
-        'ranking_reason': 'Lý do xếp hạng',
+        'priority_score': 'Điểm ưu tiên',
     })
     df_show(
         priority_display,
         hide_index=True,
         column_config={
             'Hạng': st.column_config.NumberColumn('Hạng', width='small'),
-            'SL': st.column_config.NumberColumn('SL', width='small'),
+            'Số phản ánh': st.column_config.NumberColumn('Số phản ánh', width='small'),
             'Cấp đường': st.column_config.TextColumn('Cấp đường', width='medium'),
-            'Ưu tiên': st.column_config.NumberColumn('Ưu tiên', width='small'),
-            'AHP': st.column_config.NumberColumn('AHP', width='small'),
+            'Điểm ưu tiên': st.column_config.NumberColumn('Điểm ưu tiên', width='small'),
         },
     )
-    chart_df = hs[['location_name', 'priority_score', 'diem_AHP']].copy()
+    chart_df = hs[['location_name', 'priority_score']].copy()
     chart_df['location_name'] = chart_df['location_name'].astype(str).map(
         lambda s: s if len(s) <= 24 else s[:23] + '…'
     )
-    chart_df = chart_df.set_index('location_name').rename(
-        columns={'priority_score': 'Điểm ưu tiên', 'diem_AHP': 'Điểm AHP'}
-    )
+    chart_df = chart_df.set_index('location_name').rename(columns={'priority_score': 'Điểm ưu tiên'})
     with st.container(border=True, key='rw_glass_pri_chart'):
-        st.caption('So sánh trực quan Điểm ưu tiên (50-30-20) và Điểm AHP theo vị trí')
+        st.caption('So sánh nhanh điểm ưu tiên giữa các vị trí (thang 0–100)')
         st.bar_chart(chart_df, use_container_width=True)
 
-    with st.expander('Kiểm tra độ ổn định xếp hạng (Spearman)'):
-        c = st.columns(3)
-        wa = (c[0].number_input('A: mức độ', 0, 100, 50), c[1].number_input('A: tần suất', 0, 100, 30), c[2].number_input('A: tuyến', 0, 100, 20))
-        c = st.columns(3)
-        wb2 = (c[0].number_input('B: mức độ', 0, 100, 20), c[1].number_input('B: tần suất', 0, 100, 20), c[2].number_input('B: tuyến', 0, 100, 60))
-        cmp, rho = compare_rankings(df, wa, wb2, radius)
-        if not cmp.empty:
-            df_show(cmp.rename(columns={'priority_rank_A': 'hạng A', 'priority_rank_B': 'hạng B', 'rank_change': 'đổi hạng (A−B)'}), hide_index=True)
-            if rho is not None:
-                st.metric('Hệ số tương quan hạng (Spearman ρ)', f'{rho:.2f}')
-
 with tab2:
-    st.subheader('Phân tích Cụm Tuyến Đường (Corridor Clustering)')
-    st.caption('Tự động liên kết các điểm hư hỏng đã xác minh cách nhau ≤ 250m. Cụm ≥ 3 điểm được gắn cảnh báo **Xuống cấp diện rộng** để chuyển sang phương án thảm nhựa đồng bộ.')
+    st.subheader('Các đoạn đường xuống cấp liên hoàn')
+    st.caption('Tự động gom các điểm hư hỏng đã xác minh cách nhau ≤ 250 m. Cụm từ 3 điểm trở lên được đề xuất thảm nhựa đồng bộ.')
     corridors = analyze_corridor_clusters(df, max_distance_m=250.0, min_cluster_size=3)
     if not corridors:
         st.info('Chưa phát hiện cụm hư hỏng tập trung nào.')
@@ -184,13 +124,13 @@ with tab2:
                     st.markdown(f"### {c_item['proposal']}")
                     st.write(f"**Tuyến đại diện:** {c_item['location_summary']}")
                     st.write(f"**Quy mô:** {c_item['cluster_size']} điểm | **Chiều dài ảnh hưởng:** ~{c_item['span_length_m']} m | **Diện tích:** {c_item['total_area_m2']:.2f} m²")
-                    st.caption(f"Danh sách mã hồ sơ: {', '.join(c_item['report_ids'][:8])}")
+                    st.caption(f"Mã phản ánh liên quan: {', '.join(c_item['report_ids'][:8])}")
                 with col_right:
                     st.metric('Dự toán sửa chữa cụm', c_item['formatted_cost'])
                     st.caption(f"Vật tư: {c_item['material_detail']}")
 
 with tab3:
-    st.subheader('Dự toán Khối lượng Vật tư & Kinh phí Duy tu (Chỉ tính điểm Đã xác minh / Đang giao)')
+    st.subheader('Dự toán vật tư & kinh phí sửa chữa')
     st.caption('Tính toán chi tiết theo từng điểm nóng đang hoạt động, không tính nhầm hồ sơ đã đóng hoặc từ chối.')
 
     active_df = df[df.status.isin(ACTIVE_STATUSES)].copy()
@@ -228,7 +168,20 @@ with tab3:
 
     cost_table = pd.DataFrame(cost_rows)
     if not cost_table.empty:
-        df_show(cost_table, hide_index=True)
+        cost_disp = cost_table.rename(columns={
+            'Vị trí điểm nóng': 'Vị trí',
+            'Số hồ sơ': 'Số phản ánh',
+            'Tổng cộng (VNĐ)': 'Tổng dự toán (VNĐ)',
+        })[['Hạng', 'Vị trí', 'Số phản ánh', 'Diện tích (m²)', 'Phương án vật tư', 'Tổng dự toán (VNĐ)']]
+        df_show(
+            cost_disp,
+            hide_index=True,
+            column_config={
+                'Hạng': st.column_config.NumberColumn('Hạng', width='small'),
+                'Số phản ánh': st.column_config.NumberColumn('Số phản ánh', width='small'),
+                'Diện tích (m²)': st.column_config.NumberColumn('Diện tích (m²)', width='small'),
+            },
+        )
         st.download_button(
             'Xuất bảng dự toán chi tiết (.csv)',
             safe_csv_export(cost_table),
