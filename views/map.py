@@ -38,13 +38,15 @@ corridors = analyze_corridor_clusters(df, max_distance_m=250.0, min_cluster_size
 wide_degradations = [c for c in corridors if c['is_wide_degradation']]
 if wide_degradations:
     top_c = wide_degradations[0]
-    st.error(
-        f"**CẢNH BÁO QUY HOẠCH TUYẾN:** **{top_c['location_summary']}** xuất hiện cụm **{top_c['cluster_size']} điểm hư hỏng liên hoàn** "
-        f"(trải dài ~{top_c['span_length_m']} m). **{top_c['proposal']}** · Dự toán: ~{top_c['formatted_cost']}."
+    st.warning(
+        f"**Cảnh báo cụm hư hỏng tập trung:** Khu vực **{top_c['location_summary']}** có **{top_c['cluster_size']} điểm hư hỏng liên hoàn** "
+        f"(trải dài ~{top_c['span_length_m']} m, tổng diện tích vết hư hỏng ước tính ~{top_c['total_area_m2']:.2f} m²). "
+        f"{top_c['proposal']} — dự toán xử lý cục bộ các điểm trong cụm: **~{top_c['formatted_cost']}**."
     )
 
 with st.container(border=True, key='rw_glass_map_filter'):
-    levels = st.multiselect('Lọc theo mức độ', LEVELS, default=LEVELS)
+    avail_levels = [lv for lv in LEVELS if lv != 'Không phát hiện' or (hs.severity_label == 'Không phát hiện').any()]
+    levels = st.multiselect('Lọc theo mức độ', avail_levels, default=avail_levels)
     col_f1, col_f2 = st.columns(2)
     heat = col_f1.checkbox('Hiện bản đồ nhiệt')
     show_corridors = col_f2.checkbox('Hiện hành lang xuống cấp', value=True)
@@ -67,7 +69,7 @@ if show_corridors and wide_degradations:
             f"Tuyến: {escape(cor['location_summary'])}<br>"
             f"Quy mô: {cor['cluster_size']} điểm (~{cor['span_length_m']} m)<br>"
             f"Tổng diện tích hư hại: {cor['total_area_m2']} m²<br>"
-            f"Dự toán thảm lại: <b>{escape(cor['formatted_cost'])}</b>"
+            f"Dự toán xử lý cục bộ cụm: <b>{escape(cor['formatted_cost'])}</b>"
         )
         if len(coords) >= 2:
             folium.PolyLine(
@@ -125,5 +127,5 @@ if heat:
 
 with st.container(border=True, key='rw_glass_map_frame'):
     components.html(m.get_root().render(), height=540, scrolling=False)
-st.caption('Bản đồ công khai chỉ hiển thị các vị trí đã được cán bộ xác minh. Vùng khoanh đỏ biểu thị cụm hư hỏng liên hoàn khuyến nghị thảm lại toàn phần.')
+st.caption('Bản đồ công khai chỉ hiển thị các vị trí đã được cán bộ xác minh. Vùng khoanh đỏ biểu thị cụm hư hỏng tập trung cần khảo sát và xử lý đồng bộ theo tuyến.')
 disclaimer()
