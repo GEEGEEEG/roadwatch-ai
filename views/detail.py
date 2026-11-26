@@ -30,9 +30,16 @@ st.link_button('Chỉ đường Google Maps', maps_link(r.latitude, r.longitude)
 a, b = st.columns(2)
 for col, rel, cap in ((a, r.image_file, 'Ảnh gốc'), (b, r.annotated_file, 'Ảnh khoanh vùng AI')):
     p = image_url_or_file(rel, public_only=False)
-    if p:
-        with col:
+    with col:
+        if p:
             img_show(p, caption=cap)
+        else:
+            st.markdown(
+                f'<div style="border:1px dashed rgba(148,163,184,0.35);border-radius:14px;'
+                f'padding:36px 20px;text-align:center;color:#94A3B8;background:rgba(15,23,42,0.45);">'
+                f'<b>{cap}</b><br><span style="font-size:0.85rem;">Không có ảnh hiển thị cho mục này.</span></div>',
+                unsafe_allow_html=True,
+            )
 
 if r.after_image_file:
     p = image_url_or_file(r.after_image_file, public_only=False)

@@ -133,6 +133,30 @@ with admin_tabs[0]:
                 file_name='RoadWatch_all_reports.csv',
                 mime='text/csv',
             )
+            if _is_admin:
+                with st.expander('Xóa bản ghi test / dữ liệu rác (Chỉ dành cho Quản trị viên)', expanded=False):
+                    del_opts = {
+                        r.id: f"{r.id} — {r.location_name or 'Chưa rõ vị trí'} ({STATUS_LABELS.get(r.status, r.status)})"
+                        for _, r in df.iterrows()
+                    }
+                    del_id = st.selectbox(
+                        'Chọn mã phản ánh cần xóa vĩnh viễn',
+                        list(del_opts),
+                        format_func=del_opts.get,
+                        key='adm_del_report_id',
+                    )
+                    confirm_del = st.checkbox(
+                        f'Xác nhận xóa vĩnh viễn bản ghi {del_id} khỏi cơ sở dữ liệu',
+                        key='adm_del_confirm',
+                    )
+                    if st.button('Xóa bản ghi đã chọn', disabled=not confirm_del, key='adm_del_btn'):
+                        if db.delete_report(del_id):
+                            st.success(f'Đã xóa vĩnh viễn bản ghi {del_id}.')
+                            st.rerun()
+                        else:
+                            st.warning('Không tìm thấy bản ghi để xóa.')
+            else:
+                st.caption('Chức năng xóa vĩnh viễn bản ghi chỉ dành cho Quản trị viên hệ thống.')
 
     with st.container(border=True, key='rw_glass_adm_bak'):
         st.subheader('Sao lưu & Khôi phục dữ liệu')

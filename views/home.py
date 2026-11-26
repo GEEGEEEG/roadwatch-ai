@@ -50,9 +50,14 @@ st.markdown("""
 }
 .sol-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0 18px 0;
+}
+@media (max-width: 640px) {
+  .sol-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .sol-kpi {
   background:

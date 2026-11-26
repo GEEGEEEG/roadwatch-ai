@@ -123,6 +123,7 @@ for _, r in hs.iterrows():
 if heat:
     HeatMap([[r.latitude, r.longitude, r.priority_score / 100] for _, r in hs.iterrows()], radius=25).add_to(m)
 
-components.html(m.get_root().render(), height=540, scrolling=False)
+with st.container(border=True, key='rw_glass_map_frame'):
+    components.html(m.get_root().render(), height=540, scrolling=False)
 st.caption('Bản đồ công khai chỉ hiển thị các vị trí đã được cán bộ xác minh. Vùng khoanh đỏ biểu thị cụm hư hỏng liên hoàn khuyến nghị thảm lại toàn phần.')
 disclaimer()

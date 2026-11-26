@@ -142,7 +142,7 @@ with st.form('review'):
     reason = st.text_input('Lý do (nếu từ chối)')
     a, b = st.columns(2)
     approve = a.form_submit_button('Duyệt', type='primary', disabled=not ok)
-    reject = b.form_submit_button('Từ chối', disabled=not ok)
+    reject = b.form_submit_button('Từ chối')
 
 if approve:
     if not ok or not loc.strip():

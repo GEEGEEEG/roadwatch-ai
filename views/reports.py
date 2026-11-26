@@ -37,8 +37,8 @@ from core.ui import (
 require_officer(('admin', 'officer'))
 page_intro(
     'HỒ SƠ BÁO CÁO HÀNH CHÍNH',
-    'Phiếu giao việc, Báo cáo định kỳ & Biên bản nghiệm thu',
-    'Xuất văn bản chuẩn hành chính (PDF in ký ngay, Word .docx chỉnh sửa tiếp, CSV bảng số liệu) kèm nhận xét hỗ trợ từ Gemini AI.',
+    'Báo cáo & Văn bản hành chính',
+    'Xuất phiếu giao việc, báo cáo định kỳ và biên bản nghiệm thu (PDF, Word .docx, CSV) kèm hỗ trợ soạn thảo tự động.',
 )
 weights, radius = weights_sidebar()
 df = db.fetch_df()
