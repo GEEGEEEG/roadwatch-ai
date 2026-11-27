@@ -465,7 +465,7 @@ with right_col:
 st.markdown("""
 <section class="rw-section">
   <span class="rw-overline">Tiêu chuẩn nhận diện RDD2022</span>
-  <h2>Bốn nhóm khuyết tật mặt đường AI tự động phát hiện</h2>
+  <h2>Bốn nhóm hư hại mặt đường</h2>
 </section>
 <div class="rw-defect-grid">
   <div class="rw-defect-card" style="--defect-accent: #F87171;">
